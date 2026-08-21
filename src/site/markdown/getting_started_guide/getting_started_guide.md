@@ -4,7 +4,7 @@
 
 Download the latest release from GitHub:
 
-[![Release Version](https://img.shields.io/github/v/release/jiangxincode/ApkToolBoxGUI?include_prereleases&sort=semver)](https://github.com/jiangxincode/ApkToolBoxGUI/releases/latest)
+[![Release Version](https://img.shields.io/github/v/release/AloysHF/ApkToolBoxGUI?include_prereleases&sort=semver)](https://github.com/AloysHF/ApkToolBoxGUI/releases/latest)
 
 There are two types of package:
 

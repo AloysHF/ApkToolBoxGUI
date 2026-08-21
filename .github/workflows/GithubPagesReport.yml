@@ -32,11 +32,11 @@ jobs:
       - name: Push to github pages
         run: |
           cd ./target/site
-          git config --global user.name "jiangxincode"
+          git config --global user.name "AloysHF"
           git config --global user.email "jiangxinnju@163.com"
           git init
           git add .
           git commit -m "update gh-pages"
           # Sometimes if this github actions is triggered multiple times in a short period, the push may fail due to conflicts
           # So we just ignore the error here and try to push again next time
-          git push -f https://jiangxincode:${{secrets.GITHUB_TOKEN}}@github.com/jiangxincode/ApkToolBoxGUI.git master:gh-pages || echo "Git push failed: $?"
+          git push -f https://AloysHF:${{secrets.GITHUB_TOKEN}}@github.com/AloysHF/ApkToolBoxGUI.git master:gh-pages || echo "Git push failed: $?"

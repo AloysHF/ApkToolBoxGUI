@@ -6,4 +6,4 @@ A useful little color picker that grabs the pixel under your mouse and transform
 
 ### Snapshot
 
-![ColorPicker](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/ColorPicker.png)
+![ColorPicker](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/ColorPicker.png)

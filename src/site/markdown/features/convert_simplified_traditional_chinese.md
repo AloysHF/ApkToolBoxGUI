@@ -2,4 +2,4 @@
 
 ### Snapshot
 
-![SimpleTraditional](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/SimpleTraditional_01.png)
+![SimpleTraditional](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/SimpleTraditional_01.png)

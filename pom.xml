@@ -8,7 +8,7 @@
     <description>ApkToolBoxGUI is a handy tool for programmer with user-friendly GUI. </description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <sonar.organization>jiangxincode-github</sonar.organization>
+        <sonar.organization>aloyshf-github</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <pdf.version>3.0.8</pdf.version>
         <poi.version>5.5.1</poi.version>

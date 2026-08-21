@@ -22,7 +22,7 @@ I am only providing a generic tool, you are the one who decides what to do with 
 
 Open the window by click menu: `File->Recover File Password`
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_01.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_01.png)
 
 #### Select the `Checker`
    
@@ -38,17 +38,17 @@ A checker is the tool to attempt each possible password. Different file type nee
 * `Office File Checker(XML-based formats)`: Support `XML-based` office formats like: docx/pptx/xlsx.
 * `Office File Checker(Binary formats)`: Support `Binary-based` office formats like: doc/ppt/xls.
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_02.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_02.png)
 
 WARNING: Some checkers need to config the path of tool!
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_03.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_03.png)
 
 #### Select the file which need to be recovered
 
 Select the file which need to be recovered, the file format is need to be matched with the chosen checker.
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_04.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_04.png)
 
 #### Select the type of generating possible passwords
 
@@ -60,17 +60,17 @@ If you select dictionary:
 * Select on password dictionary
 * Set thread number depend on your PC power
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_05.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_05.png)
 
 If you select brute-force:
 
 * Select/Unselect the character type of possible password
 * Set the length of the possible password
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_06.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_06.png)
 
 #### Start the recovery
 
 Click the `Start` button and wait the result(Found or Not Found). It will show a dialog whatever the result is.
 
-![Recover_Password](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/Recover_Password_07.png)
+![Recover_Password](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/Recover_Password_07.png)

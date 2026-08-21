@@ -1,6 +1,6 @@
 ## How To Contribute
 
-* Report a bug or request a new feature by [Open an issue](https://github.com/jiangxincode/ApkToolBoxGUI/issues/new)
+* Report a bug or request a new feature by [Open an issue](https://github.com/AloysHF/ApkToolBoxGUI/issues/new)
 
 * Submit Pull Request if you are interested in development with us:
   * Fix some bugs

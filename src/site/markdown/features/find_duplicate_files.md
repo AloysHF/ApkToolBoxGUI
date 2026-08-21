@@ -54,8 +54,8 @@ The duplicate file finder helps you identify and manage duplicate files efficien
 
 ### Screenshots
 
-![DuplicateFile](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/DuplicateFile_01.png)
-![DuplicateFile](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/DuplicateFile_02.png)
+![DuplicateFile](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/DuplicateFile_01.png)
+![DuplicateFile](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/DuplicateFile_02.png)
 
 ### Performance Tips
 

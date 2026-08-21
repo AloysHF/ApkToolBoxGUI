@@ -23,7 +23,7 @@
                 <href>/index.html</href>
             </topBarIcon>
             <gitHub>
-                <projectId>jiangxincode/ApkToolBoxGUI</projectId>
+                <projectId>AloysHF/ApkToolBoxGUI</projectId>
                 <ribbonOrientation>right</ribbonOrientation>
                 <ribbonColor>green</ribbonColor>
             </gitHub>
@@ -63,8 +63,8 @@
             <item name="Dependency Information" href="dependency-info.html"/>
             <item name="Plugin Management" href="plugin-management.html"/>
             <item name="Plugins" href="plugins.html"/>
-            <item name="Star History" href="https://star-history.com/#jiangxincode/ApkToolBoxGUI&amp;Date"/>
-            <item name="Github Release Statistics" href="https://qii404.me/github-release-statistics/?repo=/jiangxincode/ApkToolBoxGUI"/>
+            <item name="Star History" href="https://star-history.com/#AloysHF/ApkToolBoxGUI&amp;Date"/>
+            <item name="Github Release Statistics" href="https://qii404.me/github-release-statistics/?repo=/AloysHF/ApkToolBoxGUI"/>
             <item name="Github Statistics" href="https://vesoft-inc.github.io/github-statistics"/>
             <item name="Other Project Reports" href="project-reports.html"/>
         </menu>

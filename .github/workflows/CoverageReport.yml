@@ -29,12 +29,6 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Generate coverage report
         run: mvn clean test jacoco:report
-      - name: Publish coverage report to QLTY
-        uses: qltysh/qlty-action/coverage@v2
-        with:
-          token: ${{ secrets.QLTY_COVERAGE_TOKEN }}
-          files: target/site/jacoco/jacoco.xml
-          add-prefix: src/main/java/
       - name: Publish coverage report to Codacy
         uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:

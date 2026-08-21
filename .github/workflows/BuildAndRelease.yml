@@ -77,7 +77,7 @@ jobs:
             --- PUBLISH GITHUB RELEASE HERE ---
             --- DELETE EVERYTHING ABOVE THIS LINE ---
 
-            This is a binary release of ApkToolBoxGUI for Linux/MacOS/Windows. To use it follow these [instructions](https://jiangxincode.github.io/ApkToolBoxGUI/).
+            This is a binary release of ApkToolBoxGUI for Linux/MacOS/Windows. To use it follow these [instructions](https://aloyshf.github.io/ApkToolBoxGUI/).
 
             - new feature 1
             - new feature 2

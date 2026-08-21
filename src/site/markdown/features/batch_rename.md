@@ -2,7 +2,7 @@
 
 ### Snapshot
 
-![DuplicateFile](https://raw.githubusercontent.com/wiki/jiangxincode/ApkToolBoxGUI/BatchRename.png)
+![DuplicateFile](https://raw.githubusercontent.com/wiki/AloysHF/ApkToolBoxGUI/BatchRename.png)
 
 ### Example
 

@@ -35,7 +35,7 @@ jobs:
           ./${INFER_FILENAME}/bin/infer --java-version 21 --sarif -- mvn -DskipTests=true clean package
           ls -al ./infer-out/
       - name: Upload SARIF output to GitHub Security Center
-        uses: github/codeql-action/upload-sarif@v4.37.5
+        uses: github/codeql-action/upload-sarif@v4.37.8
         with:
            sarif_file: infer-out/report.sarif
            category: infer

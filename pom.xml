@@ -14,7 +14,7 @@
         <poi.version>5.5.1</poi.version>
         <itext.version>9.7.1</itext.version>
         <log4j.version>2.26.1</log4j.version>
-        <surefire.version>3.5.6</surefire.version>
+        <surefire.version>3.6.0</surefire.version>
     </properties>
     <dependencyManagement>
         <dependencies>

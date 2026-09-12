@@ -2,7 +2,7 @@ package edu.jiangxin.apktoolbox.reverse;
 
 import edu.jiangxin.apktoolbox.swing.extend.listener.SelectFileListener;
 import edu.jiangxin.apktoolbox.swing.extend.plugin.PluginPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,118 +41,78 @@ public class ApkSignerPanel extends PluginPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("APK Signing"));
 
         createApkPathPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createKeyStorePathPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createKeyStorePasswordPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createAliasPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createAliasPasswordPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOptionPanel();
     }
 
     private void createOptionPanel() {
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        add(operationPanel);
-
-        JButton recoverButton = new JButton("recover");
+        JButton recoverButton = UiKit.secondaryButton("Recover Defaults");
         recoverButton.addActionListener(new RecoverButtonActionListener());
 
-        JButton apkSignButton = new JButton("apksigner");
+        JButton apkSignButton = UiKit.primaryButton("Sign APK");
         apkSignButton.addActionListener(new ApkSignButtonActionListener());
 
-        operationPanel.add(recoverButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(apkSignButton);
+        add(UiKit.actionRow(recoverButton, apkSignButton));
     }
 
     private void createAliasPasswordPanel() {
-        JPanel aliasPasswordPanel = new JPanel();
-        aliasPasswordPanel.setLayout(new BoxLayout(aliasPasswordPanel, BoxLayout.X_AXIS));
-        add(aliasPasswordPanel);
-        
         aliasPasswordField = new JPasswordField();
         aliasPasswordField.setText(conf.getString("apksigner.alias.password"));
-
-        JLabel aliasPasswordLable = new JLabel("Alias Password");
-
-        aliasPasswordPanel.add(aliasPasswordField);
-        aliasPasswordPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        aliasPasswordPanel.add(aliasPasswordLable);
+        aliasPasswordField.setPreferredSize(new Dimension(0, UiKit.FIELD_HEIGHT));
+        aliasPasswordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT));
+        add(UiKit.formRow("Alias Password", aliasPasswordField));
     }
 
     private void createAliasPanel() {
-        JPanel aliasPanel = new JPanel();
-        aliasPanel.setLayout(new BoxLayout(aliasPanel, BoxLayout.X_AXIS));
-        add(aliasPanel);
-        
-        aliasTextField = new JTextField();
+        aliasTextField = UiKit.field(new JTextField());
         aliasTextField.setText(conf.getString("apksigner.alias"));
-
-        JLabel aliasLable = new JLabel("Alias");
-
-        aliasPanel.add(aliasTextField);
-        aliasPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        aliasPanel.add(aliasLable);
+        add(UiKit.formRow("Alias", aliasTextField));
     }
 
     private void createKeyStorePasswordPanel() {
-        JPanel keyStorePasswordPanel = new JPanel();
-        keyStorePasswordPanel.setLayout(new BoxLayout(keyStorePasswordPanel, BoxLayout.X_AXIS));
-        add(keyStorePasswordPanel);
-        
         keyStorePasswordField = new JPasswordField();
         keyStorePasswordField.setText(conf.getString("apksigner.keystore.password"));
-
-        JLabel keyStorePasswordLable = new JLabel("KeyStore Password");
-
-        keyStorePasswordPanel.add(keyStorePasswordField);
-        keyStorePasswordPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        keyStorePasswordPanel.add(keyStorePasswordLable);
+        keyStorePasswordField.setPreferredSize(new Dimension(0, UiKit.FIELD_HEIGHT));
+        keyStorePasswordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT));
+        add(UiKit.formRow("KeyStore Password", keyStorePasswordField));
     }
 
     private void createKeyStorePathPanel() {
-        JPanel keyStorePathPanel = new JPanel();
-        keyStorePathPanel.setLayout(new BoxLayout(keyStorePathPanel, BoxLayout.X_AXIS));
-        add(keyStorePathPanel);
-        
-        keyStorePathTextField = new JTextField();
+        keyStorePathTextField = UiKit.field(new JTextField());
         keyStorePathTextField.setText(conf.getString("apksigner.keystore.path"));
 
-        JButton keyStorePathButton = new JButton("Select KeyStore");
+        JButton keyStorePathButton = UiKit.secondaryButton("Browse...");
         keyStorePathButton.addActionListener(new SelectFileListener("select a keystore file", keyStorePathTextField));
 
-        keyStorePathPanel.add(keyStorePathTextField);
-        keyStorePathPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        keyStorePathPanel.add(keyStorePathButton);
+        add(UiKit.formRow("KeyStore", keyStorePathTextField, keyStorePathButton));
     }
 
     private void createApkPathPanel() {
-        JPanel apkPathPanel = new JPanel();
-        apkPathPanel.setLayout(new BoxLayout(apkPathPanel, BoxLayout.X_AXIS));
-        add(apkPathPanel);
-
-        apkPathTextField = new JTextField();
+        apkPathTextField = UiKit.field(new JTextField());
         apkPathTextField.setText(conf.getString("apksigner.apk.path"));
 
-        JButton apkPathButton = new JButton("Select APK");
+        JButton apkPathButton = UiKit.secondaryButton("Browse...");
         apkPathButton.addActionListener(new SelectFileListener("select a APK file", apkPathTextField));
 
-        apkPathPanel.add(apkPathTextField);
-        apkPathPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        apkPathPanel.add(apkPathButton);
+        add(UiKit.formRow("APK", apkPathTextField, apkPathButton));
     }
     
     private final class RecoverButtonActionListener implements ActionListener {

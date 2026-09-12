@@ -3,7 +3,8 @@ package edu.jiangxin.apktoolbox.file.password.recovery.checker;
 import com.github.junrar.Archive;
 import com.github.junrar.exception.CrcErrorException;
 import com.github.junrar.exception.RarException;
-import com.github.junrar.exception.UnsupportedRarV5Exception;
+import com.github.junrar.exception.UnsupportedRarVersionException;
+import com.github.junrar.exception.WrongPasswordException;
 import com.github.junrar.rarfile.FileHeader;
 import edu.jiangxin.apktoolbox.file.password.recovery.exception.UnknownException;
 import edu.jiangxin.apktoolbox.file.password.recovery.exception.UnsupportedVersionException;
@@ -30,7 +31,7 @@ public final class RarChecker extends FileChecker {
 
     @Override
     public String getDescription() {
-        return "RAR Checker(Not support RAR5+)";
+        return "RAR Checker(RAR1.4–7)";
     }
 
     @Override
@@ -58,8 +59,12 @@ public final class RarChecker extends FileChecker {
             if (DEBUG) {
                 logger.error("[CrcErrorException]password is incorrect: {}", password);
             }
-        } catch (UnsupportedRarV5Exception e) {
+        } catch (UnsupportedRarVersionException e) {
             throw new UnsupportedVersionException(e);
+        } catch (WrongPasswordException e) {
+            if (DEBUG) {
+                logger.error("[WrongPasswordException]password is incorrect: {}", password);
+            }
         } catch (RarException e) {
             if (DEBUG) {
                 logger.error("[RarException]password is incorrect: {}", password);

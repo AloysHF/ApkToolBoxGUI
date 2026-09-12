@@ -1,6 +1,7 @@
 package edu.jiangxin.apktoolbox.help.settings;
 
 import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 
 import javax.swing.*;
@@ -16,52 +17,26 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
 
     @Override
     public void createUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("Third-party Dependencies"));
 
-        createPathPanel(this, "Path of 7ZIP(e.g.\"C:/Program Files/7-Zip/7z.exe\")", "https://www.7-zip.org/", Constants.SEVEN_ZIP_PATH_KEY);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        createPathPanel(this, "7-Zip (e.g. C:/Program Files/7-Zip/7z.exe)", "https://www.7-zip.org/", Constants.SEVEN_ZIP_PATH_KEY);
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        createPathPanel(this, "Path of RAR(e.g.\"C:/Program Files/WinRAR/Rar.exe\")", "https://www.win-rar.com/", Constants.RAR_PATH_KEY);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        createPathPanel(this, "RAR (e.g. C:/Program Files/WinRAR/Rar.exe)", "https://www.win-rar.com/", Constants.RAR_PATH_KEY);
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        createPathPanel(this, "Path of RAR(e.g.\"C:/Program Files/WinRAR/WinRAR.exe\")", "https://www.win-rar.com/", Constants.WIN_RAR_PATH_KEY);
+        createPathPanel(this, "WinRAR (e.g. C:/Program Files/WinRAR/WinRAR.exe)", "https://www.win-rar.com/", Constants.WIN_RAR_PATH_KEY);
     }
 
     private void createPathPanel(JPanel panel, String label, String website, String confKey) {
         JPanel pathPanel = new JPanel();
         pathPanel.setLayout(new BoxLayout(pathPanel, BoxLayout.Y_AXIS));
+        pathPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(pathPanel);
 
-        JPanel firstLinePanel = new JPanel();
-        firstLinePanel.setLayout(new BoxLayout(firstLinePanel, BoxLayout.X_AXIS));
-
-        JLabel pathLabel = new JLabel(label);
-
-        JButton visitWebsiteButton = new JButton(bundle.getString("download.button"));
-
-        firstLinePanel.add(pathLabel);
-        firstLinePanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        firstLinePanel.add(visitWebsiteButton);
-        firstLinePanel.add(Box.createHorizontalGlue());
-
-        JPanel secondLinePanel = new JPanel();
-        secondLinePanel.setLayout(new BoxLayout(secondLinePanel, BoxLayout.X_AXIS));
-
-        JTextField pathTextField = new JTextField();
-        pathTextField.setText(conf.getString(confKey));
-
-        JButton pathButton = new JButton(bundle.getString("choose.file.button"));
-
-        secondLinePanel.add(pathTextField);
-        secondLinePanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        secondLinePanel.add(pathButton);
-
-        pathPanel.add(firstLinePanel);
-        pathPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        pathPanel.add(secondLinePanel);
-
-
+        JButton visitWebsiteButton = UiKit.secondaryButton(bundle.getString("download.button"));
         visitWebsiteButton.addActionListener(e -> {
             URI uri;
             try {
@@ -74,6 +49,10 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
             }
         });
 
+        JTextField pathTextField = UiKit.field(new JTextField());
+        pathTextField.setText(conf.getString(confKey));
+
+        JButton pathButton = UiKit.secondaryButton(bundle.getString("choose.file.button"));
         pathButton.addActionListener(e -> {
             JFileChooser jfc = new JFileChooser();
             jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -85,6 +64,10 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
                 conf.setProperty(confKey, pathTextField.getText());
             }
         });
+
+        pathPanel.add(UiKit.formRow(label, visitWebsiteButton));
+        pathPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        pathPanel.add(UiKit.formRow("Path", pathTextField, pathButton));
     }
 }
 

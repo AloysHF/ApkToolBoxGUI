@@ -3,7 +3,7 @@ package edu.jiangxin.apktoolbox.file;
 import edu.jiangxin.apktoolbox.file.core.OsPatternConvert;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,58 +43,52 @@ public class OsConvertPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createSrcPanel();
         add(srcPanel);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOptionPanel();
         add(optionPanel);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
         add(operationPanel);
     }
 
     private void createOperationPanel() {
-        operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-
-        JButton convertButton = new JButton("Convert");
+        JButton convertButton = UiKit.primaryButton("Convert");
         convertButton.addActionListener(new ConvertButtonActionListener());
-
-        operationPanel.add(convertButton);
+        operationPanel = UiKit.actionRow(convertButton);
     }
 
     private void createOptionPanel() {
         optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
+        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Options"));
 
-        JLabel suffixLabel = new JLabel("Suffix:");
-        suffixTextField = new JTextField();
+        suffixTextField = UiKit.field(new JTextField());
         suffixTextField.setToolTipText("an array of extensions, ex. {\"java\",\"xml\"}. If this parameter is empty, all files are returned.");
         suffixTextField.setText(conf.getString("osconvert.suffix"));
-        optionPanel.add(suffixLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        optionPanel.add(suffixTextField);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
         recursiveCheckBox = new JCheckBox("Recursive");
         recursiveCheckBox.setSelected(true);
-        optionPanel.add(recursiveCheckBox);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
-        JLabel typeLabel = new JLabel("Type:");
         typeComboBox = new JComboBox<>();
         typeComboBox.addItem("Convert to UNIX(LF Only)");
         typeComboBox.addItem("Convert to Macintosh(CR Only)");
         typeComboBox.addItem("Convert to Windows(CR+LF)");
+        typeComboBox.setPreferredSize(new Dimension(260, UiKit.FIELD_HEIGHT));
+        typeComboBox.setMaximumSize(new Dimension(260, UiKit.FIELD_HEIGHT));
 
-        optionPanel.add(typeLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        optionPanel.add(typeComboBox);
+        optionPanel.add(UiKit.formRow("Suffix", suffixTextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.checkRow(recursiveCheckBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.formRow("Type", typeComboBox));
     }
 
     private void createSrcPanel() {

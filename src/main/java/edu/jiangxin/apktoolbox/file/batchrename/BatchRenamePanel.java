@@ -2,6 +2,7 @@ package edu.jiangxin.apktoolbox.file.batchrename;
 
 import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -101,13 +102,18 @@ public class BatchRenamePanel extends EasyPanel {
     private void createWarningPanel() {
         warningPanel = new JPanel();
         warningPanel.setLayout(new BoxLayout(warningPanel, BoxLayout.X_AXIS));
+        warningPanel.setBorder(UiKit.sectionBorder("Warning"));
 
         JTextArea warningTextArea = new JTextArea();
-        warningTextArea.setText("It is dangerous to operate on the original files! \nPlease back up at first and check the result carefully at end!");
-        warningTextArea.setForeground(Color.RED);
-        warningTextArea.setFont(new Font("宋体", Font.BOLD, 20));
+        warningTextArea.setText("It is dangerous to operate on the original files!\nPlease back up first and check the result carefully at the end!");
+        warningTextArea.setForeground(UiKit.DANGER);
+        warningTextArea.setFont(getFont().deriveFont(Font.BOLD, 14f));
+        warningTextArea.setOpaque(false);
         warningTextArea.setBorder(null);
         warningTextArea.setEditable(false);
+        warningTextArea.setLineWrap(true);
+        warningTextArea.setWrapStyleWord(true);
+        warningTextArea.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         warningPanel.add(warningTextArea);
         warningPanel.add(Box.createHorizontalGlue());
@@ -313,17 +319,17 @@ public class BatchRenamePanel extends EasyPanel {
 
     private void createOperationPanel() {
         operationPanel = new JPanel();
-        operationPanel.setBorder(BorderFactory.createTitledBorder("6. 操作"));
+        operationPanel.setBorder(UiKit.sectionBorder("6. 操作"));
         operationPanel.setLayout(new BorderLayout());
 
         JPanel secondLevelPanel = new JPanel();
         secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.X_AXIS));
         operationPanel.add(secondLevelPanel);
 
-        JButton button = new JButton("开始");
+        JButton button = UiKit.primaryButton("Start");
         button.addActionListener(new StartButtonActionListener());
-        secondLevelPanel.add(button);
         secondLevelPanel.add(Box.createHorizontalGlue());
+        secondLevelPanel.add(button);
     }
 
     private void createStatusPanel() {

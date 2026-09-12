@@ -3,12 +3,13 @@ package edu.jiangxin.apktoolbox.pdf.stat;
 import edu.jiangxin.apktoolbox.pdf.PdfUtils;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.DateUtils;
 import edu.jiangxin.apktoolbox.utils.ExcelExporter;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -69,7 +70,7 @@ public class PdfStatPanel extends EasyPanel {
         add(tabbedPane);
 
         createMainPanel();
-        tabbedPane.addTab("Option", null, mainPanel, "Show Stat Options");
+        tabbedPane.addTab("Options", null, mainPanel, "Show Stat Options");
 
         createResultPanel();
         tabbedPane.addTab("Result", null, resultPanel, "Show Stat Result");
@@ -78,76 +79,66 @@ public class PdfStatPanel extends EasyPanel {
     private void createMainPanel() {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileListPanel = new FileListPanel();
         fileListPanel.initialize();
 
-        JPanel checkOptionPanel = new JPanel();
-        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.X_AXIS));
-        checkOptionPanel.setBorder(BorderFactory.createTitledBorder("Check Options"));
-
         ButtonGroup buttonGroup = new ButtonGroup();
 
-        pageCountRadioButton = new JRadioButton("统计页数");
+        pageCountRadioButton = new JRadioButton("Count pages");
         pageCountRadioButton.setSelected(true);
         pageCountRadioButton.setEnabled(false);
         buttonGroup.add(pageCountRadioButton);
 
-        JPanel typePanel = new JPanel();
-        typePanel.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));
-        typePanel.add(pageCountRadioButton);
-
-        checkOptionPanel.add(typePanel);
-        checkOptionPanel.add(Box.createHorizontalGlue());
-
-        JPanel searchOptionPanel = new JPanel();
-        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));
-        searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Stat Options"));
+        JPanel checkOptionPanel = new JPanel();
+        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.Y_AXIS));
+        checkOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        checkOptionPanel.setBorder(UiKit.sectionBorder("Check Options"));
+        checkOptionPanel.add(UiKit.checkRow(pageCountRadioButton));
 
         isRecursiveSearched = new JCheckBox("Recursive");
         isRecursiveSearched.setSelected(true);
-        searchOptionPanel.add(isRecursiveSearched);
-        searchOptionPanel.add(Box.createHorizontalGlue());
 
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
+        JPanel searchOptionPanel = new JPanel();
+        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.Y_AXIS));
+        searchOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchOptionPanel.setBorder(UiKit.sectionBorder("Stat Options"));
+        searchOptionPanel.add(UiKit.checkRow(isRecursiveSearched));
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-
-        statButton = new JButton("Stat");
-        cancelButton = new JButton("Cancel");
+        statButton = UiKit.primaryButton("Stat");
+        cancelButton = UiKit.secondaryButton("Cancel");
         cancelButton.setEnabled(false);
         statButton.addActionListener(new OperationButtonActionListener());
         cancelButton.addActionListener(new OperationButtonActionListener());
-        operationPanel.add(statButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(cancelButton);
-        operationPanel.add(Box.createHorizontalGlue());
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString("Ready");
+        progressBar.setPreferredSize(new Dimension(0, 22));
+        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
         mainPanel.add(fileListPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         mainPanel.add(checkOptionPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         mainPanel.add(searchOptionPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        mainPanel.add(operationPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
+        mainPanel.add(UiKit.actionRow(cancelButton, statButton));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         mainPanel.add(progressBar);
     }
 
     private void createResultPanel() {
         resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setLayout(new BorderLayout());
+        resultPanel.setBorder(new EmptyBorder(UiKit.GAP_XS, 0, 0, 0));
 
         resultTableModel = new PdfFilesTableModel(new Vector<>(), PdfFilesConstants.COLUMN_NAMES);
         resultTable = new JTable(resultTableModel);
+        resultTable.setRowHeight(28);
+        resultTable.setShowGrid(false);
+        resultTable.setIntercellSpacing(new Dimension(0, 0));
         resultTable.setDefaultRenderer(Vector.class, new PdfFilesTableCellRenderer());
         for (int i = 0; i < resultTable.getColumnCount(); i++) {
             resultTable.getColumn(resultTable.getColumnName(i)).setCellRenderer(new PdfFilesTableCellRenderer());
@@ -158,7 +149,7 @@ public class PdfStatPanel extends EasyPanel {
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
                     JPopupMenu popupmenu = new JPopupMenu();
-                    JMenuItem exportMenuItem = new JMenuItem("导出到 Excel");
+                    JMenuItem exportMenuItem = new JMenuItem("Export to Excel");
                     exportMenuItem.addActionListener(ev ->
                         ExcelExporter.export(resultTableModel, "pdf_stat_export.xlsx", PdfStatPanel.this));
                     popupmenu.add(exportMenuItem);
@@ -174,9 +165,8 @@ public class PdfStatPanel extends EasyPanel {
         statInfoPanel.add(statInfoLabel);
         statInfoPanel.add(Box.createHorizontalGlue());
 
-        resultPanel.add(scrollPane);
-        resultPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        resultPanel.add(statInfoPanel);
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
+        resultPanel.add(statInfoPanel, BorderLayout.SOUTH);
     }
 
     private void processFile(File file) {

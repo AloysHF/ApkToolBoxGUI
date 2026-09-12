@@ -1,7 +1,7 @@
 package edu.jiangxin.apktoolbox.help.settings;
 
 import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -31,27 +31,22 @@ public class LookAndFeelPanel extends EasyChildTabbedPanel {
 
     @Override
     public void createUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("Look and Feel"));
 
         createOptionPanel();
         add(optionPanel);
-
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
         add(operationPanel);
-
-        add(Box.createVerticalStrut(15 * Constants.DEFAULT_Y_BORDER));
     }
 
     private void createOptionPanel() {
-        optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
-
-        JLabel typeLabel = new JLabel("Type:");
         typeComboBox = new JComboBox<>();
-        typeComboBox.setMaximumSize(new Dimension(Constants.DEFAULT_COMBOBOX_WIDTH, Constants.DEFAULT_COMBOBOX_HEIGHT));
+        typeComboBox.setPreferredSize(new Dimension(260, UiKit.FIELD_HEIGHT));
+        typeComboBox.setMaximumSize(new Dimension(260, UiKit.FIELD_HEIGHT));
 
         UIManager.LookAndFeelInfo[] lookAndFeelInfos = UIManager.getInstalledLookAndFeels();
         if (ArrayUtils.isEmpty(lookAndFeelInfos)) {
@@ -67,19 +62,13 @@ public class LookAndFeelPanel extends EasyChildTabbedPanel {
             }
         }
 
-        optionPanel.add(typeLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        optionPanel.add(typeComboBox);
+        optionPanel = UiKit.formRow("Type", typeComboBox);
     }
 
     private void createOperationPanel() {
-        operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-
-        JButton applyButton = new JButton("Apply");
+        JButton applyButton = UiKit.primaryButton("Apply");
         applyButton.addActionListener(new ApplyButtonActionListener());
-
-        operationPanel.add(applyButton);
+        operationPanel = UiKit.actionRow(applyButton);
     }
 
     private final class ApplyButtonActionListener implements ActionListener {

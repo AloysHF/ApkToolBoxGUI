@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 
 import edu.jiangxin.apktoolbox.Version;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 
 /**
  * @author jiangxin
@@ -28,9 +29,10 @@ public class AboutPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        setBorder(new EmptyBorder(10, 10, 10, 10));
+        setBorder(new EmptyBorder(UiKit.PAD, UiKit.PAD, UiKit.PAD, UiKit.PAD));
         BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
         setLayout(boxLayout);
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         InputStream inputStream = null;
         BufferedReader bufferedReader = null;
@@ -69,7 +71,7 @@ public class AboutPanel extends EasyPanel {
         editorPane.setEditable(false);
 
         JScrollPane scrollPane = new JScrollPane(editorPane);
-        scrollPane.setPreferredSize(new Dimension(800, 300));
+        scrollPane.setPreferredSize(new Dimension(820, 320));
 
         add(scrollPane);
     }

@@ -4,10 +4,11 @@ import edu.jiangxin.apktoolbox.pdf.PdfUtils;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
 import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -35,17 +36,17 @@ public class Pic2PdfPanel  extends EasyPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createInputPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOutputPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOptionPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
     }
@@ -57,42 +58,38 @@ public class Pic2PdfPanel  extends EasyPanel {
     }
 
     private void createOutputPanel() {
+        JPanel outputPanel = new JPanel();
+        outputPanel.setLayout(new BoxLayout(outputPanel, BoxLayout.Y_AXIS));
+        outputPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        outputPanel.setBorder(UiKit.sectionBorder("Output"));
+
         targetDirPanel = new FilePanel("Target Directory");
         targetDirPanel.initialize();
         targetDirPanel.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        add(targetDirPanel);
+        outputPanel.add(UiKit.formRow("Target", targetDirPanel));
+        add(outputPanel);
     }
 
     private void createOptionPanel() {
         JPanel optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
-        optionPanel.setBorder(BorderFactory.createTitledBorder("Options"));
+        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Options"));
 
         isRecursiveSearched = new JCheckBox("Recursive Search");
         isRecursiveSearched.setSelected(true);
-        optionPanel.add(isRecursiveSearched);
-        optionPanel.add(Box.createHorizontalGlue());
+        optionPanel.add(UiKit.checkRow(isRecursiveSearched));
 
         add(optionPanel);
     }
 
     private void createOperationPanel() {
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
-
-        startButton = new JButton("Start");
-        cancelButton = new JButton("Cancel");
+        startButton = UiKit.primaryButton("Start");
+        cancelButton = UiKit.secondaryButton("Cancel");
         cancelButton.setEnabled(false);
         startButton.addActionListener(new OperationButtonActionListener());
         cancelButton.addActionListener(new OperationButtonActionListener());
-        operationPanel.add(startButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(cancelButton);
-        operationPanel.add(Box.createHorizontalGlue());
-
-        add(operationPanel);
+        add(UiKit.actionRow(cancelButton, startButton));
     }
 
     private void processFile(File encryptedFile, File targetDir) {

@@ -17,6 +17,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -107,22 +108,17 @@ public final class RecoveryPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        setLayout(new BorderLayout(UiKit.GAP_MD, UiKit.GAP_MD));
-        setBorder(UiKit.sectionBorder("Password Recovery"));
-
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setAlignmentX(Component.LEFT_ALIGNMENT);
-        form.setMaximumSize(new Dimension(980, Integer.MAX_VALUE));
+        setLayout(new BorderLayout(0, 8));
+        setBorder(new EmptyBorder(8, 8, 8, 8));
 
         createOptionPanel();
-        form.add(optionPanel);
-        form.add(Box.createVerticalStrut(UiKit.GAP_MD));
-
         createOperationPanel();
-        form.add(operationPanel);
 
-        add(form, BorderLayout.NORTH);
+        JPanel main = new JPanel(new BorderLayout(0, 12));
+        main.setOpaque(false);
+        main.add(optionPanel, BorderLayout.NORTH);
+        main.add(operationPanel, BorderLayout.SOUTH);
+        add(main, BorderLayout.NORTH);
 
         timer = new Timer(1000, e -> {
             if (currentState == State.WORKING) {
@@ -136,16 +132,14 @@ public final class RecoveryPanel extends EasyPanel {
 
     private void createOptionPanel() {
         optionPanel = new JPanel(new GridBagLayout());
-        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        optionPanel.setBorder(UiKit.sectionBorder("Input"));
+        optionPanel.setOpaque(false);
 
         GridBagConstraints gc = new GridBagConstraints();
         gc.gridx = 0;
-        gc.gridy = 0;
-        gc.weightx = 1;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        gc.anchor = GridBagConstraints.WEST;
-        gc.insets = new Insets(2, 8, 2, 8);
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE;
+        gc.anchor = GridBagConstraints.LINE_END;
+        gc.insets = new Insets(4, 8, 4, 8);
 
         checkerTypeComboBox = new JComboBox<>();
         checkerTypeComboBox.addItem(new ThirdParty7ZipChecker());
@@ -178,124 +172,170 @@ public final class RecoveryPanel extends EasyPanel {
         recoveryFilePanel.initialize();
         recoveryFilePanel.setDescriptionAndFileExtensions(fileChecker.getFileDescription(), fileChecker.getFileExtensions());
 
-        categoryTabbedPane = new JTabbedPane();
+        checkerTypeComboBox.setPreferredSize(new Dimension(420, UiKit.FIELD_HEIGHT));
+        checkerTypeComboBox.setMinimumSize(new Dimension(260, UiKit.FIELD_HEIGHT));
+        checkerTypeComboBox.setMaximumSize(new Dimension(520, UiKit.FIELD_HEIGHT));
 
+        JLabel archiveLabel = mutedRowLabel("Archive type");
+        gc.gridy = 0;
+        gc.gridx = 0;
+        optionPanel.add(archiveLabel, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.LINE_START;
+        optionPanel.add(checkerTypeComboBox, gc);
+
+        JLabel fileLabel = mutedRowLabel("Encrypted file");
+        gc.gridy = 1;
+        gc.gridx = 0;
+        gc.weightx = 0;
+        gc.fill = GridBagConstraints.NONE;
+        gc.anchor = GridBagConstraints.LINE_END;
+        optionPanel.add(fileLabel, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.LINE_START;
+        optionPanel.add(recoveryFilePanel, gc);
+
+        categoryTabbedPane = new JTabbedPane();
         createBruteForcePanel();
         categoryTabbedPane.addTab("Brute Force", null, bruteForceCategoryPanel, "Brute Force");
         categoryTabbedPane.setSelectedIndex(0);
-
         createDictionaryPanel();
         categoryTabbedPane.addTab("Dictionary", null, dictionaryCategoryPanel, "Dictionary");
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString(numberFormat.format(0));
-        progressBar.setPreferredSize(new Dimension(0, 22));
-        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
+        progressBar.setPreferredSize(new Dimension(0, 18));
 
-        optionPanel.add(gridRow("Archive Type", checkerTypeComboBox), gc);
-        gc.gridy++;
-        optionPanel.add(gridRow("File", recoveryFilePanel), gc);
-        gc.gridy++;
-        gc.fill = GridBagConstraints.BOTH;
+        gc.gridy = 2;
+        gc.gridx = 0;
+        gc.gridwidth = 2;
+        gc.weightx = 1;
         gc.weighty = 1;
+        gc.fill = GridBagConstraints.BOTH;
+        gc.insets = new Insets(10, 8, 4, 8);
         optionPanel.add(categoryTabbedPane, gc);
-        gc.gridy++;
-        gc.fill = GridBagConstraints.HORIZONTAL;
+
+        gc.gridy = 3;
         gc.weighty = 0;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.insets = new Insets(4, 8, 0, 8);
         optionPanel.add(progressBar, gc);
     }
 
-    private JPanel gridRow(String label, JComponent field) {
-        JPanel row = new JPanel(new GridBagLayout());
-        row.setOpaque(false);
-        GridBagConstraints c = new GridBagConstraints();
-        c.gridy = 0;
-        c.insets = new Insets(2, 0, 2, 0);
-        c.anchor = GridBagConstraints.WEST;
-        c.fill = GridBagConstraints.NONE;
-        c.weightx = 0;
-
-        JLabel jlabel = new JLabel(label);
-        jlabel.setPreferredSize(new Dimension(UiKit.LABEL_WIDTH, UiKit.FIELD_HEIGHT));
-        c.gridx = 0;
-        row.add(jlabel, c);
-
-        c.gridx = 1;
-        c.weightx = 1;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        if (field instanceof JComboBox<?> combo) {
-            combo.setPreferredSize(new Dimension(Math.max(combo.getPreferredSize().width, 280), UiKit.FIELD_HEIGHT));
-            combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT));
-        }
-        row.add(field, c);
-        return row;
+    private JLabel mutedRowLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setForeground(UiKit.MUTED);
+        label.setPreferredSize(new Dimension(110, UiKit.FIELD_HEIGHT));
+        label.setMinimumSize(new Dimension(110, UiKit.FIELD_HEIGHT));
+        label.setMaximumSize(new Dimension(110, UiKit.FIELD_HEIGHT));
+        return label;
     }
 
     private void createBruteForcePanel() {
         bruteForceCategoryPanel = new JPanel();
         bruteForceCategoryPanel.setLayout(new BoxLayout(bruteForceCategoryPanel, BoxLayout.Y_AXIS));
         bruteForceCategoryPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        bruteForceCategoryPanel.setBorder(UiKit.sectionBorder("Charset & Length"));
+        bruteForceCategoryPanel.setBorder(new EmptyBorder(UiKit.GAP_SM, 20, UiKit.GAP_XS, 20));
 
         numberCheckBox = new JCheckBox("Number");
         numberCheckBox.setSelected(true);
-        lowercaseLetterCheckBox = new JCheckBox("Lowercase");
-        uppercaseLetterCheckBox = new JCheckBox("Uppercase");
+        lowercaseLetterCheckBox = new JCheckBox("Lowercase letters");
+        uppercaseLetterCheckBox = new JCheckBox("Uppercase letters");
+
+        JPanel charsetRow = new JPanel(new FlowLayout(FlowLayout.LEFT, UiKit.GAP_LG, UiKit.GAP_XS));
+        charsetRow.setOpaque(false);
+        charsetRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        charsetRow.add(numberCheckBox);
+        charsetRow.add(lowercaseLetterCheckBox);
+        charsetRow.add(uppercaseLetterCheckBox);
+        bruteForceCategoryPanel.add(charsetRow);
+        bruteForceCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+
         userIncludedCheckBox = new JCheckBox("Include");
         userIncludedTextField = UiKit.field(new JTextField());
-        userIncludedTextField.setColumns(8);
         userExcludedCheckBox = new JCheckBox("Exclude");
         userExcludedTextField = UiKit.field(new JTextField());
-        userExcludedTextField.setColumns(8);
 
-        bruteForceCategoryPanel.add(UiKit.checkRow(
-                numberCheckBox, lowercaseLetterCheckBox, uppercaseLetterCheckBox));
-        bruteForceCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
-        bruteForceCategoryPanel.add(UiKit.checkRow(
-                userIncludedCheckBox, userIncludedTextField,
-                userExcludedCheckBox, userExcludedTextField));
+        JPanel customRow = new JPanel(new GridBagLayout());
+        customRow.setOpaque(false);
+        customRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridy = 0;
+        gc.insets = new Insets(0, 0, 0, UiKit.GAP_MD);
+        gc.anchor = GridBagConstraints.WEST;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+
+        gc.gridx = 0;
+        gc.weightx = 0;
+        customRow.add(userIncludedCheckBox, gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        customRow.add(userIncludedTextField, gc);
+        gc.gridx = 2;
+        gc.weightx = 0;
+        customRow.add(userExcludedCheckBox, gc);
+        gc.gridx = 3;
+        gc.weightx = 1;
+        customRow.add(userExcludedTextField, gc);
+
+        JPanel customLine = new JPanel(new BorderLayout(UiKit.GAP_MD, 0));
+        customLine.setOpaque(false);
+        customLine.setAlignmentX(Component.LEFT_ALIGNMENT);
+        customLine.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT + 4));
+        JLabel customLabel = new JLabel("Custom");
+        customLabel.setForeground(UiKit.MUTED);
+        customLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        customLabel.setPreferredSize(new Dimension(120, UiKit.FIELD_HEIGHT));
+        customLabel.setMinimumSize(new Dimension(120, UiKit.FIELD_HEIGHT));
+        customLine.add(customLabel, BorderLayout.WEST);
+        customLine.add(customRow, BorderLayout.CENTER);
+        bruteForceCategoryPanel.add(customLine);
         bruteForceCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
         minSpinner = new JSpinner();
         minSpinner.setModel(new SpinnerNumberModel(1, 1, 9, 1));
         minSpinner.setToolTipText("Minimum password length");
-        minSpinner.setPreferredSize(new Dimension(72, UiKit.FIELD_HEIGHT));
-        minSpinner.setMaximumSize(new Dimension(72, UiKit.FIELD_HEIGHT));
+        minSpinner.setPreferredSize(new Dimension(64, UiKit.FIELD_HEIGHT));
+        minSpinner.setMinimumSize(new Dimension(64, UiKit.FIELD_HEIGHT));
+        minSpinner.setMaximumSize(new Dimension(64, UiKit.FIELD_HEIGHT));
 
         maxSpinner = new JSpinner();
         maxSpinner.setModel(new SpinnerNumberModel(6, 1, 9, 1));
         maxSpinner.setToolTipText("Maximum password length");
-        maxSpinner.setPreferredSize(new Dimension(72, UiKit.FIELD_HEIGHT));
-        maxSpinner.setMaximumSize(new Dimension(72, UiKit.FIELD_HEIGHT));
+        maxSpinner.setPreferredSize(new Dimension(64, UiKit.FIELD_HEIGHT));
+        maxSpinner.setMinimumSize(new Dimension(64, UiKit.FIELD_HEIGHT));
+        maxSpinner.setMaximumSize(new Dimension(64, UiKit.FIELD_HEIGHT));
 
-        JPanel lengthRow = new JPanel();
-        lengthRow.setLayout(new BoxLayout(lengthRow, BoxLayout.X_AXIS));
-        lengthRow.setAlignmentX(Component.LEFT_ALIGNMENT);
-        lengthRow.setOpaque(false);
-        lengthRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT + GAP_XS_PAD()));
-        lengthRow.add(UiKit.mutedLabel("Length"));
-        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_SM));
-        lengthRow.add(UiKit.mutedLabel("Min"));
-        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_XS));
-        lengthRow.add(minSpinner);
-        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_MD));
-        lengthRow.add(UiKit.mutedLabel("Max"));
-        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_XS));
-        lengthRow.add(maxSpinner);
-        lengthRow.add(Box.createHorizontalGlue());
-        bruteForceCategoryPanel.add(lengthRow);
-    }
+        JPanel lengthControls = new JPanel(new FlowLayout(FlowLayout.LEFT, UiKit.GAP_SM, 0));
+        lengthControls.setOpaque(false);
+        lengthControls.add(new JLabel("Min"));
+        lengthControls.add(minSpinner);
+        lengthControls.add(Box.createHorizontalStrut(UiKit.GAP_MD));
+        lengthControls.add(new JLabel("Max"));
+        lengthControls.add(maxSpinner);
 
-    private int GAP_XS_PAD() {
-        return UiKit.GAP_XS * 2;
+        JPanel lengthLine = new JPanel(new BorderLayout(UiKit.GAP_MD, 0));
+        lengthLine.setOpaque(false);
+        lengthLine.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lengthLine.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT + 4));
+        JLabel lengthLabel = new JLabel("Length");
+        lengthLabel.setForeground(UiKit.MUTED);
+        lengthLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+        lengthLabel.setPreferredSize(new Dimension(120, UiKit.FIELD_HEIGHT));
+        lengthLabel.setMinimumSize(new Dimension(120, UiKit.FIELD_HEIGHT));
+        lengthLine.add(lengthLabel, BorderLayout.WEST);
+        lengthLine.add(lengthControls, BorderLayout.CENTER);
+        bruteForceCategoryPanel.add(lengthLine);
     }
 
     private void createDictionaryPanel() {
-        dictionaryCategoryPanel = new JPanel();
-        dictionaryCategoryPanel.setLayout(new BoxLayout(dictionaryCategoryPanel, BoxLayout.Y_AXIS));
-        dictionaryCategoryPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        dictionaryCategoryPanel.setBorder(UiKit.sectionBorder("Dictionary"));
+        dictionaryCategoryPanel = new JPanel(new GridBagLayout());
+        dictionaryCategoryPanel.setBorder(new EmptyBorder(8, 8, 8, 8));
 
         dictionaryFilePanel = new FilePanel("Browse...");
         dictionaryFilePanel.initialize();
@@ -304,9 +344,24 @@ public final class RecoveryPanel extends EasyPanel {
         isUseMultiThreadCheckBox = new JCheckBox("Use multi-thread");
         isUseMultiThreadCheckBox.setSelected(true);
 
-        dictionaryCategoryPanel.add(UiKit.formRow("Dictionary", dictionaryFilePanel));
-        dictionaryCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
-        dictionaryCategoryPanel.add(UiKit.checkRow(isUseMultiThreadCheckBox));
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridy = 0;
+        gc.gridx = 0;
+        gc.insets = new Insets(4, 4, 4, 8);
+        gc.anchor = GridBagConstraints.LINE_END;
+        dictionaryCategoryPanel.add(mutedRowLabel("Wordlist"), gc);
+        gc.gridx = 1;
+        gc.weightx = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.LINE_START;
+        dictionaryCategoryPanel.add(dictionaryFilePanel, gc);
+
+        gc.gridy = 1;
+        gc.gridx = 0;
+        gc.gridwidth = 2;
+        gc.anchor = GridBagConstraints.LINE_START;
+        gc.insets = new Insets(8, 4, 4, 8);
+        dictionaryCategoryPanel.add(isUseMultiThreadCheckBox, gc);
     }
 
     private void createOperationPanel() {

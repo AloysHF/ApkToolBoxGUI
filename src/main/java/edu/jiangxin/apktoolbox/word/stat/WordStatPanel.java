@@ -2,14 +2,16 @@ package edu.jiangxin.apktoolbox.word.stat;
 
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.DateUtils;
 import edu.jiangxin.apktoolbox.utils.ExcelExporter;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import edu.jiangxin.apktoolbox.word.WordUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -65,7 +67,7 @@ public class WordStatPanel extends EasyPanel {
         add(tabbedPane);
 
         createMainPanel();
-        tabbedPane.addTab("Option", null, mainPanel, "Show Stat Options");
+        tabbedPane.addTab("Options", null, mainPanel, "Show Stat Options");
 
         createResultPanel();
         tabbedPane.addTab("Result", null, resultPanel, "Show Stat Result");
@@ -74,53 +76,51 @@ public class WordStatPanel extends EasyPanel {
     private void createMainPanel() {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileListPanel = new FileListPanel();
         fileListPanel.initialize();
 
-        JPanel searchOptionPanel = new JPanel();
-        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));
-        searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Stat Options"));
-
         isRecursiveSearched = new JCheckBox("Recursive");
         isRecursiveSearched.setSelected(true);
-        searchOptionPanel.add(isRecursiveSearched);
-        searchOptionPanel.add(Box.createHorizontalGlue());
 
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
+        JPanel searchOptionPanel = new JPanel();
+        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.Y_AXIS));
+        searchOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchOptionPanel.setBorder(UiKit.sectionBorder("Stat Options"));
+        searchOptionPanel.add(UiKit.checkRow(isRecursiveSearched));
 
-        statButton = new JButton("Stat");
-        cancelButton = new JButton("Cancel");
+        statButton = UiKit.primaryButton("Stat");
+        cancelButton = UiKit.secondaryButton("Cancel");
         cancelButton.setEnabled(false);
         statButton.addActionListener(new OperationButtonActionListener());
         cancelButton.addActionListener(new OperationButtonActionListener());
-        operationPanel.add(statButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(cancelButton);
-        operationPanel.add(Box.createHorizontalGlue());
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString("Ready");
+        progressBar.setPreferredSize(new Dimension(0, 22));
+        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
         mainPanel.add(fileListPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         mainPanel.add(searchOptionPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        mainPanel.add(operationPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
+        mainPanel.add(UiKit.actionRow(cancelButton, statButton));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         mainPanel.add(progressBar);
     }
 
     private void createResultPanel() {
         resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setLayout(new BorderLayout());
+        resultPanel.setBorder(new EmptyBorder(UiKit.GAP_XS, 0, 0, 0));
 
         resultTableModel = new WordFilesTableModel(new Vector<>(), WordFilesConstants.COLUMN_NAMES);
         resultTable = new JTable(resultTableModel);
+        resultTable.setRowHeight(28);
+        resultTable.setShowGrid(false);
+        resultTable.setIntercellSpacing(new Dimension(0, 0));
         resultTable.setDefaultRenderer(Vector.class, new WordFilesTableCellRenderer());
         for (int i = 0; i < resultTable.getColumnCount(); i++) {
             resultTable.getColumn(resultTable.getColumnName(i)).setCellRenderer(new WordFilesTableCellRenderer());
@@ -131,7 +131,7 @@ public class WordStatPanel extends EasyPanel {
             public void mouseReleased(MouseEvent e) {
                 if (e.isPopupTrigger() && e.getComponent() instanceof JTable) {
                     JPopupMenu popupmenu = new JPopupMenu();
-                    JMenuItem exportMenuItem = new JMenuItem("导出到 Excel");
+                    JMenuItem exportMenuItem = new JMenuItem("Export to Excel");
                     exportMenuItem.addActionListener(ev ->
                         ExcelExporter.export(resultTableModel, "word_stat_export.xlsx", WordStatPanel.this));
                     popupmenu.add(exportMenuItem);
@@ -147,9 +147,8 @@ public class WordStatPanel extends EasyPanel {
         statInfoPanel.add(statInfoLabel);
         statInfoPanel.add(Box.createHorizontalGlue());
 
-        resultPanel.add(scrollPane);
-        resultPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        resultPanel.add(statInfoPanel);
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
+        resultPanel.add(statInfoPanel, BorderLayout.SOUTH);
     }
 
     private void processFile(File file) {

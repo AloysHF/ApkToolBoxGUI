@@ -3,6 +3,7 @@ package edu.jiangxin.apktoolbox.file.zhconvert;
 import com.github.houbb.opencc4j.util.ZhConverterUtil;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,14 +50,11 @@ public class ZhConvertPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        // JSplitPanel只能用BorderLayout，JFrame默认是BorderLayout，JPanel默认是BoxLayout
-        BorderLayout boxLayout = new BorderLayout();
-        setLayout(boxLayout);
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM));
 
         createNorthPanel();
         add(northPanel, BorderLayout.NORTH);
-
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
 
         createCenterPanel();
         add(centerPanel, BorderLayout.CENTER);
@@ -65,81 +63,89 @@ public class ZhConvertPanel extends EasyPanel {
     private void createNorthPanel() {
         northPanel = new JPanel();
         northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));
+        northPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileListPanel = new FileListPanel();
         fileListPanel.initialize();
         northPanel.add(fileListPanel);
-        northPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        northPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         JPanel optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
+        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Options"));
         northPanel.add(optionPanel);
 
-        JLabel suffixLabel = new JLabel("Suffix:");
-        suffixTextField = new JTextField();
+        suffixTextField = UiKit.field(new JTextField());
         suffixTextField.setToolTipText("an array of extensions, ex. {\"java\",\"xml\"}. If this parameter is empty, all files are returned.");
         suffixTextField.setText(conf.getString("osconvert.suffix"));
-        optionPanel.add(suffixLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        optionPanel.add(suffixTextField);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
         recursiveCheckBox = new JCheckBox("Recursive");
         recursiveCheckBox.setSelected(true);
-        optionPanel.add(recursiveCheckBox);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
         comboBox = new JComboBox<>();
         comboBox.addItem(Constants.zhSimple2zhTw);
         comboBox.addItem(Constants.zhTw2zhSimple);
-        optionPanel.add(comboBox);
+        comboBox.setPreferredSize(new Dimension(180, UiKit.FIELD_HEIGHT));
+        comboBox.setMaximumSize(new Dimension(180, UiKit.FIELD_HEIGHT));
 
-        JButton convertBtn = new JButton("确认转换");
+        optionPanel.add(UiKit.formRow("Suffix", suffixTextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.formRow("Mode", comboBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.checkRow(recursiveCheckBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+
+        JButton convertBtn = UiKit.primaryButton("Convert");
         convertBtn.addActionListener(new ConvertBtnActionListener());
-        northPanel.add(convertBtn);
-
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        optionPanel.add(UiKit.actionRow(convertBtn));
     }
 
     private void createCenterPanel() {
         JPanel centerLeftTopPanel = new JPanel();
         centerLeftTopPanel.setLayout(new BoxLayout(centerLeftTopPanel, BoxLayout.Y_AXIS));
+        centerLeftTopPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        centerLeftTopPanel.setBorder(UiKit.sectionBorder("Custom Phrase Rules"));
 
-        JPanel keyValuePanel = new JPanel();
-        keyValuePanel.setLayout(new BoxLayout(keyValuePanel, BoxLayout.X_AXIS));
-        centerLeftTopPanel.add(keyValuePanel);
+        JPanel keyValuePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        keyValuePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        keyValuePanel.setOpaque(false);
 
-        keyText = new JTextField(10);
+        keyText = UiKit.field(new JTextField(12));
         keyValuePanel.add(keyText);
+        keyValuePanel.add(Box.createHorizontalStrut(UiKit.GAP_SM));
 
-        valueText = new JTextField(10);
+        valueText = UiKit.field(new JTextField(12));
         keyValuePanel.add(valueText);
+        keyValuePanel.add(Box.createHorizontalStrut(UiKit.GAP_SM));
 
-        JButton saveBtn = new JButton("添加词组定义");
+        JButton saveBtn = UiKit.secondaryButton("Add Rule");
         saveBtn.addActionListener(new SaveBtnActionListener());
-        centerLeftTopPanel.add(saveBtn);
+        keyValuePanel.add(saveBtn);
+        centerLeftTopPanel.add(keyValuePanel);
 
         JScrollPane centerLeftBottomPanel = new JScrollPane();
         textArea = new JTextArea();
-        textArea.setMargin(new Insets(10, 10, 10, 10));
-        //自动换行
+        textArea.setMargin(new Insets(UiKit.GAP_MD, UiKit.GAP_MD, UiKit.GAP_MD, UiKit.GAP_MD));
         textArea.setLineWrap(true);
         textArea.setEditable(false);
-        centerLeftBottomPanel.add(textArea);
-
-        //垂直滚动条自动出现
+        centerLeftBottomPanel.setViewportView(textArea);
         centerLeftBottomPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        centerLeftBottomPanel.setBorder(UiKit.sectionBorder("Conversion Log"));
         JSplitPane centerLeftSplitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, centerLeftTopPanel, centerLeftBottomPanel);
+        centerLeftSplitPanel.setResizeWeight(0.15);
+        centerLeftSplitPanel.setContinuousLayout(true);
 
         transformList = new JList<>();
+        transformList.setFixedCellHeight(26);
         refreshListData();
-        transformList.setFont(new Font("Dialog", 1, 18));
-        transformList.setBorder(BorderFactory.createTitledBorder("词组转换定义"));
+        transformList.setBorder(UiKit.sectionBorder("Phrase Dictionary"));
         JScrollPane centerRightScrollPanel = new JScrollPane(transformList);
 
         centerPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerLeftSplitPanel, centerRightScrollPanel);
         centerPanel.setDividerLocation(0.7f);
+        centerPanel.setContinuousLayout(true);
+        centerPanel.setBorder(BorderFactory.createEmptyBorder());
     }
 
     private final class ConvertBtnActionListener implements ActionListener {
@@ -147,7 +153,7 @@ public class ZhConvertPanel extends EasyPanel {
         public void actionPerformed(ActionEvent e) {
             new Thread(() -> {
                 String converType = comboBox.getSelectedItem().toString();
-                System.out.println(converType);
+                logger.info("convert type: {}", converType);
 
                 List<File> fileList = new ArrayList<>();
                 for (File file : fileListPanel.getFileList()) {
@@ -164,12 +170,12 @@ public class ZhConvertPanel extends EasyPanel {
                 textArea.setCaretPosition(textArea.getText().length());
                 try {
                     scanFolderAndConver(fileList, converType, textArea);
-                    JOptionPane.showMessageDialog(getFrame(), "转换成功" , "提示",JOptionPane.WARNING_MESSAGE);
-                    textArea.append("done..." + "\n");
+                    JOptionPane.showMessageDialog(getFrame(), "Convert finished", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    textArea.append("done...\n");
                     textArea.setCaretPosition(textArea.getText().length());
                 } catch (IOException e1) {
-                    JOptionPane.showMessageDialog(getFrame(), "异常：" + e1.getMessage(), "异常",JOptionPane.ERROR_MESSAGE);
-                    textArea.append("转换异常..." + "\n");
+                    JOptionPane.showMessageDialog(getFrame(), "Error: " + e1.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    textArea.append("convert failed\n");
                     textArea.setCaretPosition(textArea.getText().length());
                 }
             }).start();
@@ -182,18 +188,18 @@ public class ZhConvertPanel extends EasyPanel {
             String key = keyText.getText();
             String value = valueText.getText();
 
-            if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)){
-                myZHConverterUtils.storeDataToProperties(key,value);
-                JOptionPane.showMessageDialog(ZhConvertPanel.this, "成功插入一条词组对应信息", "提示",JOptionPane.WARNING_MESSAGE);
+            if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+                myZHConverterUtils.storeDataToProperties(key, value);
+                JOptionPane.showMessageDialog(ZhConvertPanel.this, "Phrase rule added", "Info", JOptionPane.INFORMATION_MESSAGE);
                 refreshListData();
-                textArea.append("成功插入一条词组对应信息：" + key + " <===> " + value + "\n");
-            }else{
-                JOptionPane.showMessageDialog(ZhConvertPanel.this, "键值对不能为空", "提示",JOptionPane.WARNING_MESSAGE);
+                textArea.append("Added phrase rule: " + key + " <===> " + value + "\n");
+            } else {
+                JOptionPane.showMessageDialog(ZhConvertPanel.this, "Key and value must not be empty", "Error", JOptionPane.WARNING_MESSAGE);
             }
         }
     }
 
-    private void refreshListData(){
+    private void refreshListData() {
         List<String> listModel = new ArrayList<>();
         Properties properties = myZHConverterUtils.getCharMap();
         for (String key2 : properties.stringPropertyNames()) {
@@ -203,24 +209,24 @@ public class ZhConvertPanel extends EasyPanel {
     }
 
     private static void scanFolderAndConver(List<File> fileList, String converType, JTextArea jTextArea) throws IOException {
-        jTextArea.append("文件转换开始：\n");
-        for (File file : fileList){
-            jTextArea.append("开始转换："+file + "\n");
+        jTextArea.append("Start converting files:\n");
+        for (File file : fileList) {
+            jTextArea.append("Converting: " + file + "\n");
             String content = org.apache.commons.io.FileUtils.readFileToString(file, "utf-8");
 
-            if (converType.equals(Constants.zhSimple2zhTw)){
+            if (converType.equals(Constants.zhSimple2zhTw)) {
                 String str = myZHConverterUtils.myConvertToTW(content);
                 String result = ZhConverterUtil.toTraditional(str);
-                org.apache.commons.io.FileUtils.write(file,result,"UTF-8");
-            }else{
+                org.apache.commons.io.FileUtils.write(file, result, "UTF-8");
+            } else {
                 String str = myZHConverterUtils.myConvertToSimple(content);
                 String result = ZhConverterUtil.toSimple(str);
-                org.apache.commons.io.FileUtils.write(file,result,"UTF-8");
+                org.apache.commons.io.FileUtils.write(file, result, "UTF-8");
             }
-            jTextArea.append("转换完成："+file + "\n");
+            jTextArea.append("Done: " + file + "\n");
             jTextArea.setCaretPosition(jTextArea.getText().length());
         }
-        jTextArea.append("文件转换结束：\n");
-        jTextArea.append("==========================================================================：\n");
+        jTextArea.append("All conversions finished.\n");
+        jTextArea.append("==========================================================================\n");
     }
 }

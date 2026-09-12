@@ -4,9 +4,12 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -17,6 +20,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -36,7 +40,7 @@ public final class UiKit {
     public static final int LABEL_WIDTH = 140;
     public static final int FIELD_HEIGHT = 28;
     public static final int BUTTON_HEIGHT = 28;
-    public static final int BUTTON_WIDTH = 110;
+    public static final int BUTTON_WIDTH = 120;
     public static final int BUTTON_HEIGHT_PRIMARY = 30;
     public static final int BUTTON_WIDTH_PRIMARY = 120;
     public static final int CONTENT_MAX_WIDTH = 920;
@@ -106,57 +110,59 @@ public final class UiKit {
 
     /**
      * Form row: fixed-width right-aligned label + flexible fields.
-     * Accepts text fields, combos, checkboxes, buttons, etc.
+     * Text fields/combos expand; trailing action buttons keep text-based fixed width.
      */
     public static JPanel formRow(String labelText, JComponent... fields) {
         JPanel row = new JPanel(new GridBagLayout());
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setOpaque(false);
+
         GridBagConstraints gc = new GridBagConstraints();
         gc.gridy = 0;
         gc.insets = new Insets(GAP_XS, GAP_XS, GAP_XS, GAP_XS);
         gc.anchor = GridBagConstraints.WEST;
+        gc.fill = GridBagConstraints.NONE;
+        gc.weightx = 0;
 
         JLabel label = new JLabel(labelText);
         label.setPreferredSize(new Dimension(LABEL_WIDTH, FIELD_HEIGHT));
+        label.setMinimumSize(new Dimension(LABEL_WIDTH, FIELD_HEIGHT));
         label.setMaximumSize(new Dimension(LABEL_WIDTH, FIELD_HEIGHT));
-        gc.gridx = 0;
-        gc.weightx = 0;
-        gc.fill = GridBagConstraints.NONE;
         row.add(label, gc);
 
-        gc.gridx = 1;
-        gc.weightx = 1.0;
-        gc.fill = GridBagConstraints.HORIZONTAL;
-        if (fields.length == 0) {
-            row.add(Box.createHorizontalGlue(), gc);
-        } else {
-            for (int i = 0; i < fields.length; i++) {
-                gc.gridx = 1 + i;
-                gc.weightx = i == fields.length - 1 ? 1.0 : 0.0;
-                gc.fill = i == fields.length - 1 ? GridBagConstraints.HORIZONTAL : GridBagConstraints.NONE;
-                JComponent field = fields[i];
-                field.setAlignmentX(Component.LEFT_ALIGNMENT);
-                if (field instanceof JTextField || field instanceof JButton) {
-                    field.setPreferredSize(preferredFieldSize(field));
-                    field.setMaximumSize(preferredFieldSize(field));
-                }
-                row.add(field, gc);
+        for (int i = 0; i < fields.length; i++) {
+            JComponent field = fields[i];
+            field.setAlignmentX(Component.LEFT_ALIGNMENT);
+            boolean isAction = field instanceof JButton;
+            boolean expand = !isAction && !(field instanceof JSpinner);
+            gc.gridx = 1 + i;
+            gc.weightx = expand ? 1.0 : 0.0;
+            gc.fill = expand ? GridBagConstraints.HORIZONTAL : GridBagConstraints.NONE;
+            if (isAction) {
+                styleSecondaryButton((JButton) field);
+            } else if (field instanceof JSpinner spinner) {
+                spinner.setPreferredSize(new Dimension(90, FIELD_HEIGHT));
+                spinner.setMaximumSize(new Dimension(90, FIELD_HEIGHT));
+                spinner.setMinimumSize(new Dimension(70, FIELD_HEIGHT));
+            } else if (expand) {
+                field.setPreferredSize(new Dimension(Math.max(field.getPreferredSize().width, 180), FIELD_HEIGHT));
+                field.setMinimumSize(new Dimension(120, FIELD_HEIGHT));
+                field.setMaximumSize(new Dimension(Integer.MAX_VALUE, FIELD_HEIGHT));
             }
+            row.add(field, gc);
         }
+
+        int rowHeight = FIELD_HEIGHT + GAP_XS * 2;
+        row.setPreferredSize(new Dimension(Math.max(row.getPreferredSize().width, 360), rowHeight));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowHeight));
         return row;
     }
 
-    private static Dimension preferredFieldSize(JComponent c) {
-        int h = c instanceof JButton ? BUTTON_HEIGHT : FIELD_HEIGHT;
-        int w = c instanceof JButton ? BUTTON_WIDTH : Math.max(c.getPreferredSize().width, 120);
-        if (c.getPreferredSize().width > 0) {
-            w = Math.max(w, c.getPreferredSize().width);
-        }
-        return new Dimension(w, h);
+    private static boolean isExpandable(JComponent c) {
+        return !(c instanceof JButton);
     }
 
-    /** Checkbox row with standard height. */
+    /** Checkbox / radio row with fixed height so BoxLayout does not stretch it. */
     public static JPanel checkRow(JComponent... fields) {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, GAP_MD, GAP_XS));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -165,6 +171,9 @@ public final class UiKit {
             field.setAlignmentY(Component.CENTER_ALIGNMENT);
             row.add(field);
         }
+        int rowHeight = FIELD_HEIGHT + GAP_XS * 2;
+        row.setPreferredSize(new Dimension(Math.max(row.getPreferredSize().width, 240), rowHeight));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, rowHeight));
         return row;
     }
 
@@ -173,6 +182,8 @@ public final class UiKit {
         JPanel row = new JPanel(new FlowLayout(FlowLayout.RIGHT, GAP_SM, 0));
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
         row.setOpaque(false);
+        row.setPreferredSize(new Dimension(Math.max(row.getPreferredSize().width, 200), BUTTON_HEIGHT_PRIMARY + GAP_XS));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, BUTTON_HEIGHT_PRIMARY + GAP_XS));
         for (JComponent button : buttons) {
             if (button instanceof JButton jButton) {
                 if (jButton.getClientProperty("ui.primary") != null
@@ -201,9 +212,11 @@ public final class UiKit {
     }
 
     public static void stylePrimaryButton(JButton button) {
-        button.setPreferredSize(new Dimension(BUTTON_WIDTH_PRIMARY, BUTTON_HEIGHT_PRIMARY));
-        button.setMinimumSize(new Dimension(BUTTON_WIDTH_PRIMARY, BUTTON_HEIGHT_PRIMARY));
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, BUTTON_HEIGHT_PRIMARY));
+        int w = Math.max(BUTTON_WIDTH_PRIMARY, textWidth(button, GAP_LG));
+        button.setPreferredSize(new Dimension(w, BUTTON_HEIGHT_PRIMARY));
+        button.setMinimumSize(new Dimension(w, BUTTON_HEIGHT_PRIMARY));
+        // Keep width fixed so BoxLayout parents cannot stretch the accent button.
+        button.setMaximumSize(new Dimension(w, BUTTON_HEIGHT_PRIMARY));
         button.setMargin(new Insets(0, GAP_MD, 0, GAP_MD));
         button.setBackground(ACCENT);
         button.setForeground(Color.BLACK);
@@ -212,10 +225,17 @@ public final class UiKit {
     }
 
     public static void styleSecondaryButton(JButton button) {
-        button.setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
-        button.setMaximumSize(new Dimension(Integer.MAX_VALUE, BUTTON_HEIGHT));
+        int w = Math.max(BUTTON_WIDTH, textWidth(button, GAP_MD));
+        button.setPreferredSize(new Dimension(w, BUTTON_HEIGHT));
+        button.setMinimumSize(new Dimension(w, BUTTON_HEIGHT));
+        button.setMaximumSize(new Dimension(w, BUTTON_HEIGHT));
         button.setFocusPainted(false);
+    }
+
+    private static int textWidth(JButton button, int pad) {
+        FontMetrics fm = button.getFontMetrics(button.getFont());
+        int text = fm.stringWidth(button.getText() == null ? "" : button.getText());
+        return text + pad * 2 + 8;
     }
 
     /** Uniform text field sizing. */

@@ -21,22 +21,26 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
         setAlignmentX(Component.LEFT_ALIGNMENT);
         setBorder(UiKit.sectionBorder("Third-party Dependencies"));
 
-        createPathPanel(this, "7-Zip (e.g. C:/Program Files/7-Zip/7z.exe)", "https://www.7-zip.org/", Constants.SEVEN_ZIP_PATH_KEY);
+        createPathPanel(this, "7-Zip", "https://www.7-zip.org/", Constants.SEVEN_ZIP_PATH_KEY);
         add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        createPathPanel(this, "RAR (e.g. C:/Program Files/WinRAR/Rar.exe)", "https://www.win-rar.com/", Constants.RAR_PATH_KEY);
+        createPathPanel(this, "RAR", "https://www.win-rar.com/", Constants.RAR_PATH_KEY);
         add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        createPathPanel(this, "WinRAR (e.g. C:/Program Files/WinRAR/WinRAR.exe)", "https://www.win-rar.com/", Constants.WIN_RAR_PATH_KEY);
+        createPathPanel(this, "WinRAR", "https://www.win-rar.com/", Constants.WIN_RAR_PATH_KEY);
     }
 
-    private void createPathPanel(JPanel panel, String label, String website, String confKey) {
+    private void createPathPanel(JPanel panel, String name, String website, String confKey) {
         JPanel pathPanel = new JPanel();
         pathPanel.setLayout(new BoxLayout(pathPanel, BoxLayout.Y_AXIS));
         pathPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(pathPanel);
 
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setPreferredSize(new Dimension(UiKit.LABEL_WIDTH, UiKit.FIELD_HEIGHT));
+
         JButton visitWebsiteButton = UiKit.secondaryButton(bundle.getString("download.button"));
+        visitWebsiteButton.setToolTipText(website);
         visitWebsiteButton.addActionListener(e -> {
             URI uri;
             try {
@@ -49,8 +53,17 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
             }
         });
 
+        JPanel header = new JPanel(new BorderLayout(UiKit.GAP_SM, 0));
+        header.setOpaque(false);
+        header.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT));
+        header.add(nameLabel, BorderLayout.WEST);
+        header.add(visitWebsiteButton, BorderLayout.EAST);
+        pathPanel.add(header);
+        pathPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+
         JTextField pathTextField = UiKit.field(new JTextField());
         pathTextField.setText(conf.getString(confKey));
+        pathTextField.setToolTipText("Executable path, e.g. C:/Program Files/" + name + "/");
 
         JButton pathButton = UiKit.secondaryButton(bundle.getString("choose.file.button"));
         pathButton.addActionListener(e -> {
@@ -65,8 +78,6 @@ public class DependencyPathPanel extends EasyChildTabbedPanel {
             }
         });
 
-        pathPanel.add(UiKit.formRow(label, visitWebsiteButton));
-        pathPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         pathPanel.add(UiKit.formRow("Path", pathTextField, pathButton));
     }
 }

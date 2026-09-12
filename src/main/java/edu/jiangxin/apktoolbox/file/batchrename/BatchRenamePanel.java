@@ -322,14 +322,9 @@ public class BatchRenamePanel extends EasyPanel {
         operationPanel.setBorder(UiKit.sectionBorder("6. 操作"));
         operationPanel.setLayout(new BorderLayout());
 
-        JPanel secondLevelPanel = new JPanel();
-        secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.X_AXIS));
-        operationPanel.add(secondLevelPanel);
-
         JButton button = UiKit.primaryButton("Start");
         button.addActionListener(new StartButtonActionListener());
-        secondLevelPanel.add(Box.createHorizontalGlue());
-        secondLevelPanel.add(button);
+        operationPanel.add(UiKit.actionRow(button), BorderLayout.CENTER);
     }
 
     private void createStatusPanel() {

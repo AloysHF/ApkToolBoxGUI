@@ -16,6 +16,7 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -90,6 +91,54 @@ public class DumpsysPanel extends EasyPanel {
         dumpsysPanel.add(dumpsysOperationPanel);
     }
 
+    private void createDumpsysOptionPanel() {
+        dumpsysOptionPanel = new JPanel();
+        dumpsysOptionPanel.setLayout(new BoxLayout(dumpsysOptionPanel, BoxLayout.Y_AXIS));
+        dumpsysOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dumpsysOptionPanel.setBorder(UiKit.sectionBorder("Dumpsys Types"));
+
+        JCheckBox allSelectedCheckBox = new JCheckBox("Select All");
+        allSelectedCheckBox.setSelected(false);
+        allSelectedCheckBox.addActionListener(e -> {
+            boolean selected = allSelectedCheckBox.isSelected();
+            for (Component component : dumpsysTypeChoosePanel.getComponents()) {
+                if (component instanceof JCheckBox checkBox) {
+                    checkBox.setSelected(selected);
+                    checkBox.setEnabled(!selected);
+                }
+            }
+        });
+
+        dumpsysTypeChoosePanel = new JPanel();
+        dumpsysTypeChoosePanel.setLayout(new GridLayout(0, 4, UiKit.GAP_SM, UiKit.GAP_SM));
+        dumpsysTypeChoosePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dumpsysTypeChoosePanel.setBorder(new EmptyBorder(UiKit.GAP_XS, 0, 0, 0));
+
+        String[] types = {
+                "input", "window", "SurfaceFlinger", "activity",
+                "accessibility", "package", "alarm", "input_method",
+                "sensorservice", "account", "display", "power", "battery"
+        };
+        for (String type : types) {
+            JCheckBox checkBox = new JCheckBox(type);
+            if ("input".equals(type)) {
+                checkBox.setSelected(true);
+            }
+            dumpsysTypeChoosePanel.add(checkBox);
+        }
+
+        dumpsysOptionPanel.add(UiKit.checkRow(allSelectedCheckBox));
+        dumpsysOptionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        dumpsysOptionPanel.add(dumpsysTypeChoosePanel);
+    }
+
+    private void createDumpsysOperationPanel() {
+        dumpsysStartButton = UiKit.primaryButton("Start");
+        dumpsysStartButton.setEnabled(true);
+        dumpsysStartButton.addActionListener(new DumpsysStartButtonActionListener());
+        dumpsysOperationPanel = UiKit.actionRow(dumpsysStartButton);
+    }
+
     private void createAnalysisPanel() {
         analysisPanel = new JPanel();
         analysisPanel.setLayout(new BoxLayout(analysisPanel, BoxLayout.Y_AXIS));
@@ -131,90 +180,9 @@ public class DumpsysPanel extends EasyPanel {
     }
 
     private void createDumpsysTargetDirPanel() {
-        dumpsysTargetDirPanel = new FilePanel("Target Directory");
+        dumpsysTargetDirPanel = new FilePanel("Browse...");
         dumpsysTargetDirPanel.initialize();
         dumpsysTargetDirPanel.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    }
-
-    private void createDumpsysOptionPanel() {
-        dumpsysOptionPanel = new JPanel();
-        BoxLayout boxLayout = new BoxLayout(dumpsysOptionPanel, BoxLayout.Y_AXIS);
-        dumpsysOptionPanel.setLayout(boxLayout);
-
-        JPanel dumpsysCheckboxPanel = new JPanel();
-        dumpsysCheckboxPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3));
-
-        JCheckBox allSelectedCheckBox = new JCheckBox("Select All");
-        allSelectedCheckBox.setSelected(false);
-        allSelectedCheckBox.addActionListener(e -> {
-            boolean selected = allSelectedCheckBox.isSelected();
-            if (selected) {
-                Component[] components = dumpsysTypeChoosePanel.getComponents();
-                for (Component component : components) {
-                    if (component instanceof JCheckBox checkBox) {
-                        checkBox.setSelected(true);
-                        checkBox.setEnabled(false);
-                    }
-                }
-            } else {
-                Component[] components = dumpsysTypeChoosePanel.getComponents();
-                for (Component component : components) {
-                    if (component instanceof JCheckBox checkBox) {
-                        checkBox.setSelected(false);
-                        checkBox.setEnabled(true);
-                    }
-                }
-            }
-
-        });
-        dumpsysCheckboxPanel.add(allSelectedCheckBox);
-
-        dumpsysTypeChoosePanel = new JPanel();
-        dumpsysTypeChoosePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3));
-        dumpsysTypeChoosePanel.setPreferredSize(new Dimension(500, 200));
-
-        JCheckBox inputCheckBox = new JCheckBox("input");
-        inputCheckBox.setSelected(true);
-        JCheckBox windowCheckBox = new JCheckBox("window");
-        dumpsysTypeChoosePanel.add(windowCheckBox);
-        JCheckBox SurfaceFlingerCheckBox = new JCheckBox("SurfaceFlinger");
-        dumpsysTypeChoosePanel.add(SurfaceFlingerCheckBox);
-        JCheckBox activityCheckBox = new JCheckBox("activity");
-        dumpsysTypeChoosePanel.add(activityCheckBox);
-        JCheckBox accessibilityCheckBox = new JCheckBox("accessibility");
-        dumpsysTypeChoosePanel.add(accessibilityCheckBox);
-        JCheckBox packageCheckBox = new JCheckBox("package");
-        dumpsysTypeChoosePanel.add(packageCheckBox);
-        JCheckBox alarmCheckBox = new JCheckBox("alarm");
-        dumpsysTypeChoosePanel.add(alarmCheckBox);
-        JCheckBox inputMethodCheckBox = new JCheckBox("input_method");
-        dumpsysTypeChoosePanel.add(inputMethodCheckBox);
-        JCheckBox sensorServiceCheckBox = new JCheckBox("sensorservice");
-        dumpsysTypeChoosePanel.add(sensorServiceCheckBox);
-        JCheckBox accountCheckBox = new JCheckBox("account");
-        dumpsysTypeChoosePanel.add(accountCheckBox);
-        JCheckBox displayCheckBox = new JCheckBox("display");
-        dumpsysTypeChoosePanel.add(displayCheckBox);
-        JCheckBox powerCheckBox = new JCheckBox("power");
-        dumpsysTypeChoosePanel.add(powerCheckBox);
-        JCheckBox batteryCheckBox = new JCheckBox("battery");
-        dumpsysTypeChoosePanel.add(batteryCheckBox);
-
-        dumpsysOptionPanel.add(dumpsysCheckboxPanel);
-        dumpsysOptionPanel.add(new JSeparator(JSeparator.HORIZONTAL));
-        dumpsysOptionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        dumpsysOptionPanel.add(dumpsysTypeChoosePanel);
-    }
-
-    private void createDumpsysOperationPanel() {
-        dumpsysOperationPanel = new JPanel();
-        BoxLayout boxLayout = new BoxLayout(dumpsysOperationPanel, BoxLayout.X_AXIS);
-        dumpsysOperationPanel.setLayout(boxLayout);
-
-        dumpsysStartButton = new JButton("Start");
-        dumpsysStartButton.setEnabled(true);
-        dumpsysStartButton.addActionListener(new DumpsysStartButtonActionListener());
-        dumpsysOperationPanel.add(dumpsysStartButton);
     }
 
     class DumpsysStartButtonActionListener implements ActionListener {

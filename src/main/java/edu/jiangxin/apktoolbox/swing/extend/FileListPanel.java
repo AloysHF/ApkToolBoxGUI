@@ -94,17 +94,19 @@ public class FileListPanel extends JPanel {
         rightContentPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         rightContentPanel.add(createSideButton("Add File", new AddFileButtonActionListener()));
-        rightContentPanel.add(createSideButton("Add Directory", new AddDirectoryButtonActionListener()));
-        rightContentPanel.add(createSideButton("Remove Selected", new RemoveSelectedButtonActionListener()));
+        rightContentPanel.add(createSideButton("Add Dir", new AddDirectoryButtonActionListener()));
+        rightContentPanel.add(createSideButton("Remove", new RemoveSelectedButtonActionListener()));
         rightContentPanel.add(createSideButton("Clear All", new ClearButtonActionListener()));
         rightContentPanel.add(createSideButton("Select All", new SelectAllButtonActionListener()));
-        rightContentPanel.add(createSideButton("Inverse Selected", new InverseSelectedButtonActionListener()));
+        rightContentPanel.add(createSideButton("Invert", new InverseSelectedButtonActionListener()));
 
         rightPanel.add(Box.createVerticalGlue(), BorderLayout.NORTH);
         rightPanel.add(rightContentPanel, BorderLayout.CENTER);
         rightPanel.add(Box.createVerticalGlue(), BorderLayout.SOUTH);
-        rightPanel.setPreferredSize(new Dimension(UiKit.BUTTON_WIDTH + UiKit.GAP_SM * 2, Constants.DEFAULT_SCROLL_PANEL_HEIGHT));
-        rightPanel.setMaximumSize(rightPanel.getPreferredSize());
+        int sideW = UiKit.BUTTON_WIDTH + UiKit.GAP_SM;
+        rightPanel.setPreferredSize(new Dimension(sideW, Constants.DEFAULT_SCROLL_PANEL_HEIGHT));
+        rightPanel.setMaximumSize(new Dimension(sideW, Constants.DEFAULT_SCROLL_PANEL_HEIGHT));
+        rightPanel.setMinimumSize(new Dimension(sideW, 120));
     }
 
     private JButton createSideButton(String text, ActionListener listener) {

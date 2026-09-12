@@ -1,7 +1,7 @@
 package edu.jiangxin.apktoolbox.android.screenshot;
 
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.DateUtils;
 import edu.jiangxin.apktoolbox.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,72 +39,58 @@ public class ScreenShotPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("Screenshot"));
 
         createDirectoryPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
         createFileNamePanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
         createScreenshotPanel();
     }
 
     private void createScreenshotPanel() {
-        JPanel screenshotPanel = new JPanel();
-        screenshotPanel.setLayout(new BoxLayout(screenshotPanel, BoxLayout.X_AXIS));
-        add(screenshotPanel);
-
-        openCheckBox = new JCheckBox("Open Dir");
+        openCheckBox = new JCheckBox("Open Directory");
         openCheckBox.setSelected(false);
 
-        copyCheckBox = new JCheckBox("Copy Pic");
+        copyCheckBox = new JCheckBox("Copy to Clipboard");
         copyCheckBox.setSelected(false);
 
-        JButton screenshotButton = new JButton("Sceenshot");
+        JButton screenshotButton = UiKit.primaryButton("Screenshot");
         screenshotButton.addActionListener(new ScreenshotButtonActionListener());
 
-        JButton getExistButton = new JButton("Get Exist");
+        JButton getExistButton = UiKit.secondaryButton("Get Existing");
         getExistButton.addActionListener(new GetExistButtonActionListener());
 
-        screenshotPanel.add(openCheckBox);
-        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        screenshotPanel.add(copyCheckBox);
-        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        screenshotPanel.add(screenshotButton);
-        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        screenshotPanel.add(getExistButton);
+        add(UiKit.checkRow(openCheckBox, copyCheckBox));
+        add(Box.createVerticalStrut(UiKit.GAP_SM));
+        add(UiKit.actionRow(getExistButton, screenshotButton));
     }
 
     private void createFileNamePanel() {
-        JPanel fileNamePanel = new JPanel();
-        fileNamePanel.setLayout(new BoxLayout(fileNamePanel, BoxLayout.X_AXIS));
-        add(fileNamePanel);
-
-        fileNameTextField = new JTextField();
+        fileNameTextField = UiKit.field(new JTextField());
         fileNameTextField.setToolTipText("timestamp default(for example: 20180101122345.png)");
 
-        JButton fileNameButton = new JButton("File name");
+        JButton fileNameButton = UiKit.secondaryButton("File Name");
+        fileNameButton.addActionListener(e -> fileNameTextField.requestFocusInWindow());
 
-        fileNamePanel.add(fileNameTextField);
-        fileNamePanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        fileNamePanel.add(fileNameButton);
+        JPanel fileNamePanel = new JPanel(new BorderLayout(UiKit.GAP_MD, 0));
+        fileNamePanel.setOpaque(false);
+        fileNamePanel.add(UiKit.formRow("File Name", fileNameTextField), BorderLayout.CENTER);
+        fileNamePanel.add(fileNameButton, BorderLayout.EAST);
+        add(fileNamePanel);
     }
 
     private void createDirectoryPanel() {
-        JPanel directoryPanel = new JPanel();
-        directoryPanel.setLayout(new BoxLayout(directoryPanel, BoxLayout.X_AXIS));
-        add(directoryPanel);
-
-        directoryTextField = new JTextField();
+        directoryTextField = UiKit.field(new JTextField());
         directoryTextField.setText(conf.getString("screenshot.save.dir", System.getenv("USERPROFILE")));
         directoryTextField.setTransferHandler(new DirectoryTextFieldTransferHandler());
 
-        JButton directoryButton = new JButton("Save Directory");
+        JButton directoryButton = UiKit.secondaryButton("Browse...");
         directoryButton.addActionListener(new DirectoryButtonActionListener());
 
-        directoryPanel.add(directoryTextField);
-        directoryPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        directoryPanel.add(directoryButton);
+        add(UiKit.formRow("Save Directory", directoryTextField, directoryButton));
     }
 
     private final class DirectoryButtonActionListener implements ActionListener {

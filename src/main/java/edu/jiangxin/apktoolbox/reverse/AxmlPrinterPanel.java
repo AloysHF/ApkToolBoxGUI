@@ -2,7 +2,7 @@ package edu.jiangxin.apktoolbox.reverse;
 
 import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
 import edu.jiangxin.apktoolbox.swing.extend.plugin.PluginPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.ProcessLogOutputStream;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -42,59 +42,43 @@ public class AxmlPrinterPanel extends PluginPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("AndroidManifest.xml Decompiler"));
 
         createSrcPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createTargetPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
     }
 
     private void createOperationPanel() {
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        add(operationPanel);
-
-        JButton getFileButton = new JButton("Get File");
+        JButton getFileButton = UiKit.primaryButton("Decompile");
         getFileButton.addActionListener(new GetFileButtonActionListener());
-
-        operationPanel.add(getFileButton);
+        add(UiKit.actionRow(getFileButton));
     }
 
     private void createTargetPanel() {
-        JPanel targetPanel = new JPanel();
-        targetPanel.setLayout(new BoxLayout(targetPanel, BoxLayout.X_AXIS));
-        add(targetPanel);
-
-        targetTextField = new JTextField();
+        targetTextField = UiKit.field(new JTextField());
         targetTextField.setText(conf.getString("axmlprinter.target.dir"));
 
-        JButton targetButton = new JButton("Save Dir");
+        JButton targetButton = UiKit.secondaryButton("Browse...");
         targetButton.addActionListener(new SelectDirectoryListener("Save To", targetTextField));
 
-        targetPanel.add(targetTextField);
-        targetPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        targetPanel.add(targetButton);
+        add(UiKit.formRow("Save Directory", targetTextField, targetButton));
     }
 
     private void createSrcPanel() {
-        JPanel srcPanel = new JPanel();
-        srcPanel.setLayout(new BoxLayout(srcPanel, BoxLayout.X_AXIS));
-        add(srcPanel);
-
-        srcTextField = new JTextField();
+        srcTextField = UiKit.field(new JTextField());
         srcTextField.setText(conf.getString("axmlprinter.src.file"));
 
-        JButton srcButton = new JButton("Source File");
+        JButton srcButton = UiKit.secondaryButton("Browse...");
         srcButton.addActionListener(new SrcButtonActionListener());
 
-        srcPanel.add(srcTextField);
-        srcPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        srcPanel.add(srcButton);
+        add(UiKit.formRow("Source File", srcTextField, srcButton));
     }
 
     private final class SrcButtonActionListener implements ActionListener {

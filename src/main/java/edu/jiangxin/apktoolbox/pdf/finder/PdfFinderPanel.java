@@ -3,13 +3,14 @@ package edu.jiangxin.apktoolbox.pdf.finder;
 import edu.jiangxin.apktoolbox.pdf.PdfUtils;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.DateUtils;
 import edu.jiangxin.apktoolbox.utils.ExcelExporter;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import edu.jiangxin.apktoolbox.utils.RevealFileUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
@@ -71,7 +72,7 @@ public class PdfFinderPanel extends EasyPanel {
         add(tabbedPane);
 
         createMainPanel();
-        tabbedPane.addTab("Option", null, mainPanel, "Show Search Options");
+        tabbedPane.addTab("Options", null, mainPanel, "Show Search Options");
 
         createResultPanel();
         tabbedPane.addTab("Result", null, resultPanel, "Show Search Result");
@@ -80,100 +81,86 @@ public class PdfFinderPanel extends EasyPanel {
     private void createMainPanel() {
         mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileListPanel = new FileListPanel();
         fileListPanel.initialize();
 
-        JPanel checkOptionPanel = new JPanel();
-        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.X_AXIS));
-        checkOptionPanel.setBorder(BorderFactory.createTitledBorder("Check Options"));
-
         ButtonGroup buttonGroup = new ButtonGroup();
         ItemListener itemListener = new RadioButtonItemListener();
 
-        scannedRadioButton = new JRadioButton("查找扫描的PDF文件");
+        scannedRadioButton = new JRadioButton("Scanned PDF files");
         scannedRadioButton.setSelected(true);
         scannedRadioButton.addItemListener(itemListener);
         buttonGroup.add(scannedRadioButton);
 
-        encryptedRadioButton = new JRadioButton("查找加密的PDF文件");
+        encryptedRadioButton = new JRadioButton("Encrypted PDF files");
         encryptedRadioButton.addItemListener(itemListener);
         buttonGroup.add(encryptedRadioButton);
 
-        nonOutlineRadioButton = new JRadioButton("查找没有目录的PDF文件");
+        nonOutlineRadioButton = new JRadioButton("PDF files without outline");
         nonOutlineRadioButton.addItemListener(itemListener);
         buttonGroup.add(nonOutlineRadioButton);
 
-        hasAnnotationsRadioButton = new JRadioButton("查找有注释的PDF文件");
+        hasAnnotationsRadioButton = new JRadioButton("PDF files with annotations");
         hasAnnotationsRadioButton.addItemListener(itemListener);
         buttonGroup.add(hasAnnotationsRadioButton);
 
-        JPanel typePanel = new JPanel();
-        typePanel.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));
-        typePanel.add(scannedRadioButton);
-        typePanel.add(encryptedRadioButton);
-        typePanel.add(nonOutlineRadioButton);
-        typePanel.add(hasAnnotationsRadioButton);
-
-        JLabel thresholdLabel = new JLabel("Threshold: ");
         thresholdSpinner = new JSpinner();
         thresholdSpinner.setModel(new SpinnerNumberModel(1, 0, 100, 1));
+        thresholdSpinner.setPreferredSize(new Dimension(80, UiKit.FIELD_HEIGHT));
+        thresholdSpinner.setMaximumSize(new Dimension(80, UiKit.FIELD_HEIGHT));
 
-        checkOptionPanel.add(typePanel);
-        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        checkOptionPanel.add(thresholdLabel);
-        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        checkOptionPanel.add(thresholdSpinner);
-        checkOptionPanel.add(Box.createHorizontalGlue());
-
-        JPanel searchOptionPanel = new JPanel();
-        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));
-        searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Search Options"));
+        JPanel checkOptionPanel = new JPanel();
+        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.Y_AXIS));
+        checkOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        checkOptionPanel.setBorder(UiKit.sectionBorder("Check Options"));
+        checkOptionPanel.add(UiKit.checkRow(scannedRadioButton, encryptedRadioButton, nonOutlineRadioButton, hasAnnotationsRadioButton));
+        checkOptionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        checkOptionPanel.add(UiKit.formRow("Threshold", thresholdSpinner));
 
         isRecursiveSearched = new JCheckBox("Recursive");
         isRecursiveSearched.setSelected(true);
-        searchOptionPanel.add(isRecursiveSearched);
-        searchOptionPanel.add(Box.createHorizontalGlue());
 
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
+        JPanel searchOptionPanel = new JPanel();
+        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.Y_AXIS));
+        searchOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchOptionPanel.setBorder(UiKit.sectionBorder("Search Options"));
+        searchOptionPanel.add(UiKit.checkRow(isRecursiveSearched));
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-
-        searchButton = new JButton("Search");
-        cancelButton = new JButton("Cancel");
+        searchButton = UiKit.primaryButton("Search");
+        cancelButton = UiKit.secondaryButton("Cancel");
         cancelButton.setEnabled(false);
         searchButton.addActionListener(new OperationButtonActionListener());
         cancelButton.addActionListener(new OperationButtonActionListener());
-        operationPanel.add(searchButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(cancelButton);
-        operationPanel.add(Box.createHorizontalGlue());
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString("Ready");
+        progressBar.setPreferredSize(new Dimension(0, 22));
+        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
         mainPanel.add(fileListPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         mainPanel.add(checkOptionPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         mainPanel.add(searchOptionPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        mainPanel.add(operationPanel);
-        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
+        mainPanel.add(UiKit.actionRow(cancelButton, searchButton));
+        mainPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         mainPanel.add(progressBar);
     }
 
     private void createResultPanel() {
         resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setLayout(new BorderLayout());
+        resultPanel.setBorder(new EmptyBorder(UiKit.GAP_XS, 0, 0, 0));
 
         resultTableModel = new PdfFilesTableModel(new Vector<>(), PdfFilesConstants.COLUMN_NAMES);
         resultTable = new JTable(resultTableModel);
+        resultTable.setRowHeight(28);
+        resultTable.setShowGrid(false);
+        resultTable.setIntercellSpacing(new Dimension(0, 0));
 
         resultTable.setDefaultRenderer(Vector.class, new PdfFilesTableCellRenderer());
 
@@ -186,7 +173,7 @@ public class PdfFinderPanel extends EasyPanel {
         resultTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(resultTable);
-        resultPanel.add(scrollPane);
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
     private void processFile(File file) {

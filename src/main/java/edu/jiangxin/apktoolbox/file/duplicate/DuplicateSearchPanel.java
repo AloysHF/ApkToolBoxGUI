@@ -3,6 +3,7 @@ package edu.jiangxin.apktoolbox.file.duplicate;
 import edu.jiangxin.apktoolbox.utils.DateUtils;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import edu.jiangxin.apktoolbox.utils.ExcelExporter;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
@@ -12,7 +13,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -70,7 +73,7 @@ public class DuplicateSearchPanel extends EasyPanel {
         add(tabbedPane);
 
         createOptionPanel();
-        tabbedPane.addTab("Option", null, optionPanel, "Show Search Options");
+        tabbedPane.addTab("Options", null, optionPanel, "Show Search Options");
 
         createResultPanel();
         tabbedPane.addTab("Result", null, resultPanel, "Show Search Result");
@@ -79,13 +82,10 @@ public class DuplicateSearchPanel extends EasyPanel {
     private void createOptionPanel() {
         optionPanel = new JPanel();
         optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileListPanel = new FileListPanel();
         fileListPanel.initialize();
-
-        JPanel checkOptionPanel = new JPanel();
-        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.X_AXIS));
-        checkOptionPanel.setBorder(BorderFactory.createTitledBorder("Check Options"));
 
         JCheckBox isSizeChecked = new JCheckBox("Size");
         isSizeChecked.setSelected(true);
@@ -93,72 +93,60 @@ public class DuplicateSearchPanel extends EasyPanel {
         isFileNameChecked = new JCheckBox("Filename");
         isMD5Checked = new JCheckBox("MD5");
         isModifiedTimeChecked = new JCheckBox("Last Modified Time");
-        checkOptionPanel.add(isSizeChecked);
-        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        checkOptionPanel.add(isFileNameChecked);
-        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        checkOptionPanel.add(isMD5Checked);
-        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        checkOptionPanel.add(isModifiedTimeChecked);
-        checkOptionPanel.add(Box.createHorizontalGlue());
 
-        JPanel searchOptionPanel = new JPanel();
-        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));
-        searchOptionPanel.setBorder(BorderFactory.createTitledBorder("Search Options"));
+        JPanel checkOptionPanel = new JPanel();
+        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.Y_AXIS));
+        checkOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        checkOptionPanel.setBorder(UiKit.sectionBorder("Check Options"));
+        checkOptionPanel.add(UiKit.checkRow(isSizeChecked, isFileNameChecked, isMD5Checked, isModifiedTimeChecked));
 
         isHiddenFileSearched = new JCheckBox("Hidden Files");
         isRecursiveSearched = new JCheckBox("Recursive");
         isRecursiveSearched.setSelected(true);
-        JLabel suffixLabel = new JLabel("Suffix: ");
-        suffixTextField = new JTextField();
+        suffixTextField = UiKit.field(new JTextField());
         suffixTextField.setToolTipText("an array of extensions, ex. {\"java\",\"xml\"}. If this parameter is empty, all files are returned.");
-        searchOptionPanel.add(isHiddenFileSearched);
-        searchOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        searchOptionPanel.add(isRecursiveSearched);
-        searchOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        searchOptionPanel.add(suffixLabel);
-        searchOptionPanel.add(suffixTextField);
-        searchOptionPanel.add(Box.createHorizontalGlue());
 
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
+        JPanel searchOptionPanel = new JPanel();
+        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.Y_AXIS));
+        searchOptionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        searchOptionPanel.setBorder(UiKit.sectionBorder("Search Options"));
+        searchOptionPanel.add(UiKit.checkRow(isHiddenFileSearched, isRecursiveSearched));
+        searchOptionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        searchOptionPanel.add(UiKit.formRow("Suffix", suffixTextField));
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
-
-        searchButton = new JButton("Search");
-        cancelButton = new JButton("Cancel");
+        searchButton = UiKit.primaryButton("Search");
+        cancelButton = UiKit.secondaryButton("Cancel");
         cancelButton.setEnabled(false);
         searchButton.addActionListener(new OperationButtonActionListener());
         cancelButton.addActionListener(new OperationButtonActionListener());
-        operationPanel.add(searchButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(cancelButton);
-        operationPanel.add(Box.createHorizontalGlue());
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setString("Ready");
+        progressBar.setPreferredSize(new Dimension(Constants.DEFAULT_SCROLL_PANEL_WIDTH, 22));
+        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
         optionPanel.add(fileListPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         optionPanel.add(checkOptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
         optionPanel.add(searchOptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(operationPanel);
-		optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
+        optionPanel.add(UiKit.actionRow(cancelButton, searchButton));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         optionPanel.add(progressBar);
     }
 
     private void createResultPanel() {
         resultPanel = new JPanel();
-        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
+        resultPanel.setLayout(new BorderLayout());
+        resultPanel.setBorder(new EmptyBorder(UiKit.GAP_XS, 0, 0, 0));
 
         resultTableModel = new DuplicateFilesTableModel(new Vector<>(), DuplicateFilesConstants.COLUMN_NAMES);
         resultTable = new JTable(resultTableModel);
+        resultTable.setRowHeight(28);
+        resultTable.setShowGrid(false);
+        resultTable.setIntercellSpacing(new Dimension(0, 0));
 
         resultTable.setDefaultRenderer(Vector.class, new DuplicateFilesTableCellRenderer());
 
@@ -171,7 +159,7 @@ public class DuplicateSearchPanel extends EasyPanel {
         resultTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(resultTable);
-        resultPanel.add(scrollPane);
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
     private String getComparedKey(File file) {

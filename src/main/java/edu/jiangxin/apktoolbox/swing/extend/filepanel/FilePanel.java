@@ -1,5 +1,6 @@
 package edu.jiangxin.apktoolbox.swing.extend.filepanel;
 
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -88,17 +89,19 @@ public class FilePanel extends JPanel {
 
     private void initUI() {
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         fileTextField = new JTextField();
-        fileTextField.setPreferredSize(new Dimension(600, 30));
-        fileTextField.setMaximumSize(new Dimension(1200, 30));
+        fileTextField.setPreferredSize(new Dimension(600, UiKit.FIELD_HEIGHT));
+        fileTextField.setMaximumSize(new Dimension(1200, UiKit.FIELD_HEIGHT));
+        fileTextField.setMinimumSize(new Dimension(200, UiKit.FIELD_HEIGHT));
         fileTextField.setTransferHandler(new FileTransferHandler());
 
-        JButton chooseButton = new JButton(buttonText);
+        JButton chooseButton = UiKit.secondaryButton(buttonText);
         chooseButton.addActionListener(new OpenDictionaryFileActionListener());
 
         add(fileTextField);
-        add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
+        add(Box.createHorizontalStrut(UiKit.GAP_MD));
         add(chooseButton);
     }
 

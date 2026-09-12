@@ -1,5 +1,6 @@
 package edu.jiangxin.apktoolbox.swing.extend;
 
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import edu.jiangxin.apktoolbox.utils.Utils;
@@ -31,6 +32,9 @@ public class EasyPanel extends JPanel {
         logger = LogManager.getLogger(this.getClass().getSimpleName());
         conf = Utils.getConfiguration();
         bundle = ResourceBundle.getBundle("apktoolbox");
+        // Consistent base padding so every tool panel starts from the same rhythm.
+        setBorder(BorderFactory.createEmptyBorder(UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
         logger.info("Panel start: " + this.getClass().getSimpleName());
     }
 

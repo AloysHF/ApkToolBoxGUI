@@ -26,6 +26,7 @@ import edu.jiangxin.apktoolbox.android.screenshot.ScreenShotPanel;
 import edu.jiangxin.apktoolbox.reverse.ApktoolPanel;
 import edu.jiangxin.apktoolbox.swing.extend.EasyFrame;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.swing.extend.listener.ChangeMenuListener;
 import edu.jiangxin.apktoolbox.swing.extend.listener.ChangeMenuToUrlListener;
 import edu.jiangxin.apktoolbox.swing.extend.listener.IPreChangeMenuCallBack;
@@ -80,6 +81,7 @@ public final class MainFrame extends EasyFrame {
             } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {
                 logger.error("setLookAndFeel failed, use default instead", e);
             }
+            UiKit.applyGlobalDefaults();
 
             String currentLocaleLanguage = conf.getString("locale.language");
             if (StringUtils.isEmpty(currentLocaleLanguage)) {
@@ -109,12 +111,12 @@ public final class MainFrame extends EasyFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setMenuBar();
         contentPane = new JPanel();
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        contentPane.setBorder(new EmptyBorder(UiKit.PAD, UiKit.PAD, UiKit.PAD, UiKit.PAD));
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
         contentPane.add(Box.createVerticalGlue());
         EasyPanel initPanel = new AboutPanel();
         initPanel.init();
-        initPanel.setBorder(BorderFactory.createTitledBorder(bundle.getString("help.about.title")));
+        initPanel.setBorder(UiKit.sectionBorder(bundle.getString("help.about.title")));
         contentPane.add(initPanel);
         contentPane.add(Box.createVerticalGlue());
         setContentPane(contentPane);
@@ -385,7 +387,7 @@ public final class MainFrame extends EasyFrame {
             contentPane.removeAll();
             contentPane.add(Box.createVerticalGlue());
             panel.init();
-            panel.setBorder(BorderFactory.createTitledBorder(title));
+            panel.setBorder(UiKit.sectionBorder(title));
             contentPane.add(panel);
             logger.info("Panel changed: " + panel.getClass().getSimpleName());
             contentPane.add(Box.createVerticalGlue());

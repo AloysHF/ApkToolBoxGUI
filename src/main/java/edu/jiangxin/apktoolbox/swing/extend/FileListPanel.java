@@ -1,10 +1,12 @@
 package edu.jiangxin.apktoolbox.swing.extend;
 
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -53,11 +55,12 @@ public class FileListPanel extends JPanel {
 
     private void initUI() {
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createLeftPanel();
         add(leftPanel);
 
-        add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
+        add(Box.createHorizontalStrut(UiKit.GAP_MD));
 
         createRightPanel();
         add(rightPanel);
@@ -67,55 +70,47 @@ public class FileListPanel extends JPanel {
         fileList = new JList<>();
         fileListModel = new DefaultListModel<>();
         fileList.setModel(fileListModel);
+        fileList.setFixedCellHeight(26);
 
         JScrollPane scrollPane = new JScrollPane(fileList);
         scrollPane.setPreferredSize(new Dimension(Constants.DEFAULT_SCROLL_PANEL_WIDTH, Constants.DEFAULT_SCROLL_PANEL_HEIGHT));
 
         leftPanel = new JPanel();
-        leftPanel.setBorder(BorderFactory.createTitledBorder("File List"));
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+        leftPanel.setBorder(UiKit.sectionBorder("File List"));
+        leftPanel.setLayout(new BorderLayout());
         leftPanel.setTransferHandler(new FileListTransferHandler());
-        leftPanel.add(scrollPane);
+        leftPanel.add(scrollPane, BorderLayout.CENTER);
+        leftPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     }
 
     private void createRightPanel() {
         rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+        rightPanel.setLayout(new BorderLayout());
+        rightPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JPanel rightContentPanel = new JPanel();
-        rightPanel.add(Box.createVerticalGlue());
-        rightPanel.add(rightContentPanel);
-        rightPanel.add(Box.createVerticalGlue());
+        rightContentPanel.setLayout(new GridLayout(6, 1, 0, UiKit.GAP_SM));
+        rightContentPanel.setBorder(new EmptyBorder(0, UiKit.GAP_SM, 0, 0));
+        rightContentPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        rightContentPanel.setLayout(new GridLayout(6, 1, 0, Constants.DEFAULT_Y_BORDER));
+        rightContentPanel.add(createSideButton("Add File", new AddFileButtonActionListener()));
+        rightContentPanel.add(createSideButton("Add Directory", new AddDirectoryButtonActionListener()));
+        rightContentPanel.add(createSideButton("Remove Selected", new RemoveSelectedButtonActionListener()));
+        rightContentPanel.add(createSideButton("Clear All", new ClearButtonActionListener()));
+        rightContentPanel.add(createSideButton("Select All", new SelectAllButtonActionListener()));
+        rightContentPanel.add(createSideButton("Inverse Selected", new InverseSelectedButtonActionListener()));
 
-        JButton addFileButton = new JButton("Add File");
-        addFileButton.addActionListener(new AddFileButtonActionListener());
-        rightContentPanel.add(addFileButton);
+        rightPanel.add(Box.createVerticalGlue(), BorderLayout.NORTH);
+        rightPanel.add(rightContentPanel, BorderLayout.CENTER);
+        rightPanel.add(Box.createVerticalGlue(), BorderLayout.SOUTH);
+        rightPanel.setPreferredSize(new Dimension(UiKit.BUTTON_WIDTH + UiKit.GAP_SM * 2, Constants.DEFAULT_SCROLL_PANEL_HEIGHT));
+        rightPanel.setMaximumSize(rightPanel.getPreferredSize());
+    }
 
-        JButton addDirectoryButton = new JButton("Add Directory");
-        addDirectoryButton.addActionListener(new AddDirectoryButtonActionListener());
-        rightContentPanel.add(addDirectoryButton);
-
-        JButton removeSelectedButton = new JButton("Remove Selected");
-        removeSelectedButton.addActionListener(new RemoveSelectedButtonActionListener());
-        rightContentPanel.add(removeSelectedButton);
-
-        JButton clearButton = new JButton("Clear All");
-        clearButton.addActionListener(new ClearButtonActionListener());
-        rightContentPanel.add(clearButton);
-
-        JButton selectAllButton = new JButton("Select All");
-        selectAllButton.addActionListener(new SelectAllButtonActionListener());
-        rightContentPanel.add(selectAllButton);
-
-        JButton inverseSelectedButton = new JButton("Inverse Selected");
-        inverseSelectedButton.addActionListener(new InverseSelectedButtonActionListener());
-        rightContentPanel.add(inverseSelectedButton);
-
-        for (Component component : rightContentPanel.getComponents()) {
-            component.setPreferredSize(new Dimension(Constants.DEFAULT_BUTTON_WIDTH, Constants.DEFAULT_BUTTON_HEIGHT));
-        }
+    private JButton createSideButton(String text, ActionListener listener) {
+        JButton button = UiKit.secondaryButton(text);
+        button.addActionListener(listener);
+        return button;
     }
 
     private final class FileListTransferHandler extends TransferHandler {

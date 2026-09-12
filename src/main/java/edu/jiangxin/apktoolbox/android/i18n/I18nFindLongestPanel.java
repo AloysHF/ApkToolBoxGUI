@@ -2,7 +2,7 @@ package edu.jiangxin.apktoolbox.android.i18n;
 
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.SAXBuilderHelper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -43,22 +43,19 @@ public class I18nFindLongestPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("Internationalization Resources"));
 
         createSourcePanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
         createItemPanel();
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
         createOperationPanel();
     }
 
     private void createOperationPanel() {
-        JPanel operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        add(operationPanel);
-
-        JButton findButton = new JButton(bundle.getString("android.i18n.longest.find"));
+        JButton findButton = UiKit.primaryButton(bundle.getString("android.i18n.longest.find"));
         findButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -93,38 +90,23 @@ public class I18nFindLongestPanel extends EasyPanel {
             }
         });
 
-        operationPanel.add(findButton);
+        add(UiKit.actionRow(findButton));
     }
 
     private void createItemPanel() {
-        JPanel itemPanel = new JPanel();
-        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));
-        add(itemPanel);
-        
-        itemTextField = new JTextField();
+        itemTextField = UiKit.field(new JTextField());
         itemTextField.setText(conf.getString("android.i18n.longest.items"));
-
-        JLabel itemLabel = new JLabel("Items");
-
-        itemPanel.add(itemTextField);
-        itemPanel.add(Box.createHorizontalGlue());
-        itemPanel.add(itemLabel);
+        add(UiKit.formRow("Items", itemTextField));
     }
 
     private void createSourcePanel() {
-        JPanel sourcePanel = new JPanel();
-        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.X_AXIS));
-        add(sourcePanel);
-        
-        srcTextField = new JTextField();
+        srcTextField = UiKit.field(new JTextField());
         srcTextField.setText(conf.getString("android.i18n.longest.src.dir"));
 
-        JButton srcButton = new JButton("Source Directory");
+        JButton srcButton = UiKit.secondaryButton("Browse...");
         srcButton.addActionListener(new SelectDirectoryListener("select a directory", srcTextField));
 
-        sourcePanel.add(srcTextField);
-        sourcePanel.add(Box.createHorizontalGlue());
-        sourcePanel.add(srcButton);
+        add(UiKit.formRow("Source Directory", srcTextField, srcButton));
     }
 
     private String getCanonicalPath(File file) {

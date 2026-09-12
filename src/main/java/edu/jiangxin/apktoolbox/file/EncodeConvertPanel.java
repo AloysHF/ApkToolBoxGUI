@@ -5,7 +5,7 @@ import edu.jiangxin.apktoolbox.file.core.EncoderDetector;
 import edu.jiangxin.apktoolbox.swing.extend.autocomplete.AutoCompleteComboBox;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,14 +51,15 @@ public class EncodeConvertPanel extends EasyPanel {
     @Override
     public void initUI() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createSrcPanel();
         add(srcPanel);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOptionPanel();
         add(optionPanel);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
         add(operationPanel);
@@ -71,61 +72,47 @@ public class EncodeConvertPanel extends EasyPanel {
 
     private void createOptionPanel() {
         optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));
+        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Options"));
 
-        JLabel suffixLabel = new JLabel("Suffix:");
-        optionPanel.add(suffixLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-
-        suffixTextField = new JTextField();
+        suffixTextField = UiKit.field(new JTextField());
         suffixTextField.setToolTipText("an array of extensions, ex. {\"java\",\"xml\"}. If this parameter is empty, all files are returned.");
         suffixTextField.setText(conf.getString("encodeconvert.suffix"));
-        optionPanel.add(suffixTextField);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
         recursiveCheckBox = new JCheckBox("Recursive");
         recursiveCheckBox.setSelected(true);
-        optionPanel.add(recursiveCheckBox);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
-        JLabel fromLabel = new JLabel("From:");
-        optionPanel.add(fromLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-
-        fromComboBox = new AutoCompleteComboBox<String>();
+        fromComboBox = new AutoCompleteComboBox<>();
         fromComboBox.initialize();
         fromComboBox.setEnabled(false);
-        optionPanel.add(fromComboBox);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
         autoDetectCheckBox = new JCheckBox("Auto Detect");
         autoDetectCheckBox.setSelected(true);
         autoDetectCheckBox.addItemListener(e -> fromComboBox.setEnabled(!(e.getStateChange() == ItemEvent.SELECTED)));
-        optionPanel.add(autoDetectCheckBox);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
 
-        JLabel toLabel = new JLabel("To:");
-        optionPanel.add(toLabel);
-        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-
-        toComboBox = new AutoCompleteComboBox<String>();
+        toComboBox = new AutoCompleteComboBox<>();
         toComboBox.initialize();
         toComboBox.setSelectedItem(conf.getString("encodeconvert.to"));
-        optionPanel.add(toComboBox);
 
         for (String charset : Charset.availableCharsets().keySet()) {
             fromComboBox.addItem(charset);
             toComboBox.addItem(charset);
         }
+
+        optionPanel.add(UiKit.formRow("Suffix", suffixTextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.checkRow(recursiveCheckBox, autoDetectCheckBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.formRow("From", fromComboBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.formRow("To", toComboBox));
     }
 
     private void createOperationPanel() {
-        operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        JButton convertButton = new JButton("Convert");
+        JButton convertButton = UiKit.primaryButton("Convert");
         convertButton.addActionListener(new ConvertButtonActionListener());
-
-        operationPanel.add(convertButton);
+        operationPanel = UiKit.actionRow(convertButton);
     }
 
     private class ConvertButtonActionListener implements ActionListener {

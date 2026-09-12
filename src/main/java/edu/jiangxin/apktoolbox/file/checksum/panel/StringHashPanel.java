@@ -2,10 +2,11 @@ package edu.jiangxin.apktoolbox.file.checksum.panel;
 
 import edu.jiangxin.apktoolbox.file.checksum.CalculateType;
 import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
-import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -38,120 +39,85 @@ public class StringHashPanel extends EasyChildTabbedPanel {
 
     @Override
     public void createUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
         createStringInputPanel();
         add(stringInputPanel);
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
         createOptionPanel();
         add(optionPanel);
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
         createOperationPanel();
         add(operationPanel);
     }
 
     private void createStringInputPanel() {
         stringInputPanel = new JPanel();
-        BoxLayout boxLayout = new BoxLayout(stringInputPanel, BoxLayout.Y_AXIS);
-        stringInputPanel.setLayout(boxLayout);
+        stringInputPanel.setLayout(new BoxLayout(stringInputPanel, BoxLayout.Y_AXIS));
+        stringInputPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        stringInputPanel.setBorder(UiKit.sectionBorder("Input"));
 
-        JLabel stringInputLabel = new JLabel("Insert string to compute hash checksum:");
         stringInputTextArea = new JTextArea(5, 4);
         stringInputTextArea.setLineWrap(true);
+        stringInputTextArea.setMargin(new Insets(UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM, UiKit.GAP_SM));
         JScrollPane stringInputScrollPanel = new JScrollPane(stringInputTextArea);
 
-        stringInputPanel.add(stringInputLabel);
-        stringInputPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        stringInputPanel.add(stringInputScrollPanel);
+        stringInputPanel.add(UiKit.formRow("String", stringInputScrollPanel));
     }
 
     private void createOptionPanel() {
         optionPanel = new JPanel();
-        BoxLayout boxLayout = new BoxLayout(optionPanel, BoxLayout.Y_AXIS);
-        optionPanel.setLayout(boxLayout);
+        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Results"));
 
-        JPanel stringLengthOptionPanel = new JPanel();
-        JPanel md5OptionPanel = new JPanel();
-        JPanel sha1OptionPanel = new JPanel();
-        JPanel sha256OptionPanel = new JPanel();
-        JPanel sha384OptionPanel = new JPanel();
-        JPanel sha512OptionPanel = new JPanel();
-        JPanel crc32OptionPanel = new JPanel();
+        stringLengthTextField = UiKit.field(new JTextField());
+        stringLengthTextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("Length", stringLengthTextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        optionPanel.add(stringLengthOptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(md5OptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(sha1OptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(sha256OptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(sha384OptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(sha512OptionPanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(crc32OptionPanel);
-
-        stringLengthOptionPanel.setLayout(new BoxLayout(stringLengthOptionPanel, BoxLayout.X_AXIS));
-        JLabel stringLengthLabel = new JLabel("String length:");
-        stringLengthTextField = new JTextField();
-        stringLengthOptionPanel.add(stringLengthLabel);
-        stringLengthOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        stringLengthOptionPanel.add(stringLengthTextField);
-
-        md5OptionPanel.setLayout(new BoxLayout(md5OptionPanel, BoxLayout.X_AXIS));
-        md5CheckBox = new JCheckBox("MD5 checksum:");
+        md5CheckBox = new JCheckBox("MD5");
         md5CheckBox.setSelected(true);
-        md5TextField = new JTextField();
-        md5OptionPanel.add(md5CheckBox);
-        md5OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        md5OptionPanel.add(md5TextField);
+        md5TextField = UiKit.field(new JTextField());
+        md5TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("MD5", md5CheckBox, md5TextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        sha1OptionPanel.setLayout(new BoxLayout(sha1OptionPanel, BoxLayout.X_AXIS));
-        sha1CheckBox = new JCheckBox("SHA1 checksum:");
-        sha1TextField = new JTextField();
-        sha1OptionPanel.add(sha1CheckBox);
-        sha1OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        sha1OptionPanel.add(sha1TextField);
+        sha1CheckBox = new JCheckBox("SHA1");
+        sha1TextField = UiKit.field(new JTextField());
+        sha1TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("SHA1", sha1CheckBox, sha1TextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        sha256OptionPanel.setLayout(new BoxLayout(sha256OptionPanel, BoxLayout.X_AXIS));
-        sha256CheckBox = new JCheckBox("SHA256 checksum:");
-        sha256TextField = new JTextField();
-        sha256OptionPanel.add(sha256CheckBox);
-        sha256OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        sha256OptionPanel.add(sha256TextField);
+        sha256CheckBox = new JCheckBox("SHA256");
+        sha256TextField = UiKit.field(new JTextField());
+        sha256TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("SHA256", sha256CheckBox, sha256TextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        sha384OptionPanel.setLayout(new BoxLayout(sha384OptionPanel, BoxLayout.X_AXIS));
-        sha384CheckBox = new JCheckBox("SHA384 checksum:");
-        sha384TextField = new JTextField();
-        sha384OptionPanel.add(sha384CheckBox);
-        sha384OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        sha384OptionPanel.add(sha384TextField);
+        sha384CheckBox = new JCheckBox("SHA384");
+        sha384TextField = UiKit.field(new JTextField());
+        sha384TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("SHA384", sha384CheckBox, sha384TextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        sha512OptionPanel.setLayout(new BoxLayout(sha512OptionPanel, BoxLayout.X_AXIS));
-        sha512CheckBox = new JCheckBox("SHA512 checksum:");
-        sha512TextField = new JTextField();
-        sha512OptionPanel.add(sha512CheckBox);
-        sha512OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        sha512OptionPanel.add(sha512TextField);
+        sha512CheckBox = new JCheckBox("SHA512");
+        sha512TextField = UiKit.field(new JTextField());
+        sha512TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("SHA512", sha512CheckBox, sha512TextField));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
-        crc32OptionPanel.setLayout(new BoxLayout(crc32OptionPanel, BoxLayout.X_AXIS));
-        crc32CheckBox = new JCheckBox("CRC32 checksum:");
-        crc32TextField = new JTextField();
-        crc32OptionPanel.add(crc32CheckBox);
-        crc32OptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        crc32OptionPanel.add(crc32TextField);
+        crc32CheckBox = new JCheckBox("CRC32");
+        crc32TextField = UiKit.field(new JTextField());
+        crc32TextField.setEditable(false);
+        optionPanel.add(UiKit.formRow("CRC32", crc32CheckBox, crc32TextField));
     }
 
     private void createOperationPanel() {
-        operationPanel = new JPanel();
-
-        JButton compareButton = new JButton("Compare");
-        compareButton.setFocusPainted(false);
+        JButton compareButton = UiKit.primaryButton("Calculate");
         compareButton.addActionListener(arg0 -> {
             String text = stringInputTextArea.getText();
             if (text == null) {
@@ -164,13 +130,18 @@ public class StringHashPanel extends EasyChildTabbedPanel {
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
         progressBar.setMaximum(100);
+        progressBar.setPreferredSize(new Dimension(200, 22));
 
+        JPanel actions = UiKit.actionRow(compareButton);
+        JPanel bar = new JPanel(new BorderLayout(UiKit.GAP_MD, 0));
+        bar.setOpaque(false);
+        bar.add(progressBar, BorderLayout.CENTER);
+        bar.add(actions, BorderLayout.EAST);
 
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-        operationPanel.add(compareButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(progressBar);
-
+        operationPanel = new JPanel();
+        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.Y_AXIS));
+        operationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        operationPanel.add(bar);
     }
 
     private void calculate(String text) {

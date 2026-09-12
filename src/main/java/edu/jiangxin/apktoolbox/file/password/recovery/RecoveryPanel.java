@@ -9,6 +9,7 @@ import edu.jiangxin.apktoolbox.file.password.recovery.checker.thirdparty.ThirdPa
 import edu.jiangxin.apktoolbox.file.password.recovery.checker.thirdparty.ThirdPartyWinRarChecker;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -106,12 +107,13 @@ public final class RecoveryPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
-        setLayout(boxLayout);
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setBorder(UiKit.sectionBorder("Password Recovery"));
 
         createOptionPanel();
         add(optionPanel);
-        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
         add(operationPanel);
@@ -174,13 +176,18 @@ public final class RecoveryPanel extends EasyPanel {
         progressBar.setStringPainted(true);
         String text = numberFormat.format(0);
         progressBar.setString(text);
+        progressBar.setPreferredSize(new Dimension(0, 22));
+        progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
-        optionPanel.add(checkerTypeComboBox);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        optionPanel.add(recoveryFilePanel);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        checkerTypeComboBox.setPreferredSize(new Dimension(320, UiKit.FIELD_HEIGHT));
+        checkerTypeComboBox.setMaximumSize(new Dimension(320, UiKit.FIELD_HEIGHT));
+
+        optionPanel.add(UiKit.formRow("Archive Type", checkerTypeComboBox));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        optionPanel.add(UiKit.formRow("File", recoveryFilePanel));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         optionPanel.add(categoryTabbedPane);
-        optionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
         optionPanel.add(progressBar);
     }
 

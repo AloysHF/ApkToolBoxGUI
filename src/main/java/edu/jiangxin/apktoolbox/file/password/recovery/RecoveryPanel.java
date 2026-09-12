@@ -107,16 +107,22 @@ public final class RecoveryPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setAlignmentX(Component.LEFT_ALIGNMENT);
+        setLayout(new BorderLayout(UiKit.GAP_MD, UiKit.GAP_MD));
         setBorder(UiKit.sectionBorder("Password Recovery"));
 
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setAlignmentX(Component.LEFT_ALIGNMENT);
+        form.setMaximumSize(new Dimension(980, Integer.MAX_VALUE));
+
         createOptionPanel();
-        add(optionPanel);
-        add(Box.createVerticalStrut(UiKit.GAP_MD));
+        form.add(optionPanel);
+        form.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createOperationPanel();
-        add(operationPanel);
+        form.add(operationPanel);
+
+        add(form, BorderLayout.NORTH);
 
         timer = new Timer(1000, e -> {
             if (currentState == State.WORKING) {
@@ -129,8 +135,17 @@ public final class RecoveryPanel extends EasyPanel {
     }
 
     private void createOptionPanel() {
-        optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.Y_AXIS));
+        optionPanel = new JPanel(new GridBagLayout());
+        optionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        optionPanel.setBorder(UiKit.sectionBorder("Input"));
+
+        GridBagConstraints gc = new GridBagConstraints();
+        gc.gridx = 0;
+        gc.gridy = 0;
+        gc.weightx = 1;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.anchor = GridBagConstraints.WEST;
+        gc.insets = new Insets(2, 8, 2, 8);
 
         checkerTypeComboBox = new JComboBox<>();
         checkerTypeComboBox.addItem(new ThirdParty7ZipChecker());
@@ -159,7 +174,7 @@ public final class RecoveryPanel extends EasyPanel {
             return;
         }
 
-        recoveryFilePanel = new FilePanel("Choose Recovery File");
+        recoveryFilePanel = new FilePanel("Browse...");
         recoveryFilePanel.initialize();
         recoveryFilePanel.setDescriptionAndFileExtensions(fileChecker.getFileDescription(), fileChecker.getFileExtensions());
 
@@ -174,126 +189,161 @@ public final class RecoveryPanel extends EasyPanel {
 
         progressBar = new JProgressBar();
         progressBar.setStringPainted(true);
-        String text = numberFormat.format(0);
-        progressBar.setString(text);
+        progressBar.setString(numberFormat.format(0));
         progressBar.setPreferredSize(new Dimension(0, 22));
         progressBar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
 
-        checkerTypeComboBox.setPreferredSize(new Dimension(320, UiKit.FIELD_HEIGHT));
-        checkerTypeComboBox.setMaximumSize(new Dimension(320, UiKit.FIELD_HEIGHT));
+        optionPanel.add(gridRow("Archive Type", checkerTypeComboBox), gc);
+        gc.gridy++;
+        optionPanel.add(gridRow("File", recoveryFilePanel), gc);
+        gc.gridy++;
+        gc.fill = GridBagConstraints.BOTH;
+        gc.weighty = 1;
+        optionPanel.add(categoryTabbedPane, gc);
+        gc.gridy++;
+        gc.fill = GridBagConstraints.HORIZONTAL;
+        gc.weighty = 0;
+        optionPanel.add(progressBar, gc);
+    }
 
-        optionPanel.add(UiKit.formRow("Archive Type", checkerTypeComboBox));
-        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
-        optionPanel.add(UiKit.formRow("File", recoveryFilePanel));
-        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
-        optionPanel.add(categoryTabbedPane);
-        optionPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
-        optionPanel.add(progressBar);
+    private JPanel gridRow(String label, JComponent field) {
+        JPanel row = new JPanel(new GridBagLayout());
+        row.setOpaque(false);
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridy = 0;
+        c.insets = new Insets(2, 0, 2, 0);
+        c.anchor = GridBagConstraints.WEST;
+        c.fill = GridBagConstraints.NONE;
+        c.weightx = 0;
+
+        JLabel jlabel = new JLabel(label);
+        jlabel.setPreferredSize(new Dimension(UiKit.LABEL_WIDTH, UiKit.FIELD_HEIGHT));
+        c.gridx = 0;
+        row.add(jlabel, c);
+
+        c.gridx = 1;
+        c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        if (field instanceof JComboBox<?> combo) {
+            combo.setPreferredSize(new Dimension(Math.max(combo.getPreferredSize().width, 280), UiKit.FIELD_HEIGHT));
+            combo.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT));
+        }
+        row.add(field, c);
+        return row;
     }
 
     private void createBruteForcePanel() {
         bruteForceCategoryPanel = new JPanel();
-
-        JPanel topLevelPanel = new JPanel();
-        topLevelPanel.setLayout(new BoxLayout(topLevelPanel, BoxLayout.Y_AXIS));
-        bruteForceCategoryPanel.add(topLevelPanel);
-
-        JPanel charsetPanel = new JPanel();
-        charsetPanel.setLayout(new BoxLayout(charsetPanel, BoxLayout.X_AXIS));
-
-        JPanel passwordLengthPanel = new JPanel();
-        passwordLengthPanel.setLayout(new BoxLayout(passwordLengthPanel, BoxLayout.X_AXIS));
-
-        topLevelPanel.add(charsetPanel);
-        topLevelPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        topLevelPanel.add(passwordLengthPanel);
+        bruteForceCategoryPanel.setLayout(new BoxLayout(bruteForceCategoryPanel, BoxLayout.Y_AXIS));
+        bruteForceCategoryPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bruteForceCategoryPanel.setBorder(UiKit.sectionBorder("Charset & Length"));
 
         numberCheckBox = new JCheckBox("Number");
         numberCheckBox.setSelected(true);
-        lowercaseLetterCheckBox = new JCheckBox("Lowercase Letter");
-        uppercaseLetterCheckBox = new JCheckBox("Uppercase Letter");
-        userIncludedCheckBox = new JCheckBox("User-defined");
-        userIncludedTextField = new JTextField(10);
-        userExcludedCheckBox = new JCheckBox("User-excluded");
-        userExcludedTextField = new JTextField(10);
+        lowercaseLetterCheckBox = new JCheckBox("Lowercase");
+        uppercaseLetterCheckBox = new JCheckBox("Uppercase");
+        userIncludedCheckBox = new JCheckBox("Include");
+        userIncludedTextField = UiKit.field(new JTextField());
+        userIncludedTextField.setColumns(8);
+        userExcludedCheckBox = new JCheckBox("Exclude");
+        userExcludedTextField = UiKit.field(new JTextField());
+        userExcludedTextField.setColumns(8);
 
-
-        charsetPanel.add(numberCheckBox);
-        charsetPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        charsetPanel.add(lowercaseLetterCheckBox);
-        charsetPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        charsetPanel.add(uppercaseLetterCheckBox);
-        charsetPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        charsetPanel.add(userIncludedCheckBox);
-        charsetPanel.add(userIncludedTextField);
-        charsetPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        charsetPanel.add(userExcludedCheckBox);
-        charsetPanel.add(userExcludedTextField);
-
-        JLabel minLabel = new JLabel("Minimum Length: ");
-        JLabel maxLabel = new JLabel("Maximum Length: ");
+        bruteForceCategoryPanel.add(UiKit.checkRow(
+                numberCheckBox, lowercaseLetterCheckBox, uppercaseLetterCheckBox));
+        bruteForceCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        bruteForceCategoryPanel.add(UiKit.checkRow(
+                userIncludedCheckBox, userIncludedTextField,
+                userExcludedCheckBox, userExcludedTextField));
+        bruteForceCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
 
         minSpinner = new JSpinner();
         minSpinner.setModel(new SpinnerNumberModel(1, 1, 9, 1));
-        minSpinner.setToolTipText("Minimum Length");
+        minSpinner.setToolTipText("Minimum password length");
+        minSpinner.setPreferredSize(new Dimension(72, UiKit.FIELD_HEIGHT));
+        minSpinner.setMaximumSize(new Dimension(72, UiKit.FIELD_HEIGHT));
 
         maxSpinner = new JSpinner();
         maxSpinner.setModel(new SpinnerNumberModel(6, 1, 9, 1));
-        maxSpinner.setToolTipText("Maximum Length");
+        maxSpinner.setToolTipText("Maximum password length");
+        maxSpinner.setPreferredSize(new Dimension(72, UiKit.FIELD_HEIGHT));
+        maxSpinner.setMaximumSize(new Dimension(72, UiKit.FIELD_HEIGHT));
 
-        passwordLengthPanel.add(minLabel);
-        passwordLengthPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        passwordLengthPanel.add(minSpinner);
-        passwordLengthPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        passwordLengthPanel.add(maxLabel);
-        passwordLengthPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        passwordLengthPanel.add(maxSpinner);
+        JPanel lengthRow = new JPanel();
+        lengthRow.setLayout(new BoxLayout(lengthRow, BoxLayout.X_AXIS));
+        lengthRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lengthRow.setOpaque(false);
+        lengthRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, UiKit.FIELD_HEIGHT + GAP_XS_PAD()));
+        lengthRow.add(UiKit.mutedLabel("Length"));
+        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_SM));
+        lengthRow.add(UiKit.mutedLabel("Min"));
+        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_XS));
+        lengthRow.add(minSpinner);
+        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_MD));
+        lengthRow.add(UiKit.mutedLabel("Max"));
+        lengthRow.add(Box.createHorizontalStrut(UiKit.GAP_XS));
+        lengthRow.add(maxSpinner);
+        lengthRow.add(Box.createHorizontalGlue());
+        bruteForceCategoryPanel.add(lengthRow);
+    }
+
+    private int GAP_XS_PAD() {
+        return UiKit.GAP_XS * 2;
     }
 
     private void createDictionaryPanel() {
         dictionaryCategoryPanel = new JPanel();
+        dictionaryCategoryPanel.setLayout(new BoxLayout(dictionaryCategoryPanel, BoxLayout.Y_AXIS));
+        dictionaryCategoryPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        dictionaryCategoryPanel.setBorder(UiKit.sectionBorder("Dictionary"));
 
-        JPanel topLevelPanel = new JPanel();
-        topLevelPanel.setLayout(new BoxLayout(topLevelPanel, BoxLayout.Y_AXIS));
-        dictionaryCategoryPanel.add(topLevelPanel);
-
-        dictionaryFilePanel = new FilePanel("Choose Dictionary File");
+        dictionaryFilePanel = new FilePanel("Browse...");
         dictionaryFilePanel.initialize();
         dictionaryFilePanel.setDescriptionAndFileExtensions("*.dic;*.txt", new String[]{"dic", "txt"});
 
-        JPanel threadPanel = new JPanel();
-        threadPanel.setLayout(new BoxLayout(threadPanel, BoxLayout.X_AXIS));
-
-        topLevelPanel.add(dictionaryFilePanel);
-        topLevelPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
-        topLevelPanel.add(threadPanel);
-
-        isUseMultiThreadCheckBox = new JCheckBox("Use Multi-thread");
+        isUseMultiThreadCheckBox = new JCheckBox("Use multi-thread");
         isUseMultiThreadCheckBox.setSelected(true);
 
-        threadPanel.add(isUseMultiThreadCheckBox);
+        dictionaryCategoryPanel.add(UiKit.formRow("Dictionary", dictionaryFilePanel));
+        dictionaryCategoryPanel.add(Box.createVerticalStrut(UiKit.GAP_SM));
+        dictionaryCategoryPanel.add(UiKit.checkRow(isUseMultiThreadCheckBox));
     }
 
     private void createOperationPanel() {
+        startButton = UiKit.primaryButton("Start");
+        stopButton = UiKit.secondaryButton("Stop");
+        stopButton.setEnabled(false);
+        currentStateLabel = UiKit.mutedLabel("State: IDLE");
+        currentPasswordLabel = UiKit.mutedLabel("Trying: —");
+        currentSpeedLabel = UiKit.mutedLabel("Speed: 0 passwords/s");
+
+        JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, UiKit.GAP_MD, 4));
+        statusPanel.setOpaque(false);
+        statusPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        statusPanel.add(currentStateLabel);
+        statusPanel.add(currentPasswordLabel);
+        statusPanel.add(currentSpeedLabel);
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, UiKit.GAP_SM, 0));
+        actions.setOpaque(false);
+        actions.setAlignmentX(Component.LEFT_ALIGNMENT);
+        actions.add(stopButton);
+        actions.add(startButton);
+
+        JPanel bar = new JPanel(new BorderLayout(UiKit.GAP_MD, 0));
+        bar.setOpaque(false);
+        bar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        bar.setPreferredSize(new Dimension(900, 40));
+        bar.setMinimumSize(new Dimension(400, 40));
+        bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
+        bar.add(statusPanel, BorderLayout.WEST);
+        bar.add(actions, BorderLayout.EAST);
+
         operationPanel = new JPanel();
-        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));
-
-        startButton = new JButton("Start");
-        stopButton = new JButton("Stop");
-        currentStateLabel = new JLabel("State: IDLE");
-        currentPasswordLabel = new JLabel("Trying: ");
-        currentSpeedLabel = new JLabel("Speed: 0 passwords/s");
-
-        operationPanel.add(startButton);
-        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
-        operationPanel.add(stopButton);
-        operationPanel.add(Box.createHorizontalStrut(2 * Constants.DEFAULT_X_BORDER));
-        operationPanel.add(currentStateLabel);
-        operationPanel.add(Box.createHorizontalStrut(2 * Constants.DEFAULT_X_BORDER));
-        operationPanel.add(currentPasswordLabel);
-        operationPanel.add(Box.createHorizontalStrut(2 * Constants.DEFAULT_X_BORDER));
-        operationPanel.add(currentSpeedLabel);
-        operationPanel.add(Box.createHorizontalGlue());
+        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.Y_AXIS));
+        operationPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        operationPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 48));
+        operationPanel.add(bar);
 
         startButton.addActionListener(e -> startExecutorService.submit(this::onStart));
         stopButton.addActionListener(e -> stopExecutorService.submit(this::onStop));

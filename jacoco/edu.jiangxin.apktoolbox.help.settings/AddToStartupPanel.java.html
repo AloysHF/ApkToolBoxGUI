@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AddToStartupPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help.settings</a> &gt; <span class="el_source">AddToStartupPanel.java</span></div><h1>AddToStartupPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help.settings;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.Collection;
+
+<span class="nc" id="L16">public class AddToStartupPanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private static final String STARTUP_FILE;
+
+    private JPanel optionPanel;
+
+    static {
+<span class="nc" id="L25">        final String SEPARATOR = File.separator;</span>
+        final String STARTUP_FOLDER;
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (System.getProperty(&quot;os.name&quot;).toLowerCase().contains(&quot;win&quot;)) {</span>
+<span class="nc" id="L28">            STARTUP_FOLDER = System.getenv(&quot;APPDATA&quot;) + SEPARATOR + &quot;Microsoft&quot; + SEPARATOR + &quot;Windows&quot; + SEPARATOR + &quot;Start Menu&quot; + SEPARATOR + &quot;Programs&quot; + SEPARATOR + &quot;Startup&quot;;</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        } else if (System.getProperty(&quot;os.name&quot;).toLowerCase().contains(&quot;mac&quot;)) {</span>
+<span class="nc" id="L30">            STARTUP_FOLDER = System.getProperty(&quot;user.home&quot;) + SEPARATOR + &quot;Library&quot; + SEPARATOR + &quot;LaunchAgents&quot;;</span>
+        } else {
+<span class="nc" id="L32">            STARTUP_FOLDER = System.getProperty(&quot;user.home&quot;) + SEPARATOR + &quot;.config&quot; + SEPARATOR + &quot;autostart&quot;;</span>
+        }
+<span class="nc" id="L34">        STARTUP_FILE = STARTUP_FOLDER + SEPARATOR + &quot;ApkToolBoxGUI.lnk&quot;;</span>
+<span class="nc" id="L35">    }</span>
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L39">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L40">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L42">        createOptionPanel();</span>
+<span class="nc" id="L43">        add(optionPanel);</span>
+
+<span class="nc" id="L45">        add(Box.createVerticalStrut(15 * Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L46">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L49">        optionPanel = new JPanel();</span>
+<span class="nc" id="L50">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L52">        JLabel typeLabel = new JLabel(&quot;Add to startup:&quot;);</span>
+<span class="nc" id="L53">        JCheckBox addToStartupCheckBox = new JCheckBox();</span>
+<span class="nc" id="L54">        addToStartupCheckBox.setSelected(conf.getBoolean(&quot;add.to.startup&quot;, false));</span>
+<span class="nc" id="L55">        addToStartupCheckBox.addActionListener(e -&gt; {</span>
+<span class="nc" id="L56">            conf.setProperty(&quot;add.to.startup&quot;, addToStartupCheckBox.isSelected());</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if (addToStartupCheckBox.isSelected()) {</span>
+<span class="nc" id="L58">                addToStartup();</span>
+            } else {
+<span class="nc" id="L60">                FileUtils.deleteQuietly(new File(STARTUP_FILE));</span>
+            }
+<span class="nc" id="L62">        });</span>
+
+<span class="nc" id="L64">        optionPanel.add(typeLabel);</span>
+<span class="nc" id="L65">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L66">        optionPanel.add(addToStartupCheckBox);</span>
+<span class="nc" id="L67">    }</span>
+
+    private void addToStartup() {
+<span class="nc" id="L70">        String executableFilePath = getExecutableFilePath();</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (executableFilePath == null) {</span>
+<span class="nc" id="L72">            return;</span>
+        }
+
+<span class="nc" id="L75">        File shortcutFile = new File(STARTUP_FILE);</span>
+
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (!shortcutFile.exists()) {</span>
+            try {
+<span class="nc" id="L79">                createShortcut(executableFilePath);</span>
+<span class="nc" id="L80">                logger.info(&quot;create shortcut file successfully: {}&quot;, STARTUP_FILE);</span>
+<span class="nc" id="L81">            } catch (IOException e) {</span>
+<span class="nc" id="L82">                logger.error(&quot;create shortcut file failed: {}&quot;, STARTUP_FILE, e);</span>
+<span class="nc" id="L83">            }</span>
+        }
+<span class="nc" id="L85">    }</span>
+
+    private String getExecutableFilePath() {
+<span class="nc" id="L88">        URL jarUrl = AddToStartupPanel.class.getProtectionDomain().getCodeSource().getLocation();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">        if (jarUrl == null) {</span>
+<span class="nc" id="L90">            logger.error(&quot;jarUrl is null&quot;);</span>
+<span class="nc" id="L91">            return null;</span>
+        }
+<span class="nc" id="L93">        File jarFile = new File(jarUrl.getPath());</span>
+<span class="nc" id="L94">        logger.info(&quot;jarFile: {}&quot;, jarFile.getAbsolutePath());</span>
+<span class="nc" id="L95">        File grandpaFile = jarFile.getParentFile().getParentFile();</span>
+<span class="nc" id="L96">        logger.info(&quot;parentFile: {}&quot;, grandpaFile.getAbsolutePath());</span>
+<span class="nc" id="L97">        Collection&lt;File&gt; executableFiles = FileUtils.listFiles(grandpaFile, new String[]{&quot;exe&quot;}, false);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (CollectionUtils.isEmpty(executableFiles)) {</span>
+<span class="nc" id="L99">            logger.error(&quot;Can not find executable file&quot;);</span>
+<span class="nc" id="L100">            return null;</span>
+        }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (executableFiles.size() &gt; 1) {</span>
+<span class="nc" id="L103">            logger.error(&quot;There are more than one executable file&quot;);</span>
+<span class="nc" id="L104">            return null;</span>
+        }
+<span class="nc" id="L106">        File executableFile = executableFiles.iterator().next();</span>
+<span class="nc" id="L107">        logger.info(&quot;executableFile: {}&quot;, executableFile.getAbsolutePath());</span>
+<span class="nc" id="L108">        return executableFile.getAbsolutePath();</span>
+    }
+
+    private static void createShortcut(String targetPath) throws IOException {
+<span class="nc" id="L112">        String vbsScript = &quot;&quot;&quot;</span>
+                Set WshShell = CreateObject(&quot;WScript.Shell&quot;)
+                Set Shortcut = WshShell.CreateShortcut(&quot;%s&quot;)
+                Shortcut.TargetPath = &quot;%s&quot;
+                Shortcut.Save
+<span class="nc" id="L117">                &quot;&quot;&quot;.formatted(STARTUP_FILE, targetPath);</span>
+
+<span class="nc" id="L119">        File tempVbs = Files.createTempFile(&quot;createShortcut&quot;, &quot;.vbs&quot;).toFile();</span>
+<span class="nc" id="L120">        Files.writeString(tempVbs.toPath(), vbsScript);</span>
+
+<span class="nc" id="L122">        ProcessBuilder builder = new ProcessBuilder(&quot;wscript&quot;, tempVbs.getAbsolutePath());</span>
+<span class="nc" id="L123">        builder.start();</span>
+<span class="nc" id="L124">        tempVbs.deleteOnExit();</span>
+<span class="nc" id="L125">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

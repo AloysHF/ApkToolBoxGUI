@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DumpsysPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.dumpsys</a> &gt; <span class="el_source">DumpsysPanel.java</span></div><h1>DumpsysPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.dumpsys;
+
+import edu.jiangxin.apktoolbox.android.dumpsys.tojson.IDumpsys2Json;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class DumpsysPanel extends EasyPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel dumpsysPanel;
+
+    private FilePanel dumpsysTargetDirPanel;
+
+    private JPanel dumpsysOptionPanel;
+    private JPanel dumpsysTypeChoosePanel;
+
+    private JPanel dumpsysOperationPanel;
+    private JButton dumpsysStartButton;
+
+    private JPanel analysisPanel;
+    private FilePanel analysisFilePanel;
+    private RSyntaxTextArea analysisOutputTextArea;
+    private RTextScrollPane analysisOutputScrollPane;
+
+    private JPanel analysisOperationPanel;
+
+    public DumpsysPanel() {
+<span class="nc" id="L50">        super();</span>
+<span class="nc" id="L51">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L55">        setPreferredSize(new Dimension(700, 400));</span>
+
+<span class="nc" id="L57">        JTabbedPane tabbedPane = new JTabbedPane();</span>
+<span class="nc" id="L58">        add(tabbedPane);</span>
+
+<span class="nc" id="L60">        createDumpsysPanel();</span>
+<span class="nc" id="L61">        tabbedPane.addTab(&quot;Dumpsys&quot;, null, dumpsysPanel, &quot;Dumpsys&quot;);</span>
+
+<span class="nc" id="L63">        createAnalysisPanel();</span>
+<span class="nc" id="L64">        tabbedPane.addTab(&quot;Analysis&quot;, null, analysisPanel, &quot;Analysis&quot;);</span>
+<span class="nc" id="L65">    }</span>
+
+    @Override
+    public void afterPainted() {
+<span class="nc" id="L69">        super.afterPainted();</span>
+<span class="nc" id="L70">        dumpsysTargetDirPanel.setPersistentKey(Constants.KEY_PREFIX + &quot;dumpsysTargetDirPanel&quot;);</span>
+<span class="nc" id="L71">        analysisFilePanel.setPersistentKey(Constants.KEY_PREFIX + &quot;dumpsysAnalysisFilePanel&quot;);</span>
+<span class="nc" id="L72">    }</span>
+
+    private void createDumpsysPanel() {
+<span class="nc" id="L75">        dumpsysPanel = new JPanel();</span>
+<span class="nc" id="L76">        BoxLayout layout = new BoxLayout(dumpsysPanel, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L77">        dumpsysPanel.setLayout(layout);</span>
+<span class="nc" id="L78">        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L80">        createDumpsysTargetDirPanel();</span>
+<span class="nc" id="L81">        dumpsysPanel.add(dumpsysTargetDirPanel);</span>
+<span class="nc" id="L82">        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L84">        createDumpsysOptionPanel();</span>
+<span class="nc" id="L85">        dumpsysPanel.add(dumpsysOptionPanel);</span>
+<span class="nc" id="L86">        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L88">        createDumpsysOperationPanel();</span>
+<span class="nc" id="L89">        dumpsysPanel.add(dumpsysOperationPanel);</span>
+<span class="nc" id="L90">    }</span>
+
+    private void createAnalysisPanel() {
+<span class="nc" id="L93">        analysisPanel = new JPanel();</span>
+<span class="nc" id="L94">        BoxLayout layout = new BoxLayout(analysisPanel, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L95">        analysisPanel.setLayout(layout);</span>
+<span class="nc" id="L96">        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L98">        createAnalysisTargetFilePanel();</span>
+<span class="nc" id="L99">        analysisPanel.add(analysisFilePanel);</span>
+<span class="nc" id="L100">        analysisPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L102">        createAnalysisOutputPanel();</span>
+<span class="nc" id="L103">        analysisPanel.add(analysisOutputScrollPane);</span>
+<span class="nc" id="L104">        analysisPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L106">        createAnalysisOperationPanel();</span>
+<span class="nc" id="L107">        analysisPanel.add(analysisOperationPanel);</span>
+<span class="nc" id="L108">    }</span>
+
+    private void createAnalysisTargetFilePanel() {
+<span class="nc" id="L111">        analysisFilePanel = new FilePanel(&quot;Analysis File&quot;);</span>
+<span class="nc" id="L112">        analysisFilePanel.initialize();</span>
+<span class="nc" id="L113">        analysisFilePanel.setFileSelectionMode(JFileChooser.FILES_ONLY);</span>
+<span class="nc" id="L114">    }</span>
+
+    private void createAnalysisOutputPanel() {
+<span class="nc" id="L117">        analysisOutputTextArea = new RSyntaxTextArea();</span>
+<span class="nc" id="L118">        analysisOutputTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);</span>
+<span class="nc" id="L119">        analysisOutputTextArea.setCodeFoldingEnabled(true);</span>
+<span class="nc" id="L120">        analysisOutputTextArea.setEditable(false);</span>
+
+<span class="nc" id="L122">        analysisOutputScrollPane = new RTextScrollPane(analysisOutputTextArea);</span>
+<span class="nc" id="L123">        analysisOutputScrollPane.setPreferredSize(new Dimension(400, 250));</span>
+<span class="nc" id="L124">    }</span>
+
+    private void createAnalysisOperationPanel() {
+<span class="nc" id="L127">        analysisOperationPanel = new JPanel();</span>
+<span class="nc" id="L128">        BoxLayout boxLayout = new BoxLayout(analysisOperationPanel, BoxLayout.X_AXIS);</span>
+<span class="nc" id="L129">        analysisOperationPanel.setLayout(boxLayout);</span>
+
+<span class="nc" id="L131">        JButton analysisStartButton = new JButton(&quot;Start&quot;);</span>
+<span class="nc" id="L132">        analysisStartButton.setEnabled(true);</span>
+<span class="nc" id="L133">        analysisStartButton.addActionListener(new AnalysisStartButtonActionListener());</span>
+<span class="nc" id="L134">        analysisOperationPanel.add(analysisStartButton);</span>
+<span class="nc" id="L135">    }</span>
+
+    private void createDumpsysTargetDirPanel() {
+<span class="nc" id="L138">        dumpsysTargetDirPanel = new FilePanel(&quot;Target Directory&quot;);</span>
+<span class="nc" id="L139">        dumpsysTargetDirPanel.initialize();</span>
+<span class="nc" id="L140">        dumpsysTargetDirPanel.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L141">    }</span>
+
+    private void createDumpsysOptionPanel() {
+<span class="nc" id="L144">        dumpsysOptionPanel = new JPanel();</span>
+<span class="nc" id="L145">        BoxLayout boxLayout = new BoxLayout(dumpsysOptionPanel, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L146">        dumpsysOptionPanel.setLayout(boxLayout);</span>
+
+<span class="nc" id="L148">        JPanel dumpsysCheckboxPanel = new JPanel();</span>
+<span class="nc" id="L149">        dumpsysCheckboxPanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3));</span>
+
+<span class="nc" id="L151">        JCheckBox allSelectedCheckBox = new JCheckBox(&quot;Select All&quot;);</span>
+<span class="nc" id="L152">        allSelectedCheckBox.setSelected(false);</span>
+<span class="nc" id="L153">        allSelectedCheckBox.addActionListener(e -&gt; {</span>
+<span class="nc" id="L154">            boolean selected = allSelectedCheckBox.isSelected();</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">            if (selected) {</span>
+<span class="nc" id="L156">                Component[] components = dumpsysTypeChoosePanel.getComponents();</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                for (Component component : components) {</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">                    if (component instanceof JCheckBox checkBox) {</span>
+<span class="nc" id="L159">                        checkBox.setSelected(true);</span>
+<span class="nc" id="L160">                        checkBox.setEnabled(false);</span>
+                    }
+                }
+<span class="nc" id="L163">            } else {</span>
+<span class="nc" id="L164">                Component[] components = dumpsysTypeChoosePanel.getComponents();</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">                for (Component component : components) {</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">                    if (component instanceof JCheckBox checkBox) {</span>
+<span class="nc" id="L167">                        checkBox.setSelected(false);</span>
+<span class="nc" id="L168">                        checkBox.setEnabled(true);</span>
+                    }
+                }
+            }
+
+<span class="nc" id="L173">        });</span>
+<span class="nc" id="L174">        dumpsysCheckboxPanel.add(allSelectedCheckBox);</span>
+
+<span class="nc" id="L176">        dumpsysTypeChoosePanel = new JPanel();</span>
+<span class="nc" id="L177">        dumpsysTypeChoosePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 3));</span>
+<span class="nc" id="L178">        dumpsysTypeChoosePanel.setPreferredSize(new Dimension(500, 200));</span>
+
+<span class="nc" id="L180">        JCheckBox inputCheckBox = new JCheckBox(&quot;input&quot;);</span>
+<span class="nc" id="L181">        inputCheckBox.setSelected(true);</span>
+<span class="nc" id="L182">        JCheckBox windowCheckBox = new JCheckBox(&quot;window&quot;);</span>
+<span class="nc" id="L183">        dumpsysTypeChoosePanel.add(windowCheckBox);</span>
+<span class="nc" id="L184">        JCheckBox SurfaceFlingerCheckBox = new JCheckBox(&quot;SurfaceFlinger&quot;);</span>
+<span class="nc" id="L185">        dumpsysTypeChoosePanel.add(SurfaceFlingerCheckBox);</span>
+<span class="nc" id="L186">        JCheckBox activityCheckBox = new JCheckBox(&quot;activity&quot;);</span>
+<span class="nc" id="L187">        dumpsysTypeChoosePanel.add(activityCheckBox);</span>
+<span class="nc" id="L188">        JCheckBox accessibilityCheckBox = new JCheckBox(&quot;accessibility&quot;);</span>
+<span class="nc" id="L189">        dumpsysTypeChoosePanel.add(accessibilityCheckBox);</span>
+<span class="nc" id="L190">        JCheckBox packageCheckBox = new JCheckBox(&quot;package&quot;);</span>
+<span class="nc" id="L191">        dumpsysTypeChoosePanel.add(packageCheckBox);</span>
+<span class="nc" id="L192">        JCheckBox alarmCheckBox = new JCheckBox(&quot;alarm&quot;);</span>
+<span class="nc" id="L193">        dumpsysTypeChoosePanel.add(alarmCheckBox);</span>
+<span class="nc" id="L194">        JCheckBox inputMethodCheckBox = new JCheckBox(&quot;input_method&quot;);</span>
+<span class="nc" id="L195">        dumpsysTypeChoosePanel.add(inputMethodCheckBox);</span>
+<span class="nc" id="L196">        JCheckBox sensorServiceCheckBox = new JCheckBox(&quot;sensorservice&quot;);</span>
+<span class="nc" id="L197">        dumpsysTypeChoosePanel.add(sensorServiceCheckBox);</span>
+<span class="nc" id="L198">        JCheckBox accountCheckBox = new JCheckBox(&quot;account&quot;);</span>
+<span class="nc" id="L199">        dumpsysTypeChoosePanel.add(accountCheckBox);</span>
+<span class="nc" id="L200">        JCheckBox displayCheckBox = new JCheckBox(&quot;display&quot;);</span>
+<span class="nc" id="L201">        dumpsysTypeChoosePanel.add(displayCheckBox);</span>
+<span class="nc" id="L202">        JCheckBox powerCheckBox = new JCheckBox(&quot;power&quot;);</span>
+<span class="nc" id="L203">        dumpsysTypeChoosePanel.add(powerCheckBox);</span>
+<span class="nc" id="L204">        JCheckBox batteryCheckBox = new JCheckBox(&quot;battery&quot;);</span>
+<span class="nc" id="L205">        dumpsysTypeChoosePanel.add(batteryCheckBox);</span>
+
+<span class="nc" id="L207">        dumpsysOptionPanel.add(dumpsysCheckboxPanel);</span>
+<span class="nc" id="L208">        dumpsysOptionPanel.add(new JSeparator(JSeparator.HORIZONTAL));</span>
+<span class="nc" id="L209">        dumpsysOptionPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L210">        dumpsysOptionPanel.add(dumpsysTypeChoosePanel);</span>
+<span class="nc" id="L211">    }</span>
+
+    private void createDumpsysOperationPanel() {
+<span class="nc" id="L214">        dumpsysOperationPanel = new JPanel();</span>
+<span class="nc" id="L215">        BoxLayout boxLayout = new BoxLayout(dumpsysOperationPanel, BoxLayout.X_AXIS);</span>
+<span class="nc" id="L216">        dumpsysOperationPanel.setLayout(boxLayout);</span>
+
+<span class="nc" id="L218">        dumpsysStartButton = new JButton(&quot;Start&quot;);</span>
+<span class="nc" id="L219">        dumpsysStartButton.setEnabled(true);</span>
+<span class="nc" id="L220">        dumpsysStartButton.addActionListener(new DumpsysStartButtonActionListener());</span>
+<span class="nc" id="L221">        dumpsysOperationPanel.add(dumpsysStartButton);</span>
+<span class="nc" id="L222">    }</span>
+
+<span class="nc" id="L224">    class DumpsysStartButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L227">            dumpsysStartButton.setEnabled(false);</span>
+<span class="nc" id="L228">            File targetDirFile = dumpsysTargetDirPanel.getFile();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">            if (!targetDirFile.exists()) {</span>
+<span class="nc" id="L230">                JOptionPane.showMessageDialog(getFrame(), &quot;Target directory does not exist!&quot;, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L231">                return;</span>
+            }
+
+<span class="nc" id="L234">            String timeStamp = new SimpleDateFormat(&quot;yyyyMMdd_HHmmss&quot;).format(new Date(System.currentTimeMillis()));</span>
+<span class="nc" id="L235">            File targetDirWithTimestamp = new File(targetDirFile, timeStamp);</span>
+
+<span class="nc bnc" id="L237" title="All 2 branches missed.">            if (!targetDirWithTimestamp.exists()) {</span>
+<span class="nc" id="L238">                boolean success = targetDirWithTimestamp.mkdirs();</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">                if (!success) {</span>
+<span class="nc" id="L240">                    JOptionPane.showMessageDialog(getFrame(), &quot;Create target directory failed!&quot;, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L241">                    return;</span>
+                }
+            }
+
+<span class="nc" id="L245">            Component[] components = dumpsysTypeChoosePanel.getComponents();</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">            for (Component component : components) {</span>
+<span class="nc bnc" id="L247" title="All 2 branches missed.">                if (component instanceof JCheckBox checkBox) {</span>
+<span class="nc" id="L248">                    String dumpsysType = checkBox.getText();</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">                    if (checkBox.isSelected()) {</span>
+<span class="nc" id="L250">                        dumpsysAndSaveToFile(dumpsysType, targetDirWithTimestamp);</span>
+                    }
+                }
+            }
+<span class="nc" id="L254">            dumpsysStartButton.setEnabled(true);</span>
+<span class="nc" id="L255">        }</span>
+
+        private void dumpsysAndSaveToFile(String dumpsysType, File targetDir) {
+<span class="nc" id="L258">            String command = &quot;adb shell dumpsys &quot; + dumpsysType;</span>
+<span class="nc" id="L259">            CommandLine cmdLine = CommandLine.parse(command);</span>
+<span class="nc" id="L260">            DefaultExecutor executor = DefaultExecutor.builder().get();</span>
+<span class="nc" id="L261">            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();</span>
+<span class="nc" id="L262">                 ByteArrayOutputStream errorStream = new ByteArrayOutputStream();) {</span>
+<span class="nc" id="L263">                PumpStreamHandler streamHandler = new PumpStreamHandler(outputStream, errorStream);</span>
+<span class="nc" id="L264">                executor.setStreamHandler(streamHandler);</span>
+<span class="nc" id="L265">                int exitValue = executor.execute(cmdLine);</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                if (exitValue == 0) {</span>
+<span class="nc" id="L267">                    String result = outputStream.toString().trim();</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                    if (StringUtils.isNotEmpty(result)) {</span>
+<span class="nc" id="L269">                        File outputFile = new File(targetDir, dumpsysType + &quot;.dumpsys&quot;);</span>
+<span class="nc" id="L270">                        FileUtils.writeStringToFile(outputFile, result, &quot;UTF-8&quot;);</span>
+                    }
+<span class="nc" id="L272">                } else {</span>
+<span class="nc" id="L273">                    String errorResult = errorStream.toString().trim();</span>
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                    if (StringUtils.isNotEmpty(errorResult)) {</span>
+<span class="nc" id="L275">                        File errorFile = new File(targetDir, dumpsysType + &quot;.error&quot;);</span>
+<span class="nc" id="L276">                        FileUtils.writeStringToFile(errorFile, errorResult, &quot;UTF-8&quot;);</span>
+                    }
+                }
+<span class="nc" id="L279">            } catch (IOException ex) {</span>
+<span class="nc" id="L280">                JOptionPane.showMessageDialog(getFrame(), &quot;Execute command failed:\n&quot; + ex.getMessage(), &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L281">            }</span>
+<span class="nc" id="L282">        }</span>
+    }
+
+<span class="nc" id="L285">    class AnalysisStartButtonActionListener implements ActionListener {</span>
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L289">            File analysisFile = analysisFilePanel.getFile();</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">            if (!analysisFile.exists()) {</span>
+<span class="nc" id="L291">                JOptionPane.showMessageDialog(getFrame(), &quot;Analysis file does not exist!&quot;, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L292">                return;</span>
+            }
+<span class="nc" id="L294">            String fileNameWithoutExtension = FilenameUtils.getBaseName(analysisFile.getName());</span>
+<span class="nc" id="L295">            String className = StringUtils.capitalize(fileNameWithoutExtension) + &quot;2Json&quot;;</span>
+<span class="nc" id="L296">            IDumpsys2Json dumpsys2Json = getDumpsys2JsonInstance(className);</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            if (dumpsys2Json != null) {</span>
+<span class="nc" id="L298">                String jsonResult = dumpsys2Json.dumpsys2Json(analysisFile);</span>
+<span class="nc" id="L299">                analysisOutputTextArea.setText(jsonResult);</span>
+<span class="nc" id="L300">                analysisOutputTextArea.setCaretPosition(0);</span>
+            }
+<span class="nc" id="L302">        }</span>
+
+        private IDumpsys2Json getDumpsys2JsonInstance(String className) {
+            try {
+<span class="nc" id="L306">                String fullClassName = &quot;edu.jiangxin.apktoolbox.android.dumpsys.tojson.&quot; + className;</span>
+<span class="nc" id="L307">                Class&lt;?&gt; clazz = Class.forName(fullClassName);</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">                if (IDumpsys2Json.class.isAssignableFrom(clazz)) {</span>
+<span class="nc" id="L309">                    return (IDumpsys2Json) clazz.getDeclaredConstructor().newInstance();</span>
+                } else {
+<span class="nc" id="L311">                    JOptionPane.showMessageDialog(getFrame(), &quot;Class &quot; + fullClassName + &quot; does not implement IDumpsys2Json!&quot;, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L312">                    return null;</span>
+                }
+<span class="nc" id="L314">            } catch (ClassNotFoundException e) {</span>
+<span class="nc" id="L315">                JOptionPane.showMessageDialog(getFrame(), &quot;Class not found: &quot; + className, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L316">                return null;</span>
+<span class="nc" id="L317">            } catch (Exception e) {</span>
+<span class="nc" id="L318">                JOptionPane.showMessageDialog(getFrame(), &quot;Error loading class: &quot; + e.getMessage(), &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L319">                return null;</span>
+            }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

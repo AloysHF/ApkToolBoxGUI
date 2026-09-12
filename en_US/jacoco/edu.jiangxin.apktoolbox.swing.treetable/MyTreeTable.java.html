@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MyTreeTable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.treetable</a> &gt; <span class="el_source">MyTreeTable.java</span></div><h1>MyTreeTable.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.treetable;
+
+import java.awt.Dimension;
+import java.io.Serial;
+
+import javax.swing.JTable;
+
+public class MyTreeTable extends JTable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    public MyTreeTable() {
+<span class="nc" id="L13">        super();</span>
+<span class="nc" id="L14">    }</span>
+
+    // in case of escape of &quot;this&quot;
+    public void initialize(MyAbstractTreeTableModel treeTableModel) {
+
+        // JTree erstellen.
+<span class="nc" id="L20">        MyTreeTableCellRenderer tree = new MyTreeTableCellRenderer(this, treeTableModel);</span>
+<span class="nc" id="L21">        tree.initialize();</span>
+
+        // Modell setzen.
+<span class="nc" id="L24">        super.setModel(new MyTreeTableModelAdapter(treeTableModel, tree));</span>
+
+        // Gleichzeitiges Selektieren fuer Tree und Table.
+<span class="nc" id="L27">        MyTreeTableSelectionModel selectionModel = new MyTreeTableSelectionModel();</span>
+<span class="nc" id="L28">        selectionModel.initialize();</span>
+<span class="nc" id="L29">        tree.setSelectionModel(selectionModel); //For the tree</span>
+<span class="nc" id="L30">        setSelectionModel(selectionModel.getListSelectionModel()); //For the table</span>
+
+
+        // Renderer fuer den Tree.
+<span class="nc" id="L34">        setDefaultRenderer(MyTreeTableModel.class, tree);</span>
+        // Editor fuer die TreeTable
+<span class="nc" id="L36">        setDefaultEditor(MyTreeTableModel.class, new MyTreeTableCellEditor(tree, this));</span>
+
+        // Kein Grid anzeigen.
+<span class="nc" id="L39">        setShowGrid(false);</span>
+
+        // Keine Abstaende.
+<span class="nc" id="L42">        setIntercellSpacing(new Dimension(0, 0));</span>
+<span class="nc" id="L43">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

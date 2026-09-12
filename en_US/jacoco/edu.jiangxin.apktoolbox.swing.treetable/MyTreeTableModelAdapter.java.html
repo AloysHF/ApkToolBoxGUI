@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MyTreeTableModelAdapter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.treetable</a> &gt; <span class="el_source">MyTreeTableModelAdapter.java</span></div><h1>MyTreeTableModelAdapter.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.treetable;
+
+import javax.swing.JTree;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.tree.TreePath;
+import java.io.Serial;
+
+public class MyTreeTableModelAdapter extends AbstractTableModel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    JTree tree;
+    transient MyAbstractTreeTableModel treeTableModel;
+
+<span class="nc" id="L17">    public MyTreeTableModelAdapter(MyAbstractTreeTableModel treeTableModel, JTree tree) {</span>
+<span class="nc" id="L18">        this.tree = tree;</span>
+<span class="nc" id="L19">        this.treeTableModel = treeTableModel;</span>
+
+<span class="nc" id="L21">        tree.addTreeExpansionListener(new TreeExpansionListener() {</span>
+            public void treeExpanded(TreeExpansionEvent event) {
+<span class="nc" id="L23">                fireTableDataChanged();</span>
+<span class="nc" id="L24">            }</span>
+
+            public void treeCollapsed(TreeExpansionEvent event) {
+<span class="nc" id="L27">                fireTableDataChanged();</span>
+<span class="nc" id="L28">            }</span>
+        });
+<span class="nc" id="L30">    }</span>
+
+
+
+    public int getColumnCount() {
+<span class="nc" id="L35">        return treeTableModel.getColumnCount();</span>
+    }
+
+    public String getColumnName(int column) {
+<span class="nc" id="L39">        return treeTableModel.getColumnName(column);</span>
+    }
+
+    public Class&lt;?&gt; getColumnClass(int column) {
+<span class="nc" id="L43">        return treeTableModel.getColumnClass(column);</span>
+    }
+
+    public int getRowCount() {
+<span class="nc" id="L47">        return tree.getRowCount();</span>
+    }
+
+    protected Object nodeForRow(int row) {
+<span class="nc" id="L51">        TreePath treePath = tree.getPathForRow(row);</span>
+<span class="nc" id="L52">        return treePath.getLastPathComponent();</span>
+    }
+
+    public Object getValueAt(int row, int column) {
+<span class="nc" id="L56">        return treeTableModel.getValueAt(nodeForRow(row), column);</span>
+    }
+
+    public boolean isCellEditable(int row, int column) {
+<span class="nc" id="L60">        return treeTableModel.isCellEditable(nodeForRow(row), column);</span>
+    }
+
+    public void setValueAt(Object value, int row, int column) {
+<span class="nc" id="L64">        treeTableModel.setValueAt(value, nodeForRow(row), column);</span>
+<span class="nc" id="L65">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfStatPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.pdf.stat</a> &gt; <span class="el_source">PdfStatPanel.java</span></div><h1>PdfStatPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.pdf.stat;
+
+import edu.jiangxin.apktoolbox.pdf.PdfUtils;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.DateUtils;
+import edu.jiangxin.apktoolbox.utils.ExcelExporter;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.Serial;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+<span class="nc" id="L29">public class PdfStatPanel extends EasyPanel {</span>
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JTabbedPane tabbedPane;
+
+    private JPanel mainPanel;
+
+    private FileListPanel fileListPanel;
+
+    private JRadioButton pageCountRadioButton;
+
+    private JCheckBox isRecursiveSearched;
+
+    private JPanel resultPanel;
+
+    private JTable resultTable;
+
+    private DefaultTableModel resultTableModel;
+
+    private JLabel statInfoLabel;
+
+    private JButton statButton;
+    private JButton cancelButton;
+
+    private JProgressBar progressBar;
+
+    private transient SearchThread searchThread;
+
+<span class="nc" id="L59">    private final AtomicLong totalFileSize = new AtomicLong(0);</span>
+
+<span class="nc" id="L61">    private final AtomicInteger totalPageCount = new AtomicInteger(0);</span>
+
+<span class="nc" id="L63">    private transient final List&lt;Vector&lt;Object&gt;&gt; resultFileList = new CopyOnWriteArrayList&lt;&gt;();</span>
+
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L68">        tabbedPane = new JTabbedPane();</span>
+<span class="nc" id="L69">        add(tabbedPane);</span>
+
+<span class="nc" id="L71">        createMainPanel();</span>
+<span class="nc" id="L72">        tabbedPane.addTab(&quot;Option&quot;, null, mainPanel, &quot;Show Stat Options&quot;);</span>
+
+<span class="nc" id="L74">        createResultPanel();</span>
+<span class="nc" id="L75">        tabbedPane.addTab(&quot;Result&quot;, null, resultPanel, &quot;Show Stat Result&quot;);</span>
+<span class="nc" id="L76">    }</span>
+
+    private void createMainPanel() {
+<span class="nc" id="L79">        mainPanel = new JPanel();</span>
+<span class="nc" id="L80">        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L82">        fileListPanel = new FileListPanel();</span>
+<span class="nc" id="L83">        fileListPanel.initialize();</span>
+
+<span class="nc" id="L85">        JPanel checkOptionPanel = new JPanel();</span>
+<span class="nc" id="L86">        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L87">        checkOptionPanel.setBorder(BorderFactory.createTitledBorder(&quot;Check Options&quot;));</span>
+
+<span class="nc" id="L89">        ButtonGroup buttonGroup = new ButtonGroup();</span>
+
+<span class="nc" id="L91">        pageCountRadioButton = new JRadioButton(&quot;统计页数&quot;);</span>
+<span class="nc" id="L92">        pageCountRadioButton.setSelected(true);</span>
+<span class="nc" id="L93">        pageCountRadioButton.setEnabled(false);</span>
+<span class="nc" id="L94">        buttonGroup.add(pageCountRadioButton);</span>
+
+<span class="nc" id="L96">        JPanel typePanel = new JPanel();</span>
+<span class="nc" id="L97">        typePanel.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+<span class="nc" id="L98">        typePanel.add(pageCountRadioButton);</span>
+
+<span class="nc" id="L100">        checkOptionPanel.add(typePanel);</span>
+<span class="nc" id="L101">        checkOptionPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L103">        JPanel searchOptionPanel = new JPanel();</span>
+<span class="nc" id="L104">        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L105">        searchOptionPanel.setBorder(BorderFactory.createTitledBorder(&quot;Stat Options&quot;));</span>
+
+<span class="nc" id="L107">        isRecursiveSearched = new JCheckBox(&quot;Recursive&quot;);</span>
+<span class="nc" id="L108">        isRecursiveSearched.setSelected(true);</span>
+<span class="nc" id="L109">        searchOptionPanel.add(isRecursiveSearched);</span>
+<span class="nc" id="L110">        searchOptionPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L112">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L113">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L114">        operationPanel.setBorder(BorderFactory.createTitledBorder(&quot;Operations&quot;));</span>
+
+<span class="nc" id="L116">        JPanel buttonPanel = new JPanel();</span>
+<span class="nc" id="L117">        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L119">        statButton = new JButton(&quot;Stat&quot;);</span>
+<span class="nc" id="L120">        cancelButton = new JButton(&quot;Cancel&quot;);</span>
+<span class="nc" id="L121">        cancelButton.setEnabled(false);</span>
+<span class="nc" id="L122">        statButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L123">        cancelButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L124">        operationPanel.add(statButton);</span>
+<span class="nc" id="L125">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L126">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L127">        operationPanel.add(cancelButton);</span>
+<span class="nc" id="L128">        operationPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L130">        progressBar = new JProgressBar();</span>
+<span class="nc" id="L131">        progressBar.setStringPainted(true);</span>
+<span class="nc" id="L132">        progressBar.setString(&quot;Ready&quot;);</span>
+
+<span class="nc" id="L134">        mainPanel.add(fileListPanel);</span>
+<span class="nc" id="L135">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L136">        mainPanel.add(checkOptionPanel);</span>
+<span class="nc" id="L137">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L138">        mainPanel.add(searchOptionPanel);</span>
+<span class="nc" id="L139">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L140">        mainPanel.add(operationPanel);</span>
+<span class="nc" id="L141">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L142">        mainPanel.add(progressBar);</span>
+<span class="nc" id="L143">    }</span>
+
+    private void createResultPanel() {
+<span class="nc" id="L146">        resultPanel = new JPanel();</span>
+<span class="nc" id="L147">        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L149">        resultTableModel = new PdfFilesTableModel(new Vector&lt;&gt;(), PdfFilesConstants.COLUMN_NAMES);</span>
+<span class="nc" id="L150">        resultTable = new JTable(resultTableModel);</span>
+<span class="nc" id="L151">        resultTable.setDefaultRenderer(Vector.class, new PdfFilesTableCellRenderer());</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        for (int i = 0; i &lt; resultTable.getColumnCount(); i++) {</span>
+<span class="nc" id="L153">            resultTable.getColumn(resultTable.getColumnName(i)).setCellRenderer(new PdfFilesTableCellRenderer());</span>
+        }
+<span class="nc" id="L155">        resultTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);</span>
+<span class="nc" id="L156">        resultTable.addMouseListener(new MouseAdapter() {</span>
+            @Override
+            public void mouseReleased(MouseEvent e) {
+<span class="nc bnc" id="L159" title="All 4 branches missed.">                if (e.isPopupTrigger() &amp;&amp; e.getComponent() instanceof JTable) {</span>
+<span class="nc" id="L160">                    JPopupMenu popupmenu = new JPopupMenu();</span>
+<span class="nc" id="L161">                    JMenuItem exportMenuItem = new JMenuItem(&quot;导出到 Excel&quot;);</span>
+<span class="nc" id="L162">                    exportMenuItem.addActionListener(ev -&gt;</span>
+<span class="nc" id="L163">                        ExcelExporter.export(resultTableModel, &quot;pdf_stat_export.xlsx&quot;, PdfStatPanel.this));</span>
+<span class="nc" id="L164">                    popupmenu.add(exportMenuItem);</span>
+<span class="nc" id="L165">                    popupmenu.show(e.getComponent(), e.getX(), e.getY());</span>
+                }
+<span class="nc" id="L167">            }</span>
+        });
+<span class="nc" id="L169">        JScrollPane scrollPane = new JScrollPane(resultTable);</span>
+
+<span class="nc" id="L171">        JPanel statInfoPanel = new JPanel();</span>
+<span class="nc" id="L172">        statInfoPanel.setLayout(new BoxLayout(statInfoPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L173">        statInfoLabel = new JLabel(&quot;&quot;);</span>
+<span class="nc" id="L174">        statInfoPanel.add(statInfoLabel);</span>
+<span class="nc" id="L175">        statInfoPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L177">        resultPanel.add(scrollPane);</span>
+<span class="nc" id="L178">        resultPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L179">        resultPanel.add(statInfoPanel);</span>
+<span class="nc" id="L180">    }</span>
+
+    private void processFile(File file) {
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (pageCountRadioButton.isSelected()) {</span>
+<span class="nc" id="L184">            Vector&lt;Object&gt; fileVector = getRowVector(file);</span>
+<span class="nc" id="L185">            resultFileList.add(fileVector);</span>
+<span class="nc" id="L186">        } else {</span>
+<span class="nc" id="L187">            logger.error(&quot;Invalid option selected&quot;);</span>
+        }
+<span class="nc" id="L189">    }</span>
+
+<span class="nc" id="L191">    class OperationButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L194">            Object source = e.getSource();</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">            if (source.equals(statButton)) {</span>
+<span class="nc" id="L196">                statButton.setEnabled(false);</span>
+<span class="nc" id="L197">                cancelButton.setEnabled(true);</span>
+<span class="nc" id="L198">                searchThread = new SearchThread(isRecursiveSearched.isSelected());</span>
+<span class="nc" id="L199">                searchThread.start();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">            } else if (source.equals(cancelButton)) {</span>
+<span class="nc" id="L201">                statButton.setEnabled(true);</span>
+<span class="nc" id="L202">                cancelButton.setEnabled(false);</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                if (searchThread.isAlive()) {</span>
+<span class="nc" id="L204">                    searchThread.interrupt();</span>
+<span class="nc" id="L205">                    searchThread.executorService.shutdownNow();</span>
+                }
+            }
+
+<span class="nc" id="L209">        }</span>
+    }
+
+    private void showResult() {
+<span class="nc" id="L213">        SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L214">            int index = 0;</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">            for (Vector&lt;Object&gt; file : resultFileList) {</span>
+<span class="nc" id="L216">                file.add(0, ++index);</span>
+<span class="nc" id="L217">                resultTableModel.addRow(file);</span>
+<span class="nc" id="L218">            }</span>
+<span class="nc" id="L219">            tabbedPane.setSelectedIndex(1);</span>
+<span class="nc" id="L220">            statInfoLabel.setText(&quot;Page Count: &quot; + totalPageCount.get() + &quot;, Total Size: &quot; + FileUtils.sizeOfInHumanFormat(totalFileSize.get()));</span>
+<span class="nc" id="L221">        });</span>
+<span class="nc" id="L222">    }</span>
+
+    private Vector&lt;Object&gt; getRowVector(File file) {
+<span class="nc" id="L225">        Vector&lt;Object&gt; rowData = new Vector&lt;&gt;();</span>
+<span class="nc" id="L226">        rowData.add(file.getParent());</span>
+<span class="nc" id="L227">        rowData.add(file.getName());</span>
+<span class="nc" id="L228">        totalFileSize.addAndGet(file.length());</span>
+<span class="nc" id="L229">        rowData.add(FileUtils.sizeOfInHumanFormat(file));</span>
+<span class="nc" id="L230">        rowData.add(DateUtils.millisecondToHumanFormat(file.lastModified()));</span>
+<span class="nc" id="L231">        int pageCount = PdfUtils.getPageCount(file);</span>
+<span class="nc" id="L232">        totalPageCount.addAndGet(pageCount);</span>
+<span class="nc" id="L233">        rowData.add(pageCount);</span>
+<span class="nc" id="L234">        return rowData;</span>
+    }
+
+    class SearchThread extends Thread {
+        public final ExecutorService executorService;
+<span class="nc" id="L239">        private final AtomicInteger processedFiles = new AtomicInteger(0);</span>
+<span class="nc" id="L240">        private int totalFiles = 0;</span>
+        private final boolean isRecursiveSearched;
+
+<span class="nc" id="L243">        public SearchThread(boolean isRecursiveSearched) {</span>
+<span class="nc" id="L244">            super();</span>
+<span class="nc" id="L245">            this.isRecursiveSearched = isRecursiveSearched;</span>
+<span class="nc" id="L246">            this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());</span>
+
+<span class="nc" id="L248">            resultFileList.clear();</span>
+<span class="nc" id="L249">            totalFileSize.set(0);</span>
+<span class="nc" id="L250">            totalPageCount.set(0);</span>
+
+<span class="nc" id="L252">            SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L253">                progressBar.setValue(0);</span>
+<span class="nc" id="L254">                progressBar.setString(&quot;Starting search...&quot;);</span>
+<span class="nc" id="L255">                resultTableModel.setRowCount(0);</span>
+<span class="nc" id="L256">                statInfoLabel.setText(&quot;&quot;);</span>
+<span class="nc" id="L257">            });</span>
+<span class="nc" id="L258">        }</span>
+
+        @Override
+        public void run() {
+            try {
+<span class="nc" id="L263">                List&lt;File&gt; fileList = fileListPanel.getFileList();</span>
+<span class="nc" id="L264">                Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L265">                String[] extensions = new String[]{&quot;pdf&quot;, &quot;PDF&quot;};</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">                for (File file : fileList) {</span>
+<span class="nc" id="L267">                    fileSet.addAll(FileUtils.listFiles(file, extensions, isRecursiveSearched));</span>
+<span class="nc" id="L268">                }</span>
+
+<span class="nc" id="L270">                List&lt;Future&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L271">                totalFiles = fileSet.size();</span>
+<span class="nc" id="L272">                updateProgress();</span>
+
+<span class="nc bnc" id="L274" title="All 2 branches missed.">                for (File file : fileSet) {</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">                    if (currentThread().isInterrupted()) {</span>
+<span class="nc" id="L276">                        return;</span>
+                    }
+<span class="nc" id="L278">                    futures.add(executorService.submit(() -&gt; {</span>
+<span class="nc bnc" id="L279" title="All 2 branches missed.">                        if (currentThread().isInterrupted()) {</span>
+<span class="nc" id="L280">                            return null;</span>
+                        }
+<span class="nc" id="L282">                        processFile(file);</span>
+<span class="nc" id="L283">                        incrementProcessedFiles();</span>
+<span class="nc" id="L284">                        return null;</span>
+                    }));
+<span class="nc" id="L286">                }</span>
+
+                // Wait for all tasks to complete
+<span class="nc bnc" id="L289" title="All 2 branches missed.">                for (Future&lt;?&gt; future : futures) {</span>
+                    try {
+<span class="nc" id="L291">                        future.get();</span>
+<span class="nc" id="L292">                    } catch (InterruptedException e) {</span>
+<span class="nc" id="L293">                        logger.error(&quot;Search interrupted&quot;, e);</span>
+<span class="nc" id="L294">                        currentThread().interrupt(); // Restore interrupted status</span>
+<span class="nc" id="L295">                        return;</span>
+<span class="nc" id="L296">                    }</span>
+<span class="nc" id="L297">                }</span>
+
+<span class="nc" id="L299">                showResult();</span>
+<span class="nc" id="L300">            } catch (Exception e) {</span>
+<span class="nc" id="L301">                logger.error(&quot;Search failed&quot;, e);</span>
+<span class="nc" id="L302">                SwingUtilities.invokeLater(() -&gt; progressBar.setString(&quot;Search failed&quot;));</span>
+            } finally {
+<span class="nc" id="L304">                executorService.shutdown();</span>
+<span class="nc" id="L305">                SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L306">                    statButton.setEnabled(true);</span>
+<span class="nc" id="L307">                    cancelButton.setEnabled(false);</span>
+<span class="nc" id="L308">                });</span>
+            }
+<span class="nc" id="L310">        }</span>
+
+        private void incrementProcessedFiles() {
+<span class="nc" id="L313">            processedFiles.incrementAndGet();</span>
+<span class="nc" id="L314">            updateProgress();</span>
+<span class="nc" id="L315">        }</span>
+
+        private void updateProgress() {
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            if (totalFiles &gt; 0) {</span>
+<span class="nc" id="L319">                SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L320">                    int processed = processedFiles.get();</span>
+<span class="nc" id="L321">                    int percentage = (int) (processed * 100.0 / totalFiles);</span>
+<span class="nc" id="L322">                    progressBar.setValue(percentage);</span>
+<span class="nc" id="L323">                    progressBar.setString(String.format(&quot;Processing: %d/%d files (%d%%)&quot;, processed, totalFiles, percentage));</span>
+<span class="nc" id="L324">                });</span>
+            }
+<span class="nc" id="L326">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

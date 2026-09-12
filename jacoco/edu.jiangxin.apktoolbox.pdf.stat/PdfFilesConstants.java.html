@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfFilesConstants.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.pdf.stat</a> &gt; <span class="el_source">PdfFilesConstants.java</span></div><h1>PdfFilesConstants.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.pdf.stat;
+
+import java.awt.*;
+import java.util.Vector;
+
+<span class="nc" id="L6">public class PdfFilesConstants {</span>
+    public static final String COLUMN_NAME_INDEX = &quot;Index&quot;;
+    public static final String COLUMN_NAME_FILE_PARENT = &quot;ParentPath&quot;;
+    public static final String COLUMN_NAME_FILE_NAME = &quot;FileName&quot;;
+    public static final String COLUMN_NAME_FILE_SIZE = &quot;FileSize&quot;;
+    public static final String COLUMN_NAME_MODIFY_TIME = &quot;ModifyTime&quot;;
+    public static final String COLUMN_NAME_PAGE_COUNT = &quot;PageCount&quot;;
+
+    public static final Vector&lt;String&gt; COLUMN_NAMES;
+
+    public static final Vector&lt;Color&gt; BACKGROUND;
+
+    static {
+<span class="nc" id="L19">        COLUMN_NAMES = new Vector&lt;&gt;();</span>
+<span class="nc" id="L20">        COLUMN_NAMES.add(COLUMN_NAME_INDEX);</span>
+<span class="nc" id="L21">        COLUMN_NAMES.add(COLUMN_NAME_FILE_PARENT);</span>
+<span class="nc" id="L22">        COLUMN_NAMES.add(COLUMN_NAME_FILE_NAME);</span>
+<span class="nc" id="L23">        COLUMN_NAMES.add(COLUMN_NAME_FILE_SIZE);</span>
+<span class="nc" id="L24">        COLUMN_NAMES.add(COLUMN_NAME_MODIFY_TIME);</span>
+<span class="nc" id="L25">        COLUMN_NAMES.add(COLUMN_NAME_PAGE_COUNT);</span>
+
+<span class="nc" id="L27">        BACKGROUND = new Vector&lt;&gt;();</span>
+<span class="nc" id="L28">        BACKGROUND.add(new Color(255, 182, 193, 30));</span>
+<span class="nc" id="L29">        BACKGROUND.add(new Color(123, 104, 238, 30));</span>
+<span class="nc" id="L30">        BACKGROUND.add(new Color(127, 255, 170, 30));</span>
+<span class="nc" id="L31">        BACKGROUND.add(new Color(255, 255, 0, 30));</span>
+<span class="nc" id="L32">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

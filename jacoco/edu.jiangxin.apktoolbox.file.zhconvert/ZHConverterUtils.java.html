@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZHConverterUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.zhconvert</a> &gt; <span class="el_source">ZHConverterUtils.java</span></div><h1>ZHConverterUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.zhconvert;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.util.Properties;
+
+public class ZHConverterUtils {
+<span class="nc" id="L10">    private static final Logger logger = LogManager.getLogger(ZHConverterUtils.class.getSimpleName());</span>
+
+<span class="nc" id="L12">    private Properties charMap = new Properties();</span>
+
+<span class="nc" id="L14">    private Properties charMap2 = new Properties();</span>
+
+<span class="nc" id="L16">    public ZHConverterUtils() {</span>
+<span class="nc" id="L17">        String dirpath = &quot;zhSimple2zhTw.properties&quot;;</span>
+<span class="nc" id="L18">        String dirpath2 = &quot;zhTw2zhSimple.properties&quot;;</span>
+<span class="nc" id="L19">        initProperties(dirpath,charMap);</span>
+<span class="nc" id="L20">        initProperties(dirpath2,charMap2);</span>
+<span class="nc" id="L21">    }</span>
+
+    private void initProperties(String rPath, Properties properties) {
+<span class="nc" id="L24">        File file = new File(rPath);</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (!file.exists()) {</span>
+            try {
+<span class="nc" id="L27">                file.createNewFile();</span>
+<span class="nc" id="L28">            } catch (IOException e) {</span>
+<span class="nc" id="L29">                logger.error(&quot;createNewFile failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L30">                return;</span>
+<span class="nc" id="L31">            }</span>
+        }
+
+<span class="nc" id="L34">        try (InputStream is = new FileInputStream(file);</span>
+<span class="nc" id="L35">             BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {</span>
+<span class="nc" id="L36">            properties.load(reader);</span>
+<span class="nc" id="L37">        } catch (IOException e) {</span>
+<span class="nc" id="L38">            logger.error(&quot;load failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L39">        }</span>
+<span class="nc" id="L40">    }</span>
+
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public String myConvertToTW(String str){
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        for (Object o : charMap.keySet()) {</span>
+<span class="nc" id="L50">            String key = (String) o;</span>
+<span class="nc bnc" id="L51" title="All 4 branches missed.">            if (!key.isEmpty() &amp;&amp; str.contains(key)) {</span>
+<span class="nc" id="L52">                str = str.replaceAll(key, charMap.getProperty(key));</span>
+            }
+<span class="nc" id="L54">        }</span>
+<span class="nc" id="L55">        return str;</span>
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public String myConvertToSimple(String str){
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        for (Object o : charMap2.keySet()) {</span>
+<span class="nc" id="L65">            String key = (String) o;</span>
+<span class="nc bnc" id="L66" title="All 4 branches missed.">            if (!key.isEmpty() &amp;&amp; str.contains(key)) {</span>
+<span class="nc" id="L67">                str = str.replaceAll(key, charMap2.getProperty(key));</span>
+            }
+<span class="nc" id="L69">        }</span>
+<span class="nc" id="L70">        return str;</span>
+    }
+
+
+    /**
+     * 加入新词组对应
+     * @param key
+     * @param value
+     */
+    public void storeDataToProperties(String key,String value) {
+<span class="nc" id="L80">        charMap.setProperty(key,value);</span>
+<span class="nc" id="L81">        String filePath = &quot;zhSimple2zhTw.properties&quot;;</span>
+<span class="nc" id="L82">        try (OutputStream out = new FileOutputStream(filePath)) {</span>
+<span class="nc" id="L83">            charMap.store(out, &quot;加入新元素&quot;);</span>
+<span class="nc" id="L84">        } catch (IOException e) {</span>
+<span class="nc" id="L85">            logger.error(&quot;storeDataToProperties failed: IOException&quot;);</span>
+<span class="nc" id="L86">        }</span>
+<span class="nc" id="L87">        charMap2.setProperty(value,key);</span>
+<span class="nc" id="L88">        String filePath2 = &quot;zhTw2zhSimple.properties&quot;;</span>
+<span class="nc" id="L89">        try (OutputStream out2 = new FileOutputStream(filePath2)) {</span>
+<span class="nc" id="L90">            charMap2.store(out2, &quot;加入新元素&quot;);</span>
+<span class="nc" id="L91">        } catch (IOException e) {</span>
+<span class="nc" id="L92">            logger.error(&quot;storeDataToProperties failed: IOException&quot;);</span>
+<span class="nc" id="L93">        }</span>
+<span class="nc" id="L94">    }</span>
+
+    public Properties getCharMap() {
+<span class="nc" id="L97">        return charMap;</span>
+    }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

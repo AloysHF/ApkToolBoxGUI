@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PdfFinderPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.pdf.finder</a> &gt; <span class="el_source">PdfFinderPanel.java</span></div><h1>PdfFinderPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.pdf.finder;
+
+import edu.jiangxin.apktoolbox.pdf.PdfUtils;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.DateUtils;
+import edu.jiangxin.apktoolbox.utils.ExcelExporter;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+import edu.jiangxin.apktoolbox.utils.RevealFileUtils;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.File;
+import java.io.Serial;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+
+<span class="nc" id="L25">public class PdfFinderPanel extends EasyPanel {</span>
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JTabbedPane tabbedPane;
+
+    private JPanel mainPanel;
+
+    private FileListPanel fileListPanel;
+
+    private JRadioButton scannedRadioButton;
+
+    private JRadioButton encryptedRadioButton;
+
+    private JRadioButton nonOutlineRadioButton;
+
+    private JRadioButton hasAnnotationsRadioButton;
+
+    private JSpinner thresholdSpinner;
+
+    private JCheckBox isRecursiveSearched;
+
+    private JPanel resultPanel;
+
+    private JTable resultTable;
+
+    private DefaultTableModel resultTableModel;
+
+    private JButton searchButton;
+    private JButton cancelButton;
+
+    private JProgressBar progressBar;
+
+    private JMenuItem openDirMenuItem;
+
+    private JMenuItem copyFilesMenuItem;
+
+    private transient SearchThread searchThread;
+
+<span class="nc" id="L65">    private transient final List&lt;File&gt; resultFileList = new ArrayList&lt;&gt;();</span>
+
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L70">        tabbedPane = new JTabbedPane();</span>
+<span class="nc" id="L71">        add(tabbedPane);</span>
+
+<span class="nc" id="L73">        createMainPanel();</span>
+<span class="nc" id="L74">        tabbedPane.addTab(&quot;Option&quot;, null, mainPanel, &quot;Show Search Options&quot;);</span>
+
+<span class="nc" id="L76">        createResultPanel();</span>
+<span class="nc" id="L77">        tabbedPane.addTab(&quot;Result&quot;, null, resultPanel, &quot;Show Search Result&quot;);</span>
+<span class="nc" id="L78">    }</span>
+
+    private void createMainPanel() {
+<span class="nc" id="L81">        mainPanel = new JPanel();</span>
+<span class="nc" id="L82">        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L84">        fileListPanel = new FileListPanel();</span>
+<span class="nc" id="L85">        fileListPanel.initialize();</span>
+
+<span class="nc" id="L87">        JPanel checkOptionPanel = new JPanel();</span>
+<span class="nc" id="L88">        checkOptionPanel.setLayout(new BoxLayout(checkOptionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L89">        checkOptionPanel.setBorder(BorderFactory.createTitledBorder(&quot;Check Options&quot;));</span>
+
+<span class="nc" id="L91">        ButtonGroup buttonGroup = new ButtonGroup();</span>
+<span class="nc" id="L92">        ItemListener itemListener = new RadioButtonItemListener();</span>
+
+<span class="nc" id="L94">        scannedRadioButton = new JRadioButton(&quot;查找扫描的PDF文件&quot;);</span>
+<span class="nc" id="L95">        scannedRadioButton.setSelected(true);</span>
+<span class="nc" id="L96">        scannedRadioButton.addItemListener(itemListener);</span>
+<span class="nc" id="L97">        buttonGroup.add(scannedRadioButton);</span>
+
+<span class="nc" id="L99">        encryptedRadioButton = new JRadioButton(&quot;查找加密的PDF文件&quot;);</span>
+<span class="nc" id="L100">        encryptedRadioButton.addItemListener(itemListener);</span>
+<span class="nc" id="L101">        buttonGroup.add(encryptedRadioButton);</span>
+
+<span class="nc" id="L103">        nonOutlineRadioButton = new JRadioButton(&quot;查找没有目录的PDF文件&quot;);</span>
+<span class="nc" id="L104">        nonOutlineRadioButton.addItemListener(itemListener);</span>
+<span class="nc" id="L105">        buttonGroup.add(nonOutlineRadioButton);</span>
+
+<span class="nc" id="L107">        hasAnnotationsRadioButton = new JRadioButton(&quot;查找有注释的PDF文件&quot;);</span>
+<span class="nc" id="L108">        hasAnnotationsRadioButton.addItemListener(itemListener);</span>
+<span class="nc" id="L109">        buttonGroup.add(hasAnnotationsRadioButton);</span>
+
+<span class="nc" id="L111">        JPanel typePanel = new JPanel();</span>
+<span class="nc" id="L112">        typePanel.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+<span class="nc" id="L113">        typePanel.add(scannedRadioButton);</span>
+<span class="nc" id="L114">        typePanel.add(encryptedRadioButton);</span>
+<span class="nc" id="L115">        typePanel.add(nonOutlineRadioButton);</span>
+<span class="nc" id="L116">        typePanel.add(hasAnnotationsRadioButton);</span>
+
+<span class="nc" id="L118">        JLabel thresholdLabel = new JLabel(&quot;Threshold: &quot;);</span>
+<span class="nc" id="L119">        thresholdSpinner = new JSpinner();</span>
+<span class="nc" id="L120">        thresholdSpinner.setModel(new SpinnerNumberModel(1, 0, 100, 1));</span>
+
+<span class="nc" id="L122">        checkOptionPanel.add(typePanel);</span>
+<span class="nc" id="L123">        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L124">        checkOptionPanel.add(thresholdLabel);</span>
+<span class="nc" id="L125">        checkOptionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L126">        checkOptionPanel.add(thresholdSpinner);</span>
+<span class="nc" id="L127">        checkOptionPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L129">        JPanel searchOptionPanel = new JPanel();</span>
+<span class="nc" id="L130">        searchOptionPanel.setLayout(new BoxLayout(searchOptionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L131">        searchOptionPanel.setBorder(BorderFactory.createTitledBorder(&quot;Search Options&quot;));</span>
+
+<span class="nc" id="L133">        isRecursiveSearched = new JCheckBox(&quot;Recursive&quot;);</span>
+<span class="nc" id="L134">        isRecursiveSearched.setSelected(true);</span>
+<span class="nc" id="L135">        searchOptionPanel.add(isRecursiveSearched);</span>
+<span class="nc" id="L136">        searchOptionPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L138">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L139">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L140">        operationPanel.setBorder(BorderFactory.createTitledBorder(&quot;Operations&quot;));</span>
+
+<span class="nc" id="L142">        JPanel buttonPanel = new JPanel();</span>
+<span class="nc" id="L143">        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L145">        searchButton = new JButton(&quot;Search&quot;);</span>
+<span class="nc" id="L146">        cancelButton = new JButton(&quot;Cancel&quot;);</span>
+<span class="nc" id="L147">        cancelButton.setEnabled(false);</span>
+<span class="nc" id="L148">        searchButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L149">        cancelButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L150">        operationPanel.add(searchButton);</span>
+<span class="nc" id="L151">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L152">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L153">        operationPanel.add(cancelButton);</span>
+<span class="nc" id="L154">        operationPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L156">        progressBar = new JProgressBar();</span>
+<span class="nc" id="L157">        progressBar.setStringPainted(true);</span>
+<span class="nc" id="L158">        progressBar.setString(&quot;Ready&quot;);</span>
+
+<span class="nc" id="L160">        mainPanel.add(fileListPanel);</span>
+<span class="nc" id="L161">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L162">        mainPanel.add(checkOptionPanel);</span>
+<span class="nc" id="L163">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L164">        mainPanel.add(searchOptionPanel);</span>
+<span class="nc" id="L165">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L166">        mainPanel.add(operationPanel);</span>
+<span class="nc" id="L167">        mainPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L168">        mainPanel.add(progressBar);</span>
+<span class="nc" id="L169">    }</span>
+
+    private void createResultPanel() {
+<span class="nc" id="L172">        resultPanel = new JPanel();</span>
+<span class="nc" id="L173">        resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L175">        resultTableModel = new PdfFilesTableModel(new Vector&lt;&gt;(), PdfFilesConstants.COLUMN_NAMES);</span>
+<span class="nc" id="L176">        resultTable = new JTable(resultTableModel);</span>
+
+<span class="nc" id="L178">        resultTable.setDefaultRenderer(Vector.class, new PdfFilesTableCellRenderer());</span>
+
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        for (int i = 0; i &lt; resultTable.getColumnCount(); i++) {</span>
+<span class="nc" id="L181">            resultTable.getColumn(resultTable.getColumnName(i)).setCellRenderer(new PdfFilesTableCellRenderer());</span>
+        }
+
+<span class="nc" id="L184">        resultTable.addMouseListener(new MyMouseListener());</span>
+
+<span class="nc" id="L186">        resultTable.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);</span>
+
+<span class="nc" id="L188">        JScrollPane scrollPane = new JScrollPane(resultTable);</span>
+<span class="nc" id="L189">        resultPanel.add(scrollPane);</span>
+<span class="nc" id="L190">    }</span>
+
+    private void processFile(File file) {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">        if (scannedRadioButton.isSelected()) {</span>
+<span class="nc" id="L194">            int threshold = (Integer) thresholdSpinner.getValue();</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">            if (PdfUtils.isScannedPdf(file, threshold)) {</span>
+<span class="nc" id="L196">                resultFileList.add(file);</span>
+            }
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        } else if (encryptedRadioButton.isSelected()) {</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            if (PdfUtils.isEncryptedPdf(file)) {</span>
+<span class="nc" id="L200">                resultFileList.add(file);</span>
+            }
+<span class="nc bnc" id="L202" title="All 2 branches missed.">        } else if (nonOutlineRadioButton.isSelected()) {</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">            if (PdfUtils.isNonOutlinePdf(file)) {</span>
+<span class="nc" id="L204">                resultFileList.add(file);</span>
+            }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">        } else if (hasAnnotationsRadioButton.isSelected()) {</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">            if (PdfUtils.hasAnnotations(file)) {</span>
+<span class="nc" id="L208">                resultFileList.add(file);</span>
+            }
+        } else {
+<span class="nc" id="L211">            logger.error(&quot;Invalid option selected&quot;);</span>
+        }
+<span class="nc" id="L213">    }</span>
+
+<span class="nc" id="L215">    class MyMouseListener extends MouseAdapter {</span>
+        @Override
+        public void mouseReleased(MouseEvent e) {
+<span class="nc" id="L218">            super.mouseReleased(e);</span>
+<span class="nc" id="L219">            int r = resultTable.rowAtPoint(e.getPoint());</span>
+<span class="nc bnc" id="L220" title="All 4 branches missed.">            if (r &gt;= 0 &amp;&amp; r &lt; resultTable.getRowCount()) {</span>
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                if (!resultTable.isRowSelected(r)) {</span>
+<span class="nc" id="L222">                    resultTable.setRowSelectionInterval(r, r);</span>
+                }
+            } else {
+<span class="nc" id="L225">                resultTable.clearSelection();</span>
+            }
+<span class="nc" id="L227">            int[] rowsIndex = resultTable.getSelectedRows();</span>
+<span class="nc bnc" id="L228" title="All 4 branches missed.">            if (rowsIndex == null || rowsIndex.length == 0) {</span>
+<span class="nc" id="L229">                return;</span>
+            }
+<span class="nc bnc" id="L231" title="All 4 branches missed.">            if (e.isPopupTrigger() &amp;&amp; e.getComponent() instanceof JTable) {</span>
+<span class="nc" id="L232">                JPopupMenu popupmenu = new JPopupMenu();</span>
+<span class="nc" id="L233">                MyMenuActionListener menuActionListener = new MyMenuActionListener();</span>
+
+<span class="nc bnc" id="L235" title="All 2 branches missed.">                if (rowsIndex.length == 1) {</span>
+<span class="nc" id="L236">                    openDirMenuItem = new JMenuItem(&quot;Open parent folder of this file&quot;);</span>
+<span class="nc" id="L237">                    openDirMenuItem.addActionListener(menuActionListener);</span>
+<span class="nc" id="L238">                    popupmenu.add(openDirMenuItem);</span>
+<span class="nc" id="L239">                    popupmenu.addSeparator();</span>
+                }
+
+<span class="nc" id="L242">                copyFilesMenuItem = new JMenuItem(&quot;Copy selected files to...&quot;);</span>
+<span class="nc" id="L243">                copyFilesMenuItem.addActionListener(menuActionListener);</span>
+<span class="nc" id="L244">                popupmenu.add(copyFilesMenuItem);</span>
+
+<span class="nc" id="L246">                JMenuItem exportMenuItem = new JMenuItem(&quot;导出到 Excel&quot;);</span>
+<span class="nc" id="L247">                exportMenuItem.addActionListener(ev -&gt;</span>
+<span class="nc" id="L248">                    ExcelExporter.export(resultTableModel, &quot;pdf_finder_export.xlsx&quot;, PdfFinderPanel.this));</span>
+<span class="nc" id="L249">                popupmenu.add(exportMenuItem);</span>
+
+<span class="nc" id="L251">                popupmenu.show(e.getComponent(), e.getX(), e.getY());</span>
+            }
+<span class="nc" id="L253">        }</span>
+    }
+
+<span class="nc" id="L256">    class MyMenuActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+<span class="nc" id="L259">            Object source = actionEvent.getSource();</span>
+<span class="nc bnc" id="L260" title="All 2 branches missed.">            if (source.equals(openDirMenuItem)) {</span>
+<span class="nc" id="L261">                onOpenDir();</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">            } else if (source.equals(copyFilesMenuItem)) {</span>
+<span class="nc" id="L263">                onCopyFiles();</span>
+            } else {
+<span class="nc" id="L265">                logger.error(&quot;invalid source&quot;);</span>
+            }
+<span class="nc" id="L267">        }</span>
+
+        private void onOpenDir() {
+<span class="nc" id="L270">            int rowIndex = resultTable.getSelectedRow();</span>
+<span class="nc" id="L271">            String parentPath = resultTableModel.getValueAt(rowIndex, resultTable.getColumn(PdfFilesConstants.COLUMN_NAME_FILE_PARENT).getModelIndex()).toString();</span>
+<span class="nc" id="L272">            File parent = new File(parentPath);</span>
+<span class="nc" id="L273">            RevealFileUtils.revealDirectory(parent);</span>
+<span class="nc" id="L274">        }</span>
+
+        private void onCopyFiles() {
+<span class="nc" id="L277">            int[] selectedRows = resultTable.getSelectedRows();</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            if (selectedRows.length == 0) {</span>
+<span class="nc" id="L279">                JOptionPane.showMessageDialog(PdfFinderPanel.this, &quot;No rows selected&quot;, &quot;Error&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L280">                return;</span>
+            }
+<span class="nc" id="L282">            List&lt;File&gt; filesToCopy = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">            for (int rowIndex : selectedRows) {</span>
+<span class="nc" id="L284">                String filePath = resultTableModel.getValueAt(rowIndex, resultTable.getColumn(PdfFilesConstants.COLUMN_NAME_FILE_NAME).getModelIndex()).toString();</span>
+<span class="nc" id="L285">                String parentPath = resultTableModel.getValueAt(rowIndex, resultTable.getColumn(PdfFilesConstants.COLUMN_NAME_FILE_PARENT).getModelIndex()).toString();</span>
+<span class="nc" id="L286">                File file = new File(parentPath, filePath);</span>
+<span class="nc" id="L287">                filesToCopy.add(file);</span>
+            }
+<span class="nc" id="L289">            JFileChooser fileChooser = new JFileChooser();</span>
+<span class="nc" id="L290">            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L291">            fileChooser.setDialogTitle(&quot;Select Target Directory&quot;);</span>
+<span class="nc" id="L292">            int returnValue = fileChooser.showOpenDialog(PdfFinderPanel.this);</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">            if (returnValue != JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L294">                return;</span>
+            }
+<span class="nc" id="L296">            File targetDir = fileChooser.getSelectedFile();</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">            for (File file : filesToCopy) {</span>
+                try {
+<span class="nc" id="L299">                    org.apache.commons.io.FileUtils.copyFileToDirectory(file, targetDir);</span>
+<span class="nc" id="L300">                } catch (Exception e) {</span>
+<span class="nc" id="L301">                    logger.error(&quot;Copy file failed: &quot; + file.getAbsolutePath(), e);</span>
+<span class="nc" id="L302">                }</span>
+<span class="nc" id="L303">            }</span>
+<span class="nc" id="L304">        }</span>
+
+
+    }
+
+<span class="nc" id="L309">    class OperationButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L312">            Object source = e.getSource();</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">            if (source.equals(searchButton)) {</span>
+<span class="nc" id="L314">                searchButton.setEnabled(false);</span>
+<span class="nc" id="L315">                cancelButton.setEnabled(true);</span>
+<span class="nc" id="L316">                searchThread = new SearchThread(isRecursiveSearched.isSelected());</span>
+<span class="nc" id="L317">                searchThread.start();</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">            } else if (source.equals(cancelButton)) {</span>
+<span class="nc" id="L319">                searchButton.setEnabled(true);</span>
+<span class="nc" id="L320">                cancelButton.setEnabled(false);</span>
+<span class="nc bnc" id="L321" title="All 2 branches missed.">                if (searchThread.isAlive()) {</span>
+<span class="nc" id="L322">                    searchThread.interrupt();</span>
+<span class="nc" id="L323">                    searchThread.executorService.shutdownNow();</span>
+                }
+            }
+
+<span class="nc" id="L327">        }</span>
+    }
+
+    private void showResult() {
+<span class="nc" id="L331">        SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L332">            int index = 0;</span>
+<span class="nc bnc" id="L333" title="All 2 branches missed.">            for (File file : resultFileList) {</span>
+<span class="nc" id="L334">                index++;</span>
+<span class="nc" id="L335">                Vector&lt;Object&gt; rowData = getRowVector(index, file);</span>
+<span class="nc" id="L336">                resultTableModel.addRow(rowData);</span>
+<span class="nc" id="L337">            }</span>
+<span class="nc" id="L338">            tabbedPane.setSelectedIndex(1);</span>
+<span class="nc" id="L339">        });</span>
+<span class="nc" id="L340">    }</span>
+
+    private Vector&lt;Object&gt; getRowVector(int index, File file) {
+<span class="nc" id="L343">        Vector&lt;Object&gt; rowData = new Vector&lt;&gt;();</span>
+<span class="nc" id="L344">        rowData.add(index);</span>
+<span class="nc" id="L345">        rowData.add(file.getParent());</span>
+<span class="nc" id="L346">        rowData.add(file.getName());</span>
+<span class="nc" id="L347">        rowData.add(FileUtils.sizeOfInHumanFormat(file));</span>
+<span class="nc" id="L348">        rowData.add(DateUtils.millisecondToHumanFormat(file.lastModified()));</span>
+<span class="nc" id="L349">        return rowData;</span>
+    }
+
+    class SearchThread extends Thread {
+        public final ExecutorService executorService;
+<span class="nc" id="L354">        private final AtomicInteger processedFiles = new AtomicInteger(0);</span>
+<span class="nc" id="L355">        private int totalFiles = 0;</span>
+        private final boolean isRecursiveSearched;
+
+<span class="nc" id="L358">        public SearchThread(boolean isRecursiveSearched) {</span>
+<span class="nc" id="L359">            super();</span>
+<span class="nc" id="L360">            this.isRecursiveSearched = isRecursiveSearched;</span>
+<span class="nc" id="L361">            this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());</span>
+
+<span class="nc" id="L363">            SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L364">                progressBar.setValue(0);</span>
+<span class="nc" id="L365">                progressBar.setString(&quot;Starting search...&quot;);</span>
+<span class="nc" id="L366">            });</span>
+<span class="nc" id="L367">        }</span>
+
+        @Override
+        public void run() {
+            try {
+<span class="nc" id="L372">                resultFileList.clear();</span>
+<span class="nc" id="L373">                SwingUtilities.invokeLater(() -&gt; resultTableModel.setRowCount(0));</span>
+
+<span class="nc" id="L375">                List&lt;File&gt; fileList = fileListPanel.getFileList();</span>
+<span class="nc" id="L376">                Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L377">                String[] extensions = new String[]{&quot;pdf&quot;, &quot;PDF&quot;};</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">                for (File file : fileList) {</span>
+<span class="nc" id="L379">                    fileSet.addAll(FileUtils.listFiles(file, extensions, isRecursiveSearched));</span>
+<span class="nc" id="L380">                }</span>
+
+<span class="nc" id="L382">                List&lt;Future&lt;?&gt;&gt; futures = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L383">                totalFiles = fileSet.size();</span>
+<span class="nc" id="L384">                updateProgress();</span>
+
+<span class="nc bnc" id="L386" title="All 2 branches missed.">                for (File file : fileSet) {</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">                    if (currentThread().isInterrupted()) {</span>
+<span class="nc" id="L388">                        return;</span>
+                    }
+<span class="nc" id="L390">                    futures.add(executorService.submit(() -&gt; {</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">                        if (currentThread().isInterrupted()) {</span>
+<span class="nc" id="L392">                            return null;</span>
+                        }
+<span class="nc" id="L394">                        processFile(file);</span>
+<span class="nc" id="L395">                        incrementProcessedFiles();</span>
+<span class="nc" id="L396">                        return null;</span>
+                    }));
+<span class="nc" id="L398">                }</span>
+
+                // Wait for all tasks to complete
+<span class="nc bnc" id="L401" title="All 2 branches missed.">                for (Future&lt;?&gt; future : futures) {</span>
+                    try {
+<span class="nc" id="L403">                        future.get();</span>
+<span class="nc" id="L404">                    } catch (InterruptedException e) {</span>
+<span class="nc" id="L405">                        logger.error(&quot;Search interrupted&quot;, e);</span>
+<span class="nc" id="L406">                        currentThread().interrupt(); // Restore interrupted status</span>
+<span class="nc" id="L407">                        return;</span>
+<span class="nc" id="L408">                    }</span>
+<span class="nc" id="L409">                }</span>
+
+<span class="nc" id="L411">                showResult();</span>
+<span class="nc" id="L412">            } catch (Exception e) {</span>
+<span class="nc" id="L413">                logger.error(&quot;Search failed&quot;, e);</span>
+<span class="nc" id="L414">                SwingUtilities.invokeLater(() -&gt; progressBar.setString(&quot;Search failed&quot;));</span>
+            } finally {
+<span class="nc" id="L416">                executorService.shutdown();</span>
+<span class="nc" id="L417">                SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L418">                    searchButton.setEnabled(true);</span>
+<span class="nc" id="L419">                    cancelButton.setEnabled(false);</span>
+<span class="nc" id="L420">                });</span>
+            }
+<span class="nc" id="L422">        }</span>
+
+        private void incrementProcessedFiles() {
+<span class="nc" id="L425">            processedFiles.incrementAndGet();</span>
+<span class="nc" id="L426">            updateProgress();</span>
+<span class="nc" id="L427">        }</span>
+
+        private void updateProgress() {
+<span class="nc bnc" id="L430" title="All 2 branches missed.">            if (totalFiles &gt; 0) {</span>
+<span class="nc" id="L431">                SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L432">                    int processed = processedFiles.get();</span>
+<span class="nc" id="L433">                    int percentage = (int) (processed * 100.0 / totalFiles);</span>
+<span class="nc" id="L434">                    progressBar.setValue(percentage);</span>
+<span class="nc" id="L435">                    progressBar.setString(String.format(&quot;Processing: %d/%d files (%d%%)&quot;, processed, totalFiles, percentage));</span>
+<span class="nc" id="L436">                });</span>
+            }
+<span class="nc" id="L438">        }</span>
+    }
+
+<span class="nc" id="L441">    class RadioButtonItemListener implements ItemListener {</span>
+        @Override
+        public void itemStateChanged(ItemEvent e) {
+<span class="nc" id="L444">            thresholdSpinner.setEnabled(scannedRadioButton.isSelected());</span>
+<span class="nc" id="L445">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

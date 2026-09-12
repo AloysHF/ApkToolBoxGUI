@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CategoryFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category</a> &gt; <span class="el_source">CategoryFactory.java</span></div><h1>CategoryFactory.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce.BruteForceProxy;
+import edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.multithread.DictionaryMultiThreadProxy;
+import edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.singlethread.DictionarySingleThreadProxy;
+
+/**
+ * CategoryFactory is a factory class to create different category instance.
+ */
+public class CategoryFactory {
+    private CategoryFactory() {
+    }
+
+    public static ICategory getCategoryInstance(CategoryType categoryType) {
+<span class="nc bnc" id="L15" title="All 3 branches missed.">        return switch (categoryType) {</span>
+<span class="nc" id="L16">            case DICTIONARY_SINGLE_THREAD -&gt; DictionarySingleThreadProxy.getInstance();</span>
+<span class="nc" id="L17">            case DICTIONARY_MULTI_THREAD -&gt; DictionaryMultiThreadProxy.getInstance();</span>
+<span class="nc" id="L18">            default -&gt; BruteForceProxy.getInstance();</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

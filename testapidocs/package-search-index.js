@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"edu.jiangxin.apktoobox.swing.treetable"},{"l":"edu.jiangxin.apktoolbox.android.dumpsys.tojson"},{"l":"edu.jiangxin.apktoolbox.pdf"},{"l":"edu.jiangxin.apktoolbox.utils"},{"l":"edu.jiangxin.common"},{"l":"edu.jiangxin.encode"}];updateSearchResults();

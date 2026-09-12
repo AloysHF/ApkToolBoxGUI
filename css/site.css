@@ -1,0 +1,60 @@
+.color-highlight {
+    color: #225E9B;
+}
+
+body {
+    background-image:url(../images/bg.png);
+}
+
+body[class*="page-themes-bootswatch"] {
+    background-image: none;
+}
+
+body[class*="page-themes-bootswatch"] .color-highlight {
+    color: inherit;
+}
+
+.thumbnail-row {
+    margin-top: 10px;
+}
+
+/*h1, */h2 {
+            margin-top: 30px;
+        }
+
+h3, h4, h5, h6 {
+    margin-top: 20px;
+}
+
+.carousel-caption a {
+    color: white;
+}
+
+/* A bit of workaround for links being not clickable due to :before element in headings */
+.project-reflow-parent.page-index h2[id]:before {
+    height: 30px;
+    margin-top: -30px;
+}
+
+.project-reflow-parent.page-index .sidebar {
+    margin-top: 10px;
+}
+
+.project-reflow-parent.page-index .sidebar h3 {
+    margin-top: 10px;
+}
+
+
+@media (min-width: 980px) {
+    .page-themes-bootswatch-readable .navbar.affix {
+        top: 60px;
+    }
+
+    .page-themes-bootswatch-cerulean .navbar.affix {
+        top: 50px;
+    }
+
+    .page-themes-bootswatch-spruce .navbar.affix {
+        top: 55px;
+    }
+}

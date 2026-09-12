@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChangeMenuPreparePluginController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.plugin</a> &gt; <span class="el_source">ChangeMenuPreparePluginController.java</span></div><h1>ChangeMenuPreparePluginController.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.plugin;
+
+import edu.jiangxin.apktoolbox.swing.extend.listener.IPreChangeMenuCallBack;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+
+/**
+ * This class is used to prepare plugin for change menu.
+ * &lt;p&gt;
+ * All operations in this class will be executed in main thread.
+ */
+public class ChangeMenuPreparePluginController implements IPreparePluginCallback {
+<span class="nc" id="L15">    private static final Logger logger = LogManager.getLogger(ChangeMenuPreparePluginController.class.getSimpleName());</span>
+    private final String pluginFilename;
+    private final boolean isPluginNeedUnzip;
+    private final boolean isPluginNeedUnzipToSeparateDir;
+
+    private final IPreChangeMenuCallBack callBack;
+
+    public static final int RESULT_CHECK_SUCCESS = 0;
+
+    public static final int RESULT_CHECK_ZIP_EXIST = 1;
+
+    public static final int RESULT_CHECK_ZIP_NOT_EXIST = 2;
+
+    public static final int RESULT_DOWNLOAD_SUCCESS = 0;
+
+    public static final int RESULT_DOWNLOAD_FAILED = -1;
+
+    public static final int RESULT_DOWNLOAD_CANCELLED = 1;
+
+    public static final int RESULT_UNZIP_SUCCESS = 0;
+
+    public static final int RESULT_UNZIP_FAILED = -1;
+
+    public static final int RESULT_UNZIP_CANCELLED = 1;
+
+<span class="nc" id="L40">    public ChangeMenuPreparePluginController(String pluginFilename, boolean isPluginNeedUnzip, boolean isPluginNeedUnzipToSeparateDir, IPreChangeMenuCallBack callBack) {</span>
+<span class="nc" id="L41">        this.pluginFilename = pluginFilename;</span>
+<span class="nc" id="L42">        this.isPluginNeedUnzip = isPluginNeedUnzip;</span>
+<span class="nc" id="L43">        this.isPluginNeedUnzipToSeparateDir = isPluginNeedUnzipToSeparateDir;</span>
+<span class="nc" id="L44">        this.callBack = callBack;</span>
+<span class="nc" id="L45">    }</span>
+
+    @Override
+    public void onPrepareStarted() {
+<span class="nc" id="L49">        PluginUtils.checkPlugin(pluginFilename, isPluginNeedUnzip, this);</span>
+<span class="nc" id="L50">    }</span>
+
+    @Override
+    public void onCheckFinished(int result) {
+<span class="nc bnc" id="L54" title="All 4 branches missed.">        switch (result) {</span>
+<span class="nc" id="L55">            case RESULT_CHECK_SUCCESS -&gt; onPrepareFinished();</span>
+<span class="nc" id="L56">            case RESULT_CHECK_ZIP_EXIST -&gt; PluginUtils.unzipPlugin(pluginFilename, isPluginNeedUnzipToSeparateDir, this);</span>
+            case RESULT_CHECK_ZIP_NOT_EXIST -&gt; {
+<span class="nc" id="L58">                int userChoose = JOptionPane.showConfirmDialog(null, &quot;未找到对应插件，是否下载&quot;, &quot;提示&quot;, JOptionPane.YES_NO_OPTION);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">                if (userChoose == JOptionPane.YES_OPTION) {</span>
+<span class="nc" id="L60">                    PluginUtils.downloadPlugin(pluginFilename, this);</span>
+                }
+<span class="nc" id="L62">            }</span>
+<span class="nc" id="L63">            default -&gt; logger.info(&quot;onCheckFinished: {}&quot;, result);</span>
+        }
+<span class="nc" id="L65">    }</span>
+
+    @Override
+    public void onDownloadFinished(int result) {
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        switch (result) {</span>
+            case RESULT_DOWNLOAD_SUCCESS:
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                if (isPluginNeedUnzip) {</span>
+<span class="nc" id="L72">                    PluginUtils.unzipPlugin(pluginFilename, isPluginNeedUnzipToSeparateDir, this);</span>
+                } else {
+<span class="nc" id="L74">                    onPrepareFinished();</span>
+                }
+<span class="nc" id="L76">                break;</span>
+            case RESULT_DOWNLOAD_FAILED:
+<span class="nc" id="L78">                JOptionPane.showMessageDialog(null, &quot;下载失败，请检查网络&quot;, &quot;错误&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L79">                break;</span>
+            case RESULT_DOWNLOAD_CANCELLED:
+<span class="nc" id="L81">                JOptionPane.showMessageDialog(null, &quot;下载取消&quot;, &quot;提示&quot;, JOptionPane.INFORMATION_MESSAGE);</span>
+<span class="nc" id="L82">                break;</span>
+            default:
+<span class="nc" id="L84">                logger.info(&quot;onDownloadFinished: {}&quot;, result);</span>
+                break;
+        }
+<span class="nc" id="L87">    }</span>
+
+    @Override
+    public void onUnzipFinished(int result) {
+<span class="nc bnc" id="L91" title="All 4 branches missed.">        switch (result) {</span>
+<span class="nc" id="L92">            case RESULT_UNZIP_SUCCESS -&gt; onPrepareFinished();</span>
+<span class="nc" id="L93">            case RESULT_UNZIP_FAILED -&gt; JOptionPane.showMessageDialog(null, &quot;解压失败&quot;, &quot;错误&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L94">            case RESULT_UNZIP_CANCELLED -&gt; JOptionPane.showMessageDialog(null, &quot;解压取消&quot;, &quot;提示&quot;, JOptionPane.INFORMATION_MESSAGE);</span>
+<span class="nc" id="L95">            default -&gt; logger.info(&quot;onUnzipFinished: {}&quot;, result);</span>
+        }
+<span class="nc" id="L97">    }</span>
+
+    @Override
+    public void onPrepareFinished() {
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (callBack != null) {</span>
+<span class="nc" id="L102">            callBack.onPreChangeMenuFinished();</span>
+        }
+<span class="nc" id="L104">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

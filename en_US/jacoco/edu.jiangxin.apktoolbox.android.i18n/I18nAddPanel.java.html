@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>I18nAddPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.i18n</a> &gt; <span class="el_source">I18nAddPanel.java</span></div><h1>I18nAddPanel.java</h1><pre class="source lang-java linenums">/**
+ * 
+ */
+package edu.jiangxin.apktoolbox.android.i18n;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.SAXBuilderHelper;
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class I18nAddPanel extends EasyPanel {
+    
+    @Serial
+    private static final long serialVersionUID = 1L;
+    
+    private static final String CHARSET = &quot;UTF-8&quot;;
+
+    private static final boolean REMOVE_LAST_LF_OPEN = true;
+
+<span class="nc" id="L43">    private static final Map&lt;String, String&gt; replace = new HashedMap&lt;&gt;();</span>
+
+    private JTextField srcTextField;
+
+    private JTextField targetTextField;
+
+    private JTextField itemTextField;
+
+<span class="nc" id="L51">    private int operationCount = 0;</span>
+
+    static {
+<span class="nc" id="L54">        replace.put(&quot;&amp;quot;&quot;, &quot;jiangxin001&quot;);</span>
+<span class="nc" id="L55">        replace.put(&quot;&amp;#160;&quot;, &quot;jiangxin002&quot;);</span>
+<span class="nc" id="L56">    }</span>
+    
+    public I18nAddPanel() throws HeadlessException {
+<span class="nc" id="L59">        super();</span>
+<span class="nc" id="L60">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L64">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L65">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L67">        createSourcePanel();</span>
+<span class="nc" id="L68">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L69">        createTargetPanel();</span>
+<span class="nc" id="L70">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L71">        createItemPanel();</span>
+<span class="nc" id="L72">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L73">        createOperationPanel();</span>
+<span class="nc" id="L74">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L77">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L78">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L79">        add(operationPanel);</span>
+
+<span class="nc" id="L81">        JButton addButton = new JButton(bundle.getString(&quot;android.i18n.add.title&quot;));</span>
+<span class="nc" id="L82">        addButton.addActionListener(e -&gt; {</span>
+<span class="nc" id="L83">            String srcPath = checkAndGetDirContent(srcTextField, &quot;android.i18n.add.src.dir&quot;, &quot;Source directory is invalid&quot;);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">            if (srcPath == null) {</span>
+<span class="nc" id="L85">                return;</span>
+            }
+
+<span class="nc" id="L88">            String targetPath = checkAndGetDirContent(targetTextField, &quot;android.i18n.add.target.dir&quot;, &quot;Target directory is invalid&quot;);</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">            if (targetPath == null) {</span>
+<span class="nc" id="L90">                return;</span>
+            }
+
+<span class="nc" id="L93">            String itemStr = checkAndGetStringContent(itemTextField, &quot;android.i18n.add.items&quot;, &quot;Items is empty&quot;);</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            if (itemStr == null) {</span>
+<span class="nc" id="L95">                return;</span>
+            }
+
+<span class="nc" id="L98">            List&lt;String&gt; items = new ArrayList&lt;&gt;(Arrays.asList(itemStr.split(&quot;;&quot;)));</span>
+<span class="nc" id="L99">            operationCount = 0;</span>
+
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (String item : items) {</span>
+<span class="nc" id="L102">                int ret = innerProcessor(srcPath, targetPath, item);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">                if (ret != 0) {</span>
+<span class="nc" id="L104">                    Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L105">                    JOptionPane.showMessageDialog(this, &quot;Failed, please see the log&quot;, &quot;ERROR&quot;,</span>
+                            JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L107">                    return;</span>
+                }
+<span class="nc" id="L109">            }</span>
+<span class="nc" id="L110">            String message = String.format(&quot;Success: items: %d&quot;, operationCount);</span>
+<span class="nc" id="L111">            JOptionPane.showMessageDialog(this, message, &quot;INFO&quot;, JOptionPane.INFORMATION_MESSAGE);</span>
+<span class="nc" id="L112">        });</span>
+
+<span class="nc" id="L114">        operationPanel.add(addButton);</span>
+<span class="nc" id="L115">    }</span>
+
+    private void createItemPanel() {
+<span class="nc" id="L118">        JPanel itemPanel = new JPanel();</span>
+<span class="nc" id="L119">        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L120">        add(itemPanel);</span>
+        
+<span class="nc" id="L122">        itemTextField = new JTextField();</span>
+<span class="nc" id="L123">        itemTextField.setText(conf.getString(&quot;android.i18n.add.items&quot;));</span>
+
+<span class="nc" id="L125">        JLabel itemLabel = new JLabel(&quot;Items&quot;);</span>
+
+<span class="nc" id="L127">        itemPanel.add(itemTextField);</span>
+<span class="nc" id="L128">        itemPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L129">        itemPanel.add(itemLabel);</span>
+<span class="nc" id="L130">    }</span>
+
+    private void createTargetPanel() {
+<span class="nc" id="L133">        JPanel targetPanel = new JPanel();</span>
+<span class="nc" id="L134">        targetPanel.setLayout(new BoxLayout(targetPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L135">        add(targetPanel);</span>
+        
+<span class="nc" id="L137">        targetTextField = new JTextField();</span>
+<span class="nc" id="L138">        targetTextField.setText(conf.getString(&quot;android.i18n.add.target.dir&quot;));</span>
+
+<span class="nc" id="L140">        JButton targetButton = new JButton(&quot;Save Directory&quot;);</span>
+<span class="nc" id="L141">        targetButton.addActionListener(new SelectDirectoryListener(&quot;save to&quot;, targetTextField));</span>
+
+<span class="nc" id="L143">        targetPanel.add(targetTextField);</span>
+<span class="nc" id="L144">        targetPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L145">        targetPanel.add(targetButton);</span>
+<span class="nc" id="L146">    }</span>
+
+    private void createSourcePanel() {
+<span class="nc" id="L149">        JPanel sourcePanel = new JPanel();</span>
+<span class="nc" id="L150">        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L151">        add(sourcePanel);</span>
+        
+<span class="nc" id="L153">        srcTextField = new JTextField();</span>
+<span class="nc" id="L154">        srcTextField.setText(conf.getString(&quot;android.i18n.add.src.dir&quot;));</span>
+
+<span class="nc" id="L156">        JButton srcButton = new JButton(&quot;Source Directory&quot;);</span>
+<span class="nc" id="L157">        srcButton.addActionListener(new SelectDirectoryListener(&quot;select a directory&quot;, srcTextField));</span>
+
+<span class="nc" id="L159">        sourcePanel.add(srcTextField);</span>
+<span class="nc" id="L160">        sourcePanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L161">        sourcePanel.add(srcButton);</span>
+<span class="nc" id="L162">    }</span>
+
+    private int innerProcessor(String sourceBaseStr, String targetBaseStr, String itemName) {
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        if (StringUtils.isAnyEmpty(sourceBaseStr, targetBaseStr, itemName)) {</span>
+<span class="nc" id="L166">            logger.error(&quot;params are invalid: sourceBaseStr: {}, targetBaseStr: {}, itemName: {}&quot;, sourceBaseStr, targetBaseStr, itemName);</span>
+<span class="nc" id="L167">            return -1;</span>
+        }
+<span class="nc" id="L169">        File sourceBaseFile = new File(sourceBaseStr);</span>
+<span class="nc" id="L170">        File targetBaseFile = new File(targetBaseStr);</span>
+<span class="nc" id="L171">        int count = 0;</span>
+
+<span class="nc" id="L173">        File[] sourceParentFiles = sourceBaseFile.listFiles(new FileFilter() {</span>
+            @Override
+            public boolean accept(File pathname) {
+<span class="nc" id="L176">                return pathname.getName().startsWith(&quot;values&quot;);</span>
+            }
+        });
+<span class="nc bnc" id="L179" title="All 2 branches missed.">        if (sourceParentFiles == null) {</span>
+<span class="nc" id="L180">            logger.error(&quot;sourceParentFiles is null&quot;);</span>
+<span class="nc" id="L181">            return -1;</span>
+        }
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        for (File sourceParentFile : sourceParentFiles) {</span>
+<span class="nc" id="L184">            File sourceFile = new File(sourceParentFile, &quot;strings.xml&quot;);</span>
+
+<span class="nc" id="L186">            Element sourceElement = getSourceElement(sourceFile, itemName);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">            if (sourceElement == null) {</span>
+<span class="nc" id="L188">                logger.warn(&quot;sourceElement is null: {}&quot;, sourceFile);</span>
+<span class="nc" id="L189">                continue;</span>
+            }
+
+<span class="nc" id="L192">            File targetFile = new File(new File(targetBaseFile, sourceParentFile.getName()), &quot;strings.xml&quot;);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">            if (!targetFile.exists()) {</span>
+<span class="nc" id="L194">                logger.warn(&quot;targetFile does not exist: {}&quot;, sourceFile);</span>
+<span class="nc" id="L195">                continue;</span>
+            }
+            try {
+<span class="nc" id="L198">                preProcess(targetFile);</span>
+<span class="nc" id="L199">            } catch (IOException e) {</span>
+<span class="nc" id="L200">                logger.error(&quot;preProcess failed.&quot;, e);</span>
+<span class="nc" id="L201">                return -1;</span>
+<span class="nc" id="L202">            }</span>
+<span class="nc" id="L203">            boolean res = setTargetElement(targetFile, sourceElement, itemName);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">            if (!res) {</span>
+<span class="nc" id="L205">                logger.error(&quot;setTargetElement failed.&quot;);</span>
+<span class="nc" id="L206">                return -1;</span>
+            }
+            try {
+<span class="nc" id="L209">                postProcess(targetFile);</span>
+<span class="nc" id="L210">            } catch (IOException e) {</span>
+<span class="nc" id="L211">                logger.error(&quot;postProcess failed.&quot;, e);</span>
+<span class="nc" id="L212">                return -1;</span>
+<span class="nc" id="L213">            }</span>
+<span class="nc" id="L214">            logger.info(&quot;count: {}, in path: {}, out path: {}&quot;, ++count, sourceFile, targetFile);</span>
+        }
+<span class="nc" id="L216">        operationCount += count;</span>
+<span class="nc" id="L217">        logger.info(&quot;finish one cycle&quot;);</span>
+<span class="nc" id="L218">        return 0;</span>
+    }
+
+    private Element getSourceElement(File sourceFile, String itemName) {
+<span class="nc bnc" id="L222" title="All 2 branches missed.">        if (!sourceFile.exists()) {</span>
+<span class="nc" id="L223">            logger.warn(&quot;sourceFile does not exist: {}&quot;, sourceFile);</span>
+<span class="nc" id="L224">            return null;</span>
+        }
+<span class="nc" id="L226">        SAXBuilder builder = new SAXBuilder();</span>
+<span class="nc" id="L227">        SAXBuilderHelper.setSecurityFeatures(builder);</span>
+<span class="nc" id="L228">        Document sourceDoc = null;</span>
+<span class="nc" id="L229">        try (InputStream in = new FileInputStream(sourceFile)) {</span>
+<span class="nc" id="L230">            sourceDoc = builder.build(in);</span>
+<span class="nc" id="L231">            logger.info(&quot;build source document: {}&quot;, sourceFile);</span>
+<span class="nc" id="L232">        } catch (JDOMException | IOException e) {</span>
+<span class="nc" id="L233">            logger.error(&quot;build source document failed: {}&quot;, sourceFile);</span>
+<span class="nc" id="L234">            return null;</span>
+<span class="nc" id="L235">        }</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">        if (sourceDoc == null) {</span>
+<span class="nc" id="L237">            logger.error(&quot;sourceDoc is null&quot;);</span>
+<span class="nc" id="L238">            return null;</span>
+        }
+<span class="nc" id="L240">        Element sourceElement = null;</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">        for (Element sourceChild : sourceDoc.getRootElement().getChildren()) {</span>
+<span class="nc" id="L242">            String sourceValue = sourceChild.getAttributeValue(&quot;name&quot;);</span>
+<span class="nc bnc" id="L243" title="All 4 branches missed.">            if (sourceValue != null &amp;&amp; sourceValue.equals(itemName)) {</span>
+<span class="nc" id="L244">                sourceElement = sourceChild.clone();</span>
+<span class="nc" id="L245">                break;</span>
+            }
+<span class="nc" id="L247">        }</span>
+<span class="nc" id="L248">        return sourceElement;</span>
+    }
+
+    private boolean setTargetElement(File targetFile, Element sourceElement, String itemName) {
+<span class="nc" id="L252">        SAXBuilder builder = new SAXBuilder();</span>
+<span class="nc" id="L253">        SAXBuilderHelper.setSecurityFeatures(builder);</span>
+        Document targetDoc;
+        try {
+<span class="nc" id="L256">            targetDoc = builder.build(targetFile);</span>
+<span class="nc" id="L257">            logger.info(&quot;build target document: {}&quot;, targetFile);</span>
+<span class="nc" id="L258">        } catch (JDOMException | IOException e) {</span>
+<span class="nc" id="L259">            logger.error(&quot;build target document failed: {}&quot;, targetFile);</span>
+<span class="nc" id="L260">            return false;</span>
+<span class="nc" id="L261">        }</span>
+<span class="nc" id="L262">        Element targetRoot = targetDoc.getRootElement();</span>
+<span class="nc" id="L263">        boolean isFinished = false;</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">        for (Element targetChild : targetRoot.getChildren()) {</span>
+<span class="nc" id="L265">            String targetValue = targetChild.getAttributeValue(&quot;name&quot;);</span>
+<span class="nc bnc" id="L266" title="All 4 branches missed.">            if (targetValue != null &amp;&amp; targetValue.equals(itemName)) {</span>
+<span class="nc" id="L267">                targetChild.setText(sourceElement.getText());</span>
+<span class="nc" id="L268">                isFinished = true;</span>
+<span class="nc" id="L269">                break;</span>
+            }
+<span class="nc" id="L271">        }</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (!isFinished) {</span>
+<span class="nc" id="L273">            targetRoot.addContent(&quot;    &quot;);</span>
+<span class="nc" id="L274">            targetRoot.addContent(sourceElement);</span>
+<span class="nc" id="L275">            targetRoot.addContent(&quot;\n&quot;);</span>
+        }
+<span class="nc" id="L277">        XMLOutputter out = new XMLOutputter();</span>
+<span class="nc" id="L278">        Format format = Format.getRawFormat();</span>
+<span class="nc" id="L279">        format.setEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L280">        format.setLineSeparator(&quot;\n&quot;);</span>
+<span class="nc" id="L281">        out.setFormat(format);</span>
+<span class="nc" id="L282">        OutputStream os = null;</span>
+        try {
+<span class="nc" id="L284">            os = new FileOutputStream(targetFile);</span>
+<span class="nc" id="L285">            out.output(targetDoc, os);</span>
+<span class="nc" id="L286">        } catch (IOException e) {</span>
+<span class="nc" id="L287">            logger.error(&quot;output fail&quot;, e);</span>
+<span class="nc" id="L288">            return false;</span>
+        } finally {
+<span class="nc bnc" id="L290" title="All 2 branches missed.">            if (os != null) {</span>
+                try {
+<span class="nc" id="L292">                    os.close();</span>
+<span class="nc" id="L293">                } catch (IOException e) {</span>
+<span class="nc" id="L294">                    logger.error(&quot;close output stream exception&quot;, e);</span>
+<span class="nc" id="L295">                }</span>
+            }
+        }
+<span class="nc" id="L298">        return true;</span>
+    }
+
+    private static void preProcess(File file) throws IOException {
+<span class="nc" id="L302">        String content = FileUtils.readFileToString(file, CHARSET);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : replace.entrySet()) {</span>
+<span class="nc" id="L304">            content = content.replaceAll(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L305">        }</span>
+<span class="nc" id="L306">        FileUtils.writeStringToFile(file, content, CHARSET);</span>
+<span class="nc" id="L307">    }</span>
+
+    private static void postProcess(File file) throws IOException {
+<span class="nc" id="L310">        String content = FileUtils.readFileToString(file, CHARSET);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : replace.entrySet()) {</span>
+<span class="nc" id="L312">            content = content.replaceAll(entry.getValue(), entry.getKey());</span>
+<span class="nc" id="L313">        }</span>
+        if (REMOVE_LAST_LF_OPEN) {
+<span class="nc" id="L315">            content = Strings.CS.removeEnd(content, &quot;\n&quot;);</span>
+        }
+<span class="nc" id="L317">        FileUtils.writeStringToFile(file, content, CHARSET);</span>
+<span class="nc" id="L318">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

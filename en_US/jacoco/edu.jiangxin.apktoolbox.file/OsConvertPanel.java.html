@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OsConvertPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file</a> &gt; <span class="el_source">OsConvertPanel.java</span></div><h1>OsConvertPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file;
+
+import edu.jiangxin.apktoolbox.file.core.OsPatternConvert;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class OsConvertPanel extends EasyPanel {
+    private static final long serialVersionUID = 1L;
+
+    private FileListPanel srcPanel;
+
+    private JPanel optionPanel;
+
+    private JTextField suffixTextField;
+
+    private JCheckBox recursiveCheckBox;
+
+    private JComboBox&lt;String&gt; typeComboBox;
+
+    private JPanel operationPanel;
+
+    public OsConvertPanel() throws HeadlessException {
+<span class="nc" id="L41">        super();</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L46">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L47">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L49">        createSrcPanel();</span>
+<span class="nc" id="L50">        add(srcPanel);</span>
+<span class="nc" id="L51">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L53">        createOptionPanel();</span>
+<span class="nc" id="L54">        add(optionPanel);</span>
+<span class="nc" id="L55">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L57">        createOperationPanel();</span>
+<span class="nc" id="L58">        add(operationPanel);</span>
+<span class="nc" id="L59">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L62">        operationPanel = new JPanel();</span>
+<span class="nc" id="L63">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L65">        JButton convertButton = new JButton(&quot;Convert&quot;);</span>
+<span class="nc" id="L66">        convertButton.addActionListener(new ConvertButtonActionListener());</span>
+
+<span class="nc" id="L68">        operationPanel.add(convertButton);</span>
+<span class="nc" id="L69">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L72">        optionPanel = new JPanel();</span>
+<span class="nc" id="L73">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L75">        JLabel suffixLabel = new JLabel(&quot;Suffix:&quot;);</span>
+<span class="nc" id="L76">        suffixTextField = new JTextField();</span>
+<span class="nc" id="L77">        suffixTextField.setToolTipText(&quot;an array of extensions, ex. {\&quot;java\&quot;,\&quot;xml\&quot;}. If this parameter is empty, all files are returned.&quot;);</span>
+<span class="nc" id="L78">        suffixTextField.setText(conf.getString(&quot;osconvert.suffix&quot;));</span>
+<span class="nc" id="L79">        optionPanel.add(suffixLabel);</span>
+<span class="nc" id="L80">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L81">        optionPanel.add(suffixTextField);</span>
+<span class="nc" id="L82">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L84">        recursiveCheckBox = new JCheckBox(&quot;Recursive&quot;);</span>
+<span class="nc" id="L85">        recursiveCheckBox.setSelected(true);</span>
+<span class="nc" id="L86">        optionPanel.add(recursiveCheckBox);</span>
+<span class="nc" id="L87">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L89">        JLabel typeLabel = new JLabel(&quot;Type:&quot;);</span>
+<span class="nc" id="L90">        typeComboBox = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L91">        typeComboBox.addItem(&quot;Convert to UNIX(LF Only)&quot;);</span>
+<span class="nc" id="L92">        typeComboBox.addItem(&quot;Convert to Macintosh(CR Only)&quot;);</span>
+<span class="nc" id="L93">        typeComboBox.addItem(&quot;Convert to Windows(CR+LF)&quot;);</span>
+
+<span class="nc" id="L95">        optionPanel.add(typeLabel);</span>
+<span class="nc" id="L96">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L97">        optionPanel.add(typeComboBox);</span>
+<span class="nc" id="L98">    }</span>
+
+    private void createSrcPanel() {
+<span class="nc" id="L101">        srcPanel = new FileListPanel();</span>
+<span class="nc" id="L102">        srcPanel.initialize();</span>
+<span class="nc" id="L103">    }</span>
+
+<span class="nc" id="L105">    private final class ConvertButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L108">            conf.setProperty(&quot;osconvert.suffix&quot;, suffixTextField.getText());</span>
+<span class="nc" id="L109">            List&lt;File&gt; fileList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            for (File file : srcPanel.getFileList()) {</span>
+<span class="nc" id="L111">                String[] extensions = null;</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">                if (StringUtils.isNotEmpty(suffixTextField.getText())) {</span>
+<span class="nc" id="L113">                    extensions = suffixTextField.getText().split(&quot;,&quot;);</span>
+                }
+<span class="nc" id="L115">                fileList.addAll(FileUtils.listFiles(file, extensions, recursiveCheckBox.isSelected()));</span>
+<span class="nc" id="L116">            }</span>
+<span class="nc" id="L117">            Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;(fileList);</span>
+<span class="nc" id="L118">            fileList.clear();</span>
+<span class="nc" id="L119">            fileList.addAll(fileSet);</span>
+<span class="nc" id="L120">            OsPatternConvert.osConvertFiles(fileList, convertShowNameToPattern(typeComboBox.getSelectedItem().toString()));</span>
+<span class="nc" id="L121">            logger.info(&quot;convert finish&quot;);</span>
+<span class="nc" id="L122">        }</span>
+    }
+
+    private String convertShowNameToPattern(String showName) {
+<span class="nc bnc" id="L126" title="All 4 branches missed.">        switch (showName) {</span>
+            case &quot;Convert to UNIX(LF Only)&quot;:
+<span class="nc" id="L128">                return &quot;tounix&quot;;</span>
+            case &quot;Convert to Macintosh(CR Only)&quot;:
+<span class="nc" id="L130">                return &quot;tomac&quot;;</span>
+            case &quot;Convert to Windows(CR+LF)&quot;:
+<span class="nc" id="L132">                return &quot;towindows&quot;;</span>
+        }
+<span class="nc" id="L134">        return &quot;towindows&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

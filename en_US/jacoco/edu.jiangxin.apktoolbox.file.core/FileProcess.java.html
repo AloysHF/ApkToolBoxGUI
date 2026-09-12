@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileProcess.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.core</a> &gt; <span class="el_source">FileProcess.java</span></div><h1>FileProcess.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.core;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/**
+ * 文件或文件夹的简单处理
+ * 
+ * @author jiangxin
+ * @author 2018-09-09
+ */
+<span class="nc" id="L19">public class FileProcess {</span>
+
+<span class="nc" id="L21">    private static final Logger logger = LogManager.getLogger(FileProcess.class.getSimpleName());</span>
+    /**
+     * The size of the buffer
+     */
+    final static int BUFFERSIZE = 1024 * 5;
+
+    /**
+     * 复制文件
+     * 
+     * @param srcFileString
+     * @param desFileString
+     */
+    public static void copyFile(String srcFileString, String desFileString) {
+<span class="nc" id="L34">        File srcFileFile = new File(srcFileString);</span>
+<span class="nc" id="L35">        File desFileFile = new File(desFileString);</span>
+
+<span class="nc" id="L37">        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(srcFileFile));</span>
+<span class="nc" id="L38">                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(desFileFile))) {</span>
+
+            // 尚未进行覆盖判断 bad
+<span class="nc" id="L41">            byte[] buffer = new byte[BUFFERSIZE];</span>
+            int len;
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            while ((len = in.read(buffer)) != -1) {</span>
+<span class="nc" id="L44">                out.write(buffer, 0, len);</span>
+            }
+<span class="nc" id="L46">            out.flush();</span>
+<span class="nc" id="L47">        } catch (IOException e) {</span>
+<span class="nc" id="L48">            logger.error(&quot;copy file exception&quot;, e);</span>
+<span class="nc" id="L49">        }</span>
+<span class="nc" id="L50">        logger.info(&quot;Success to copy {} to {}&quot;, srcFileString, desFileString);</span>
+<span class="nc" id="L51">    }</span>
+
+    /**
+     * 复制文件夹
+     * 
+     * @param srcDirString
+     * @param desDirString
+     * @throws IOException
+     */
+    public static void copyDirectory(String srcDirString, String desDirString) {
+<span class="nc" id="L61">        File srcDirFile = new File(srcDirString);</span>
+<span class="nc" id="L62">        File desDirFile = new File(desDirString);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (!desDirFile.exists()) {</span>
+<span class="nc" id="L64">            boolean ret = desDirFile.mkdirs();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (!ret) {</span>
+<span class="nc" id="L66">                logger.error(&quot;mkidrs failed: &quot; + desDirFile);</span>
+<span class="nc" id="L67">                return;</span>
+            }
+        }
+
+<span class="nc" id="L71">        File[] files = srcDirFile.listFiles();</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (files == null) {</span>
+<span class="nc" id="L73">            return;</span>
+        }
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (int i = 0; i &lt; files.length; i++) {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (files[i].isFile()) {</span>
+<span class="nc" id="L77">                String srcFileTemp = files[i].getAbsolutePath();</span>
+<span class="nc" id="L78">                String desFileTemp = desDirFile.getAbsolutePath() + File.separator + files[i].getName();</span>
+<span class="nc" id="L79">                copyFile(srcFileTemp, desFileTemp);</span>
+            }
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            if (files[i].isDirectory()) {</span>
+<span class="nc" id="L82">                String srcDirTemp = files[i].getAbsolutePath();</span>
+<span class="nc" id="L83">                String desDirTemp = desDirFile.getAbsolutePath() + File.separator + files[i].getName();</span>
+<span class="nc" id="L84">                copyDirectory(srcDirTemp, desDirTemp);</span>
+            }
+        }
+<span class="nc" id="L87">        System.out.println(&quot;Success to copy &quot; + srcDirString + &quot; to &quot; + desDirString);</span>
+<span class="nc" id="L88">    }</span>
+
+    /**
+     * 移动文件
+     * 
+     * @param srcFileString
+     * @param desFileString
+     * @param isOverride
+     * @throws IOException
+     */
+    public static void moveFile(String srcFileString, String desFileString, boolean isOverride) {
+<span class="nc" id="L99">        File srcFileFile = new File(srcFileString);</span>
+<span class="nc" id="L100">        File desFileFile = new File(desFileString);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (isOverride) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">            if (desFileFile.delete()) {</span>
+<span class="nc" id="L103">                System.out.println(&quot;Success to delete desFile&quot;);</span>
+            }
+        } else {
+<span class="nc" id="L106">            return;</span>
+        }
+<span class="nc" id="L108">        copyFile(srcFileString, desFileString);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        if (srcFileFile.delete()) {</span>
+<span class="nc" id="L110">            System.out.println(&quot;Success to delete srcFile&quot;);</span>
+        }
+
+<span class="nc" id="L113">    }</span>
+
+    /**
+     * 递归删除目录
+     * 
+     * @param dir
+     * @return 返回是否删除成功
+     */
+    public static boolean deleteDir(String dir) {
+<span class="nc" id="L122">        File dirFile = new File(dir);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (dirFile.isDirectory()) {</span>
+<span class="nc" id="L124">            String[] files = dirFile.list();</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">            if (files != null) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                for (int i = 0; i &lt; files.length; i++) {</span>
+<span class="nc" id="L127">                    String temp = dirFile.getAbsolutePath() + File.separator.toString() + files[i];</span>
+<span class="nc" id="L128">                    boolean success = deleteDir(temp);</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                    if (!success) {</span>
+<span class="nc" id="L130">                        System.out.println(&quot;Something error!&quot;);</span>
+<span class="nc" id="L131">                        return false;</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L136">        boolean ret = dirFile.delete();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (ret) {</span>
+<span class="nc" id="L138">            System.out.println(&quot;Success to delete &quot; + dir);</span>
+        } else {
+<span class="nc" id="L140">            System.out.println(&quot;Something error!&quot;);</span>
+        }
+<span class="nc" id="L142">        return ret;</span>
+    }
+
+    /**
+     * 删除目录组
+     * 
+     * @param dirs
+     * @return 返回是否删除成功
+     */
+    public static boolean deleteDirs(String[] dirs) {
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        for (int i = 0; i &lt; dirs.length; i++) {</span>
+<span class="nc" id="L153">            boolean isSuccessful = deleteDir(dirs[i]);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">            if (isSuccessful == true) {</span>
+<span class="nc" id="L155">                System.out.println(&quot;成功删除目录：&quot; + dirs[i]);</span>
+            }
+        }
+<span class="nc" id="L158">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

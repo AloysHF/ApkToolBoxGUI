@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FilePanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.filepanel</a> &gt; <span class="el_source">FilePanel.java</span></div><h1>FilePanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.filepanel;
+
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.util.List;
+
+public class FilePanel extends JPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L27">    private static final Logger LOGGER = LogManager.getLogger(FilePanel.class.getSimpleName());</span>
+    private JTextField fileTextField;
+
+    private String buttonText;
+
+<span class="nc" id="L32">    private String currentDirectoryPath = &quot;.&quot;;</span>
+
+<span class="nc" id="L34">    private int fileSelectionMode = JFileChooser.FILES_ONLY;</span>
+
+    private String description;
+
+    private String[] extensions;
+
+    private JFileChooser fileChooser;
+
+    private transient IFileReadyCallback callback;
+
+    public FilePanel(String buttonText) {
+<span class="nc" id="L45">        super();</span>
+<span class="nc" id="L46">        fileChooser = new JFileChooser();</span>
+<span class="nc" id="L47">        this.buttonText = buttonText;</span>
+<span class="nc" id="L48">    }</span>
+
+    // in case of escape of &quot;this&quot;
+    public void initialize() {
+<span class="nc" id="L52">        initUI();</span>
+<span class="nc" id="L53">    }</span>
+
+    public void setCurrentDirectoryPath(String currentDirectoryPath) {
+<span class="nc" id="L56">        this.currentDirectoryPath = currentDirectoryPath;</span>
+<span class="nc" id="L57">    }</span>
+
+    public void setPersistentKey(String persistentKey) {
+<span class="nc" id="L60">        fileTextField.setName(persistentKey);</span>
+<span class="nc" id="L61">    }</span>
+
+    public void setFileReadyCallback(IFileReadyCallback callback) {
+<span class="nc" id="L64">        this.callback = callback;</span>
+<span class="nc" id="L65">    }</span>
+
+    public void setFileSelectionMode(int fileSelectionMode) {
+<span class="nc" id="L68">        this.fileSelectionMode = fileSelectionMode;</span>
+<span class="nc" id="L69">    }</span>
+
+    public void setDescriptionAndFileExtensions(String description, String[] extensions) {
+<span class="nc" id="L72">        this.description = description;</span>
+<span class="nc" id="L73">        this.extensions = extensions;</span>
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        if (StringUtils.isNotEmpty(description) || ArrayUtils.isNotEmpty(extensions)) {</span>
+<span class="nc" id="L75">            FileNameExtensionFilter filter = new FileNameExtensionFilter(description, extensions);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (fileChooser != null) {</span>
+<span class="nc" id="L77">                fileChooser.resetChoosableFileFilters();</span>
+<span class="nc" id="L78">                fileChooser.addChoosableFileFilter(filter);</span>
+<span class="nc" id="L79">                fileChooser.setAcceptAllFileFilterUsed(false);</span>
+            }
+<span class="nc" id="L81">        } else {</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (fileChooser != null) {</span>
+<span class="nc" id="L83">                fileChooser.resetChoosableFileFilters();</span>
+<span class="nc" id="L84">                fileChooser.setAcceptAllFileFilterUsed(true);</span>
+            }
+        }
+<span class="nc" id="L87">    }</span>
+
+    private void initUI() {
+<span class="nc" id="L90">        setLayout(new BoxLayout(this, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L92">        fileTextField = new JTextField();</span>
+<span class="nc" id="L93">        fileTextField.setPreferredSize(new Dimension(600, 30));</span>
+<span class="nc" id="L94">        fileTextField.setMaximumSize(new Dimension(1200, 30));</span>
+<span class="nc" id="L95">        fileTextField.setTransferHandler(new FileTransferHandler());</span>
+
+<span class="nc" id="L97">        JButton chooseButton = new JButton(buttonText);</span>
+<span class="nc" id="L98">        chooseButton.addActionListener(new OpenDictionaryFileActionListener());</span>
+
+<span class="nc" id="L100">        add(fileTextField);</span>
+<span class="nc" id="L101">        add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L102">        add(chooseButton);</span>
+<span class="nc" id="L103">    }</span>
+
+    public File getFile() {
+<span class="nc" id="L106">        return new File(fileTextField.getText());</span>
+    }
+
+<span class="nc" id="L109">    class OpenDictionaryFileActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L112">            fileChooser.setCurrentDirectory(new File(currentDirectoryPath));</span>
+<span class="nc" id="L113">            fileChooser.setFileSelectionMode(fileSelectionMode);</span>
+<span class="nc" id="L114">            fileChooser.setMultiSelectionEnabled(false);</span>
+<span class="nc bnc" id="L115" title="All 4 branches missed.">            if (StringUtils.isNotEmpty(description) || ArrayUtils.isNotEmpty(extensions)) {</span>
+<span class="nc" id="L116">                FileNameExtensionFilter filter = new FileNameExtensionFilter(description, extensions);</span>
+<span class="nc" id="L117">                fileChooser.addChoosableFileFilter(filter);</span>
+<span class="nc" id="L118">                fileChooser.setAcceptAllFileFilterUsed(false);</span>
+<span class="nc" id="L119">            } else {</span>
+<span class="nc" id="L120">                fileChooser.resetChoosableFileFilters();</span>
+<span class="nc" id="L121">                fileChooser.setAcceptAllFileFilterUsed(true);</span>
+            }
+<span class="nc" id="L123">            int returnVal = fileChooser.showOpenDialog(FilePanel.this);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">            if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L125">                File selectedFile = fileChooser.getSelectedFile();</span>
+<span class="nc" id="L126">                fileTextField.setText(FileUtils.getCanonicalPathQuiet(selectedFile));</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                if (callback != null) {</span>
+<span class="nc" id="L128">                    callback.onFileReady(selectedFile);</span>
+                }
+            }
+<span class="nc" id="L131">        }</span>
+    }
+
+    class FileTransferHandler extends TransferHandler {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L138">        public FileTransferHandler() {</span>
+<span class="nc" id="L139">        }</span>
+
+        @Override
+        public boolean importData(JComponent comp, Transferable t) {
+<span class="nc" id="L143">            List&lt;File&gt; files = null;</span>
+            try {
+                @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L146">                List&lt;File&gt; tmp = (List&lt;File&gt;) t.getTransferData(DataFlavor.javaFileListFlavor);</span>
+<span class="nc" id="L147">                files = tmp;</span>
+<span class="nc" id="L148">            } catch (IOException e) {</span>
+<span class="nc" id="L149">                LOGGER.error(&quot;importData failed: IOException&quot;);</span>
+<span class="nc" id="L150">            } catch (UnsupportedFlavorException e) {</span>
+<span class="nc" id="L151">                LOGGER.error(&quot;importData failed: UnsupportedFlavorException&quot;);</span>
+<span class="nc" id="L152">            }</span>
+<span class="nc bnc" id="L153" title="All 4 branches missed.">            if (files == null || files.size() != 1) {</span>
+<span class="nc" id="L154">                LOGGER.error(&quot;importData failed: getTransferData failed&quot;);</span>
+<span class="nc" id="L155">                return false;</span>
+            }
+<span class="nc" id="L157">            File file = files.get(0);</span>
+<span class="nc bnc" id="L158" title="All 4 branches missed.">            if ((!file.isFile() &amp;&amp; fileSelectionMode == JFileChooser.FILES_ONLY)</span>
+<span class="nc bnc" id="L159" title="All 4 branches missed.">                    ||(!file.isDirectory() &amp;&amp; fileSelectionMode == JFileChooser.DIRECTORIES_ONLY)) {</span>
+<span class="nc" id="L160">                LOGGER.error(&quot;importData failed: fileSelectionMode is not match&quot;);</span>
+<span class="nc" id="L161">                return false;</span>
+            }
+<span class="nc" id="L163">            fileTextField.setText(FileUtils.getCanonicalPathQuiet(file));</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (callback != null) {</span>
+<span class="nc" id="L165">                callback.onFileReady(file);</span>
+            }
+<span class="nc" id="L167">            return true;</span>
+        }
+
+        @Override
+        public boolean canImport(JComponent jComponent, DataFlavor[] dataFlavors) {
+<span class="nc bnc" id="L172" title="All 2 branches missed.">            for (DataFlavor dataFlavor : dataFlavors) {</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                if (DataFlavor.javaFileListFlavor.equals(dataFlavor)) {</span>
+<span class="nc" id="L174">                    return true;</span>
+                }
+            }
+<span class="nc" id="L177">            return false;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

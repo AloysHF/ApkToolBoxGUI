@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProgressBarDialog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.plugin</a> &gt; <span class="el_source">ProgressBarDialog.java</span></div><h1>ProgressBarDialog.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.plugin;
+
+import edu.jiangxin.apktoolbox.utils.Constants;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.Serial;
+
+public class ProgressBarDialog extends JDialog {
+    @Serial
+    private static final long serialVersionUID = 1L;
+<span class="nc" id="L12">    final JProgressBar progressBar = new JProgressBar();</span>
+<span class="nc" id="L13">    final JLabel progressLabel = new JLabel(&quot;&quot;);</span>
+
+<span class="nc" id="L15">    public ProgressBarDialog() {</span>
+<span class="nc" id="L16">    }</span>
+
+    // in case of escape of &quot;this&quot;
+    public void initialize(String title) {
+<span class="nc" id="L20">        setTitle(title);</span>
+<span class="nc" id="L21">        setSize(400, 100);</span>
+<span class="nc" id="L22">        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));</span>
+        //Swing Worker can't update GUI components in modal jdialog
+        //https://stackoverflow.com/questions/54496606/swing-worker-cant-update-gui-components-in-modal-jdialog
+<span class="nc" id="L25">        setModalityType(Dialog.ModalityType.APPLICATION_MODAL);</span>
+<span class="nc" id="L26">        setLocationRelativeTo(null);</span>
+
+<span class="nc" id="L28">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L30">        JPanel contentPanel = new JPanel();</span>
+<span class="nc" id="L31">        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L32">        add(contentPanel);</span>
+
+<span class="nc" id="L34">        contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L36">        progressBar.setMaximum(100);</span>
+<span class="nc" id="L37">        progressBar.setValue(0);</span>
+<span class="nc" id="L38">        progressBar.setPreferredSize(new Dimension(300, 20));</span>
+<span class="nc" id="L39">        contentPanel.add(progressBar);</span>
+
+<span class="nc" id="L41">        contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L43">        contentPanel.add(progressLabel);</span>
+
+<span class="nc" id="L45">        contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L47">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L48">    }</span>
+
+    public void setValue(int value) {
+<span class="nc" id="L51">        progressBar.setValue(value);</span>
+<span class="nc" id="L52">        progressLabel.setText(value + &quot;%&quot;);</span>
+<span class="nc" id="L53">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

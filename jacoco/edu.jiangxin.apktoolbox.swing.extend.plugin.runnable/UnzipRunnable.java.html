@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnzipRunnable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.plugin.runnable</a> &gt; <span class="el_source">UnzipRunnable.java</span></div><h1>UnzipRunnable.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.plugin.runnable;
+
+import edu.jiangxin.apktoolbox.swing.extend.plugin.ChangeMenuPreparePluginController;
+import edu.jiangxin.apktoolbox.swing.extend.plugin.IPreparePluginCallback;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.progress.ProgressMonitor;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+
+public class UnzipRunnable extends AbstractRunnable {
+<span class="nc" id="L16">    private static final Logger LOGGER = LogManager.getLogger(UnzipRunnable.class.getSimpleName());</span>
+    private final File pluginFile;
+    private final boolean isPluginNeedUnzipToSeparateDir;
+
+    public UnzipRunnable(File pluginFile, boolean isPluginNeedUnzipToSeparateDir, IPreparePluginCallback callback) {
+<span class="nc" id="L21">        super(&quot;Unzipping...&quot;, callback);</span>
+<span class="nc" id="L22">        this.pluginFile = pluginFile;</span>
+<span class="nc" id="L23">        this.isPluginNeedUnzipToSeparateDir = isPluginNeedUnzipToSeparateDir;</span>
+<span class="nc" id="L24">    }</span>
+
+    @Override
+    public void run() {
+<span class="nc" id="L28">        SwingUtilities.invokeLater(() -&gt; progressBarDialog.setVisible(true));</span>
+<span class="nc" id="L29">        LOGGER.info(&quot;Unzip file: {}&quot;, pluginFile);</span>
+<span class="nc" id="L30">        String parentDir = pluginFile.getParent();</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (isPluginNeedUnzipToSeparateDir) {</span>
+<span class="nc" id="L32">            String dirName = pluginFile.getName().substring(0, pluginFile.getName().lastIndexOf('.'));</span>
+<span class="nc" id="L33">            parentDir = new File(parentDir, dirName).getAbsolutePath();</span>
+<span class="nc" id="L34">            FileUtils.deleteQuietly(new File(parentDir));</span>
+            try {
+<span class="nc" id="L36">                FileUtils.forceMkdir(new File(parentDir));</span>
+<span class="nc" id="L37">            } catch (IOException e) {</span>
+<span class="nc" id="L38">                LOGGER.error(&quot;forceMkdir failed: IOException&quot;);</span>
+<span class="nc" id="L39">                callback.onUnzipFinished(ChangeMenuPreparePluginController.RESULT_UNZIP_FAILED);</span>
+<span class="nc" id="L40">                return;</span>
+<span class="nc" id="L41">            }</span>
+        }
+<span class="nc" id="L43">        try (ZipFile zipFile = new ZipFile(pluginFile)) {</span>
+<span class="nc" id="L44">            zipFile.setRunInThread(true);</span>
+<span class="nc" id="L45">            zipFile.extractAll(parentDir);</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            while (zipFile.getProgressMonitor().getState() == ProgressMonitor.State.BUSY) {</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                if (isCancelled) {</span>
+<span class="nc" id="L48">                    zipFile.getProgressMonitor().setCancelAllTasks(true);</span>
+<span class="nc" id="L49">                    break;</span>
+                }
+<span class="nc" id="L51">                progress = zipFile.getProgressMonitor().getPercentDone();</span>
+<span class="nc" id="L52">                Thread.sleep(100);</span>
+            }
+<span class="nc" id="L54">        } catch (IOException e) {</span>
+<span class="nc" id="L55">            LOGGER.error(&quot;unzipFile failed: IOException&quot;);</span>
+<span class="nc" id="L56">            callback.onUnzipFinished(ChangeMenuPreparePluginController.RESULT_UNZIP_FAILED);</span>
+<span class="nc" id="L57">            return;</span>
+<span class="nc" id="L58">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L59">            LOGGER.error(&quot;unzipFile failed: InterruptedException&quot;);</span>
+<span class="nc" id="L60">            callback.onUnzipFinished(ChangeMenuPreparePluginController.RESULT_UNZIP_FAILED);</span>
+<span class="nc" id="L61">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L62">        }</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (isCancelled) {</span>
+<span class="nc" id="L65">            LOGGER.info(&quot;download cancelled&quot;);</span>
+<span class="nc" id="L66">            String fileName = pluginFile.getAbsolutePath();</span>
+<span class="nc" id="L67">            String dirName = fileName.substring(0, fileName.lastIndexOf(&quot;.&quot;));</span>
+<span class="nc" id="L68">            FileUtils.deleteQuietly(new File(dirName));</span>
+<span class="nc" id="L69">            callback.onUnzipFinished(ChangeMenuPreparePluginController.RESULT_UNZIP_CANCELLED);</span>
+<span class="nc" id="L70">        } else {</span>
+<span class="nc" id="L71">            isFinished = true;</span>
+<span class="nc" id="L72">            callback.onUnzipFinished(ChangeMenuPreparePluginController.RESULT_UNZIP_SUCCESS);</span>
+        }
+<span class="nc" id="L74">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

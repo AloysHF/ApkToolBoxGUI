@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZipChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.checker</a> &gt; <span class="el_source">ZipChecker.java</span></div><h1>ZipChecker.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.checker;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.exception.UnknownException;
+import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.inputstream.ZipInputStream;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+public final class ZipChecker extends FileChecker {
+    private static final boolean DEBUG = false;
+
+    public ZipChecker() {
+<span class="nc" id="L15">        super();</span>
+<span class="nc" id="L16">    }</span>
+
+    @Override
+    public String[] getFileExtensions() {
+<span class="nc" id="L20">        return new String[]{&quot;zip&quot;};</span>
+    }
+
+    @Override
+    public String getFileDescription() {
+<span class="nc" id="L25">        return &quot;*.zip&quot;;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="nc" id="L30">        return &quot;ZIP Checker(Not support Non-ASCII password)&quot;;</span>
+    }
+
+    @Override
+    public boolean prepareChecker() {
+<span class="nc" id="L35">        return true;</span>
+    }
+
+    @Override
+    public boolean checkPassword(String password) {
+        if (DEBUG) {
+            logger.info(&quot;checkPassword: &quot; + password);
+        }
+<span class="nc" id="L43">        boolean result = false;</span>
+<span class="nc" id="L44">        byte[] readBuffer = new byte[4096];</span>
+<span class="nc" id="L45">        try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(file), password.toCharArray(), StandardCharsets.UTF_8)) {</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            while (zipInputStream.getNextEntry() != null) {</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                while (zipInputStream.read(readBuffer) != -1) {</span>
+                    // do nothing
+                }
+            }
+<span class="nc" id="L51">            result = true;</span>
+<span class="nc" id="L52">        } catch (ZipException e) {</span>
+            if (DEBUG) {
+                logger.error(&quot;checkPassword: &quot;, e.getClass());
+            }
+<span class="nc" id="L56">        } catch (IOException e) {</span>
+<span class="nc" id="L57">            throw new UnknownException(e);</span>
+<span class="nc" id="L58">        }</span>
+<span class="nc" id="L59">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

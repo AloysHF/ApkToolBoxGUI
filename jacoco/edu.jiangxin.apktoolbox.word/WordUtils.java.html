@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WordUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.word</a> &gt; <span class="el_source">WordUtils.java</span></div><h1>WordUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.word;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.hpsf.SummaryInformation;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+public class WordUtils {
+
+<span class="nc" id="L15">    private static final Logger LOGGER = LogManager.getLogger(WordUtils.class.getSimpleName());</span>
+
+    private WordUtils() {
+        // utility class
+    }
+
+    /**
+     * 读取 Word 文档的页数。
+     * - .doc  使用 HWPFDocument（poi-scratchpad）
+     * - .docx 使用 XWPFDocument（poi-ooxml）
+     * 若读取失败或页数 &lt;= 0，返回 0。
+     *
+     * @param file Word 文档文件
+     * @return 文档页数，若无法读取则返回 0
+     */
+    public static int getPageCount(File file) {
+<span class="nc bnc" id="L31" title="All 6 branches missed.">        if (file == null || !file.exists() || !file.isFile()) {</span>
+<span class="nc" id="L32">            LOGGER.warn(&quot;Invalid file: {}&quot;, file);</span>
+<span class="nc" id="L33">            return 0;</span>
+        }
+
+<span class="nc" id="L36">        String name = file.getName().toLowerCase();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (name.endsWith(&quot;.doc&quot;)) {</span>
+<span class="nc" id="L38">            return getDocPageCount(file);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        } else if (name.endsWith(&quot;.docx&quot;)) {</span>
+<span class="nc" id="L40">            return getDocxPageCount(file);</span>
+        } else {
+<span class="nc" id="L42">            LOGGER.warn(&quot;Unsupported file type: {}&quot;, file.getPath());</span>
+<span class="nc" id="L43">            return 0;</span>
+        }
+    }
+
+    private static int getDocPageCount(File file) {
+<span class="nc" id="L48">        try (FileInputStream fis = new FileInputStream(file);</span>
+<span class="nc" id="L49">             HWPFDocument document = new HWPFDocument(fis)) {</span>
+<span class="nc" id="L50">            SummaryInformation si = document.getSummaryInformation();</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">            int pageCount = (si != null) ? si.getPageCount() : 0;</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            if (pageCount &lt;= 0) {</span>
+<span class="nc" id="L53">                LOGGER.info(&quot;Page count &lt;= 0 for .doc file: {}, returning 0&quot;, file.getPath());</span>
+<span class="nc" id="L54">                return 0;</span>
+            }
+<span class="nc" id="L56">            LOGGER.info(&quot;Processing .doc file: {}, page count: {}&quot;, file.getPath(), pageCount);</span>
+<span class="nc" id="L57">            return pageCount;</span>
+<span class="nc" id="L58">        } catch (IOException e) {</span>
+<span class="nc" id="L59">            LOGGER.error(&quot;Error reading .doc file: {}, message: {}&quot;, file.getPath(), e.getMessage());</span>
+<span class="nc" id="L60">            return 0;</span>
+        }
+    }
+
+    private static int getDocxPageCount(File file) {
+<span class="nc" id="L65">        try (FileInputStream fis = new FileInputStream(file);</span>
+<span class="nc" id="L66">             XWPFDocument document = new XWPFDocument(fis)) {</span>
+            // 优先从 ExtendedProperties 读取页数
+<span class="nc" id="L68">            int pageCount = 0;</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">            if (document.getProperties() != null</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">                    &amp;&amp; document.getProperties().getExtendedProperties() != null</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                    &amp;&amp; document.getProperties().getExtendedProperties().getUnderlyingProperties() != null) {</span>
+<span class="nc" id="L72">                pageCount = document.getProperties().getExtendedProperties().getUnderlyingProperties().getPages();</span>
+            }
+            // 若 ExtendedProperties 无效，尝试从 CoreProperties 读取 revision 作为备选
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (pageCount &lt;= 0) {</span>
+<span class="nc" id="L76">                String revision = null;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (document.getProperties() != null</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                        &amp;&amp; document.getProperties().getCoreProperties() != null) {</span>
+<span class="nc" id="L79">                    revision = document.getProperties().getCoreProperties().getRevision();</span>
+                }
+<span class="nc bnc" id="L81" title="All 4 branches missed.">                if (revision != null &amp;&amp; !revision.isEmpty()) {</span>
+                    try {
+<span class="nc" id="L83">                        pageCount = Integer.parseInt(revision);</span>
+<span class="nc" id="L84">                    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L85">                        LOGGER.warn(&quot;Cannot parse revision as page count for .docx file: {}&quot;, file.getPath());</span>
+<span class="nc" id="L86">                        pageCount = 0;</span>
+<span class="nc" id="L87">                    }</span>
+                }
+            }
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (pageCount &lt;= 0) {</span>
+<span class="nc" id="L91">                LOGGER.info(&quot;Page count &lt;= 0 for .docx file: {}, returning 0&quot;, file.getPath());</span>
+<span class="nc" id="L92">                return 0;</span>
+            }
+<span class="nc" id="L94">            LOGGER.info(&quot;Processing .docx file: {}, page count: {}&quot;, file.getPath(), pageCount);</span>
+<span class="nc" id="L95">            return pageCount;</span>
+<span class="nc" id="L96">        } catch (IOException e) {</span>
+<span class="nc" id="L97">            LOGGER.error(&quot;Error reading .docx file: {}, message: {}&quot;, file.getPath(), e.getMessage());</span>
+<span class="nc" id="L98">            return 0;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

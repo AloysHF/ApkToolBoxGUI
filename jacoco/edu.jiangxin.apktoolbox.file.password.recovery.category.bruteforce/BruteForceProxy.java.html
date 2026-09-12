@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BruteForceProxy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce</a> &gt; <span class="el_source">BruteForceProxy.java</span></div><h1>BruteForceProxy.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.RecoveryPanel;
+import edu.jiangxin.apktoolbox.file.password.recovery.State;
+import edu.jiangxin.apktoolbox.file.password.recovery.category.ICategory;
+import edu.jiangxin.apktoolbox.file.password.recovery.checker.FileChecker;
+import edu.jiangxin.apktoolbox.file.password.recovery.checker.IChecker;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+public class BruteForceProxy implements ICategory {
+<span class="nc" id="L18">    private static final Logger logger = LogManager.getLogger(BruteForceProxy.class.getSimpleName());</span>
+
+    private ExecutorService executorService;
+
+    private BruteForceFuture bruteForceFuture;
+
+    private static class BruteForceProxyHolder {
+<span class="nc" id="L25">        private static final BruteForceProxy instance = new BruteForceProxy();</span>
+    }
+
+    private BruteForceProxy() {
+    }
+
+    public static BruteForceProxy getInstance() {
+<span class="nc" id="L32">        return BruteForceProxyHolder.instance;</span>
+    }
+
+    private String startAndGet(int numThreads, int passwordLength, IChecker checker, String charsSet, RecoveryPanel panel) {
+<span class="nc" id="L36">        executorService = Executors.newFixedThreadPool(numThreads);</span>
+<span class="nc" id="L37">        bruteForceFuture = new BruteForceFuture(numThreads);</span>
+<span class="nc" id="L38">        BruteForceTaskParam param = new BruteForceTaskParam(numThreads, passwordLength, checker, charsSet);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        for (int taskId = 0; taskId &lt; numThreads; taskId++) {</span>
+<span class="nc" id="L40">            BruteForceRunnable task = new BruteForceRunnable(taskId, param, bruteForceFuture, panel);</span>
+<span class="nc" id="L41">            executorService.execute(task);</span>
+        }
+<span class="nc" id="L43">        String password = null;</span>
+        try {
+<span class="nc" id="L45">            password = bruteForceFuture.get();</span>
+<span class="nc" id="L46">        } catch (Exception e) {</span>
+<span class="nc" id="L47">            logger.info(&quot;Exception test: &quot;, e);</span>
+        } finally {
+<span class="nc bnc" id="L49" title="All 2 branches missed.">            if (executorService.isShutdown()) {</span>
+<span class="nc" id="L50">                executorService.shutdown();</span>
+            }
+        }
+<span class="nc" id="L53">        return password;</span>
+    }
+
+    @Override
+    public void start(RecoveryPanel panel) {
+<span class="nc" id="L58">        String charset = panel.getCharset();</span>
+<span class="nc" id="L59">        logger.info(&quot;Charset: {}&quot;, charset);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (StringUtils.isEmpty(charset)) {</span>
+<span class="nc" id="L61">            JOptionPane.showMessageDialog(panel, &quot;Character set is empty!&quot;);</span>
+<span class="nc" id="L62">            return;</span>
+        }
+
+<span class="nc" id="L65">        int minLength = panel.getMinLength();</span>
+<span class="nc" id="L66">        int maxLength = panel.getMaxLength();</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (minLength &gt; maxLength) {</span>
+<span class="nc" id="L68">            JOptionPane.showMessageDialog(panel, &quot;Minimum length is bigger than maximum length!&quot;);</span>
+<span class="nc" id="L69">            return;</span>
+        }
+<span class="nc" id="L71">        String password = null;</span>
+<span class="nc" id="L72">        int totalNumber = 0;</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        for (int length = minLength; length &lt;= maxLength; length++) {</span>
+<span class="nc" id="L74">            totalNumber += (int)Math.pow(charset.length(), length);</span>
+        }
+<span class="nc" id="L76">        panel.resetProgressMaxValue(totalNumber);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (int length = minLength; length &lt;= maxLength; length++) {</span>
+<span class="nc" id="L78">            long startTime = System.currentTimeMillis();</span>
+<span class="nc" id="L79">            FileChecker fileChecker = panel.getCurrentFileChecker();</span>
+<span class="nc" id="L80">            int processorCount = Runtime.getRuntime().availableProcessors();</span>
+<span class="nc" id="L81">            int numThreads = getThreadCount(charset.length(), length, processorCount);</span>
+<span class="nc" id="L82">            logger.info(&quot;[{}]Current attempt length: {}, thread number: {}&quot;, fileChecker, length, numThreads);</span>
+<span class="nc" id="L83">            password = startAndGet(numThreads, length, fileChecker, charset, panel);</span>
+<span class="nc" id="L84">            long endTime = System.currentTimeMillis();</span>
+<span class="nc" id="L85">            logger.info(&quot;Current attempt length: {}, Cost time: {}ms&quot;, length, endTime - startTime);</span>
+<span class="nc bnc" id="L86" title="All 4 branches missed.">            if (password != null || panel.getCurrentState() != State.WORKING) {</span>
+<span class="nc" id="L87">                logger.info(&quot;Break state: {}&quot;, panel.getCurrentState());</span>
+<span class="nc" id="L88">                break;</span>
+            }
+        }
+<span class="nc" id="L91">        panel.showResultWithDialog(password);</span>
+<span class="nc" id="L92">    }</span>
+
+    @Override
+    public void cancel() {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">        if (bruteForceFuture != null) {</span>
+<span class="nc" id="L97">            bruteForceFuture.cancel(false);</span>
+        }
+<span class="nc bnc" id="L99" title="All 4 branches missed.">        if (executorService != null &amp;&amp; !executorService.isShutdown()) {</span>
+<span class="nc" id="L100">            executorService.shutdown();</span>
+        }
+<span class="nc bnc" id="L102" title="All 4 branches missed.">        while (executorService != null &amp;&amp; !executorService.isTerminated()) {</span>
+            try {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                final boolean isTimeout = !executorService.awaitTermination(100, TimeUnit.SECONDS);</span>
+<span class="nc" id="L105">                logger.info(&quot;awaitTermination isTimeout: &quot; + isTimeout);</span>
+<span class="nc" id="L106">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L107">                logger.error(&quot;awaitTermination InterruptedException&quot;);</span>
+<span class="nc" id="L108">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L109">            }</span>
+        }
+<span class="nc" id="L111">    }</span>
+
+    private int getThreadCount(int charSetSize, int length, int maxThreadCount) {
+<span class="nc" id="L114">        int result = 1;</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        for (int i = 1; i &lt;= length; i++) {</span>
+<span class="nc" id="L116">            result *= charSetSize;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (result &gt;= maxThreadCount) {</span>
+<span class="nc" id="L118">                return maxThreadCount;</span>
+            }
+        }
+<span class="nc" id="L121">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

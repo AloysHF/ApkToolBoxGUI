@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CompareFilesPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.checksum.panel</a> &gt; <span class="el_source">CompareFilesPanel.java</span></div><h1>CompareFilesPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.checksum.panel;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+
+<span class="nc" id="L13">public class CompareFilesPanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private FilePanel firstFilePanel;
+    private FilePanel secondFilePanel;
+
+    private JPanel operationPanel;
+
+    private JTextField resultTextField;
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L26">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L27">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L29">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L30">        createFilePanel();</span>
+<span class="nc" id="L31">        add(firstFilePanel);</span>
+<span class="nc" id="L32">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L33">        add(secondFilePanel);</span>
+
+<span class="nc" id="L35">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L36">        createOperationPanel();</span>
+<span class="nc" id="L37">        add(operationPanel);</span>
+
+<span class="nc" id="L39">        add(Box.createVerticalGlue());</span>
+<span class="nc" id="L40">    }</span>
+
+    private void createFilePanel() {
+<span class="nc" id="L43">        firstFilePanel = new FilePanel(&quot;First File&quot;);</span>
+<span class="nc" id="L44">        firstFilePanel.initialize();</span>
+<span class="nc" id="L45">        secondFilePanel = new FilePanel(&quot;Second File&quot;);</span>
+<span class="nc" id="L46">        secondFilePanel.initialize();</span>
+<span class="nc" id="L47">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L50">        operationPanel = new JPanel();</span>
+
+<span class="nc" id="L52">        JButton compareButton = new JButton(&quot;Compare&quot;);</span>
+<span class="nc" id="L53">        compareButton.setFocusPainted(false);</span>
+<span class="nc" id="L54">        compareButton.addActionListener(event -&gt; {</span>
+<span class="nc" id="L55">            File firstFile = firstFilePanel.getFile();</span>
+<span class="nc" id="L56">            File secondFile = secondFilePanel.getFile();</span>
+<span class="nc bnc" id="L57" title="All 4 branches missed.">            if (firstFile == null || secondFile == null) {</span>
+<span class="nc" id="L58">                resultTextField.setText(&quot;File is not valid&quot;);</span>
+<span class="nc" id="L59">                resultTextField.setForeground(Color.YELLOW);</span>
+<span class="nc" id="L60">                return;</span>
+            }
+
+<span class="nc" id="L63">            boolean isChecksumSame = false;</span>
+
+<span class="nc" id="L65">            try (FileInputStream firstFis = new FileInputStream(firstFile);</span>
+<span class="nc" id="L66">                 FileInputStream secondFis = new FileInputStream(secondFile)) {</span>
+<span class="nc" id="L67">                String firstSha512 = DigestUtils.sha512Hex(firstFis);</span>
+<span class="nc" id="L68">                String secondSha512 = DigestUtils.sha512Hex(secondFis);</span>
+<span class="nc" id="L69">                isChecksumSame = Strings.CI.equals(firstSha512, secondSha512);</span>
+<span class="nc" id="L70">            } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L71">                logger.error(&quot;calculate, FileNotFoundException&quot;);</span>
+<span class="nc" id="L72">            } catch (IOException e) {</span>
+<span class="nc" id="L73">                logger.error(&quot;calculate, IOException&quot;);</span>
+<span class="nc" id="L74">            }</span>
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (isChecksumSame) {</span>
+<span class="nc" id="L77">                resultTextField.setText(&quot;File is same&quot;);</span>
+<span class="nc" id="L78">                resultTextField.setForeground(Color.GREEN);</span>
+<span class="nc" id="L79">                return;</span>
+            }
+
+<span class="nc" id="L82">            resultTextField.setText(&quot;File is different&quot;);</span>
+<span class="nc" id="L83">            resultTextField.setForeground(Color.RED);</span>
+<span class="nc" id="L84">        });</span>
+
+<span class="nc" id="L86">        resultTextField = new JTextField(&quot;To be comparing&quot;);</span>
+<span class="nc" id="L87">        resultTextField.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L88">        resultTextField.setEditable(false);</span>
+<span class="nc" id="L89">        resultTextField.setBorder(null);</span>
+<span class="nc" id="L90">        Font font = new Font(null, Font.BOLD, 16);</span>
+<span class="nc" id="L91">        resultTextField.setFont(font);</span>
+<span class="nc" id="L92">        resultTextField.setForeground(Color.YELLOW);</span>
+
+<span class="nc" id="L94">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L95">        operationPanel.add(compareButton);</span>
+<span class="nc" id="L96">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L97">        operationPanel.add(resultTextField);</span>
+<span class="nc" id="L98">        operationPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L99">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

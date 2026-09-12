@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>EncoderConvertTest xref</title>
+<link type="text/css" rel="stylesheet" href="../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../testapidocs/edu/jiangxin/encode/EncoderConvertTest.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> edu.jiangxin.encode;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.io.File;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.io.IOException;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.junit.jupiter.api.Test;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.file.core.EncoderConvert;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.file.core.EncoderDetector;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.jupiter.api.Assertions.assertEquals;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>  <strong class="jxr_keyword">import</strong> <strong class="jxr_keyword">static</strong> org.junit.jupiter.api.Assertions.assertTrue;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  <em class="jxr_javadoccomment"> * @author jiangxin</em>
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  <em class="jxr_javadoccomment"> * @author 2018-09-09</em>
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="EncoderConvertTest" href="../../../edu/jiangxin/encode/EncoderConvertTest.html#EncoderConvertTest">EncoderConvertTest</a> {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      <em class="jxr_comment">// 测试文件如果太小可能无法准确判断编码</em>
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <em class="jxr_comment">// GB2312、GBK、GB18030的关系可以参考: &lt;https://www.zhihu.com/question/19677619&gt;</em>
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>      String path = EncoderConvertTest.<strong class="jxr_keyword">class</strong>.getResource(<span class="jxr_string">"/EncoderConvertTest"</span>).getPath();
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>  
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      @Test
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testDetectEncode01() {
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          assertTrue(<strong class="jxr_keyword">new</strong> File(path, <span class="jxr_string">"UTF-8.txt"</span>).exists());
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          assertEquals(<span class="jxr_string">"UTF-8"</span>, EncoderDetector.judgeFile(path + File.separator + <span class="jxr_string">"UTF-8.txt"</span>));
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>      }
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>  
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      @Test
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testDetectEncode02() {
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          assertTrue(<strong class="jxr_keyword">new</strong> File(path, <span class="jxr_string">"GB2312.txt"</span>).exists());
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          String encode = EncoderDetector.judgeFile(path + File.separator + <span class="jxr_string">"GB2312.txt"</span>);
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>          assertTrue(<span class="jxr_string">"GB2312"</span>.equals(encode) || <span class="jxr_string">"GBK"</span>.equals(encode) || <span class="jxr_string">"GB18030"</span>.equals(encode));
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      }
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>  
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>      @Test
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testEncodeFile() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          EncoderConvert.encodeFile(path + File.separator + <span class="jxr_string">"UTF-8.txt"</span>, <span class="jxr_string">"UTF-8"</span>,
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>                  path + File.separator + <span class="jxr_string">"UTF-8_TO_GB2312.txt"</span>, <span class="jxr_string">"GBK"</span>);
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>          assertTrue(<strong class="jxr_keyword">new</strong> File(path, <span class="jxr_string">"UTF-8_TO_GB2312.txt"</span>).exists());
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          String encode = EncoderDetector.judgeFile(path + File.separator + <span class="jxr_string">"UTF-8_TO_GB2312.txt"</span>);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>          assertTrue(<span class="jxr_string">"GB2312"</span>.equals(encode) || <span class="jxr_string">"GBK"</span>.equals(encode) || <span class="jxr_string">"GB18030"</span>.equals(encode));
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>      }
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>      @Test
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testEncodeDir() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>          File srcDir = <strong class="jxr_keyword">new</strong> File(path, <span class="jxr_string">"test"</span>);
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>          assertTrue(srcDir.exists());
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          File[] srcFileList = srcDir.listFiles();
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">for</strong> (File f : srcFileList) {
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              assertEquals(<span class="jxr_string">"UTF-8"</span>,
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                      EncoderDetector.judgeFile(path + File.separator + <span class="jxr_string">"test"</span> + File.separator + f.getName()));
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>          }
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>  
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          EncoderConvert.encodeDir(path + File.separator + <span class="jxr_string">"test"</span>, <span class="jxr_string">"UTF-8"</span>, path + File.separator + <span class="jxr_string">"testResult"</span>,
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>                  <span class="jxr_string">"GB2312"</span>);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          File desDir = <strong class="jxr_keyword">new</strong> File(path, <span class="jxr_string">"testResult"</span>);
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          assertTrue(desDir.exists());
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>          File[] desFileList = desDir.listFiles();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          <strong class="jxr_keyword">for</strong> (File f : desFileList) {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              String encode = EncoderDetector.judgeFile(desDir.getPath() + File.separator + f.getName());
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>              assertTrue(<span class="jxr_string">"GB2312"</span>.equals(encode) || <span class="jxr_string">"GBK"</span>.equals(encode) || <span class="jxr_string">"GB18030"</span>.equals(encode));
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>          }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      }
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>  }
+</pre>
+<hr/>
+<div id="footer">© 2026</div>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CheckUpdateActionListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help</a> &gt; <span class="el_source">CheckUpdateActionListener.java</span></div><h1>CheckUpdateActionListener.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help;
+
+import java.awt.Component;
+import java.awt.Toolkit;
+import java.io.IOException;
+
+import javax.swing.JOptionPane;
+
+import edu.jiangxin.apktoolbox.swing.extend.listener.ChangeMenuListener;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.ParseException;
+import org.apache.http.StatusLine;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import edu.jiangxin.apktoolbox.Version;
+
+/**
+ * @author jiangxin
+ * @author 2018-09-30
+ *
+ */
+public class CheckUpdateActionListener implements ChangeMenuListener {
+    private static final int SOCKET_TIMEOUT_TIME = 4000;
+    
+    private static final int CONNECT_TIMEOUT_TIME = 4000;
+
+<span class="nc" id="L38">    private static final Logger logger = LogManager.getLogger(CheckUpdateActionListener.class.getSimpleName());</span>
+
+    private Component parent;
+
+    private CloseableHttpClient closeableHttpClient;
+
+    private CloseableHttpResponse closeableHttpResponse;
+
+    public CheckUpdateActionListener(Component component) {
+<span class="nc" id="L47">        super();</span>
+<span class="nc" id="L48">        parent = component;</span>
+<span class="nc" id="L49">    }</span>
+
+    @Override
+    public void onChangeMenu() {
+<span class="nc" id="L53">        String responseString = null;</span>
+
+<span class="nc" id="L55">        closeableHttpClient = HttpClients.createDefault();</span>
+
+        try {
+<span class="nc" id="L58">            HttpGet httpGet = new HttpGet(Constant.URL_CHECK_UPDATE);</span>
+            // 设置请求和传输超时时间
+<span class="nc" id="L60">            RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(SOCKET_TIMEOUT_TIME)</span>
+<span class="nc" id="L61">                    .setConnectTimeout(CONNECT_TIMEOUT_TIME).build();</span>
+<span class="nc" id="L62">            httpGet.setConfig(requestConfig);</span>
+<span class="nc" id="L63">            closeableHttpResponse = closeableHttpClient.execute(httpGet);</span>
+<span class="nc" id="L64">            logger.info(&quot;execute request finished&quot;);</span>
+<span class="nc" id="L65">        } catch (IOException ex) {</span>
+<span class="nc" id="L66">            processException(ex);</span>
+<span class="nc" id="L67">            return;</span>
+<span class="nc" id="L68">        }</span>
+
+<span class="nc" id="L70">        StatusLine statusLine = closeableHttpResponse.getStatusLine();</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (statusLine == null) {</span>
+<span class="nc" id="L72">            processException(new Exception(&quot;statusLine is null&quot;));</span>
+<span class="nc" id="L73">            return;</span>
+        }
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (statusLine.getStatusCode() == HttpStatus.SC_OK) {</span>
+<span class="nc" id="L77">            HttpEntity entity = closeableHttpResponse.getEntity();</span>
+            try {
+<span class="nc" id="L79">                responseString = EntityUtils.toString(entity);</span>
+<span class="nc" id="L80">                logger.info(responseString);</span>
+<span class="nc" id="L81">            } catch (ParseException | IOException ex) {</span>
+<span class="nc" id="L82">                processException(ex);</span>
+<span class="nc" id="L83">                return;</span>
+<span class="nc" id="L84">            }</span>
+<span class="nc" id="L85">        } else {</span>
+<span class="nc" id="L86">            processException(new Exception(&quot;invalid statusCode&quot;));</span>
+<span class="nc" id="L87">            return;</span>
+        }
+
+        JSONObject release;
+        try {
+<span class="nc" id="L92">            release = new JSONObject(responseString);</span>
+<span class="nc" id="L93">        } catch (JSONException ex) {</span>
+<span class="nc" id="L94">            processException(ex);</span>
+<span class="nc" id="L95">            return;</span>
+<span class="nc" id="L96">        }</span>
+<span class="nc" id="L97">        String latestVersion = release.getString(&quot;tag_name&quot;);</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (StringUtils.isEmpty(latestVersion)) {</span>
+<span class="nc" id="L99">            processException(new Exception(&quot;latestVersion is empyt&quot;));</span>
+<span class="nc" id="L100">            return;</span>
+        }
+<span class="nc" id="L102">        processResult(latestVersion);</span>
+<span class="nc" id="L103">    }</span>
+
+    private void processException(Exception ex) {
+<span class="nc" id="L106">        logger.error(&quot;checking for updates failed: &quot;, ex);</span>
+<span class="nc" id="L107">        Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L108">        JOptionPane.showMessageDialog(parent, &quot;checking for updates failed&quot;, &quot;ERROR&quot;, JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L109">        releaseResource();</span>
+<span class="nc" id="L110">    }</span>
+
+    private void processResult(String latestVersion) {
+<span class="nc" id="L113">        logger.info(&quot;checking for updates successed&quot;);</span>
+<span class="nc" id="L114">        Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L115">        JOptionPane.showMessageDialog(parent,</span>
+                &quot;Latest version: &quot; + latestVersion + &quot;\nLocal version: &quot; + Version.VERSION, &quot;Update&quot;,
+                JOptionPane.INFORMATION_MESSAGE);
+<span class="nc" id="L118">        releaseResource();</span>
+<span class="nc" id="L119">    }</span>
+
+    private void releaseResource() {
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (closeableHttpResponse != null) {</span>
+            try {
+<span class="nc" id="L124">                closeableHttpResponse.close();</span>
+<span class="nc" id="L125">            } catch (IOException e) {</span>
+<span class="nc" id="L126">                logger.error(&quot;closeableHttpResponse close failed&quot;, e);</span>
+<span class="nc" id="L127">            }</span>
+        }
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (closeableHttpClient != null) {</span>
+            try {
+<span class="nc" id="L131">                closeableHttpClient.close();</span>
+<span class="nc" id="L132">            } catch (IOException e) {</span>
+<span class="nc" id="L133">                logger.error(&quot;closeableHttpClient close failed&quot;, e);</span>
+<span class="nc" id="L134">            }</span>
+        }
+<span class="nc" id="L136">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

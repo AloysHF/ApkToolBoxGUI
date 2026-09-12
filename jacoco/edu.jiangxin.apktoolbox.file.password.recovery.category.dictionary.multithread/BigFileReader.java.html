@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BigFileReader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.multithread</a> &gt; <span class="el_source">BigFileReader.java</span></div><h1>BigFileReader.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.multithread;
+
+import edu.jiangxin.apktoolbox.file.core.EncoderDetector;
+import edu.jiangxin.apktoolbox.file.password.recovery.RecoveryPanel;
+import edu.jiangxin.apktoolbox.file.password.recovery.State;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+public class BigFileReader {
+<span class="nc" id="L21">    private static final Logger logger = LogManager.getLogger(BigFileReader.class.getSimpleName());</span>
+
+    private static final int DEFAULT_BUFFER_SIZE = 1024 * 1024;
+
+<span class="nc" id="L25">    private static final int PROCESSOR_COUNT = Runtime.getRuntime().availableProcessors();</span>
+
+    private final String charset;
+    private final int bufferSize;
+    private final ScheduledThreadPoolExecutor executorService;
+    private final long fileLength;
+    private RandomAccessFile rAccessFile;
+    private final Set&lt;StartEndPair&gt; startEndPairs;
+    private CyclicBarrier cyclicBarrier;
+<span class="nc" id="L34">    private final AtomicInteger counter = new AtomicInteger(0);</span>
+    private final CompleteCallback callback;
+
+<span class="nc" id="L37">    private final AtomicBoolean success = new AtomicBoolean(false);</span>
+
+    private final RecoveryPanel panel;
+
+<span class="nc" id="L41">    public BigFileReader(CompleteCallback callback, RecoveryPanel panel) {</span>
+<span class="nc" id="L42">        this.panel = panel;</span>
+<span class="nc" id="L43">        File file = panel.getDictionaryFile();</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if (!file.exists()) {</span>
+<span class="nc" id="L45">            throw new IllegalArgumentException(&quot;文件不存在！&quot;);</span>
+        }
+<span class="nc" id="L47">        this.fileLength = file.length();</span>
+<span class="nc" id="L48">        this.charset = EncoderDetector.judgeFile(file.getAbsolutePath());</span>
+<span class="nc" id="L49">        this.bufferSize = DEFAULT_BUFFER_SIZE;</span>
+        try {
+<span class="nc" id="L51">            this.rAccessFile = new RandomAccessFile(file, &quot;r&quot;);</span>
+<span class="nc" id="L52">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L53">            logger.error(&quot;BigFileReader FileNotFoundException&quot;);</span>
+<span class="nc" id="L54">        }</span>
+<span class="nc" id="L55">        this.executorService = new ScheduledThreadPoolExecutor(PROCESSOR_COUNT);</span>
+<span class="nc" id="L56">        this.startEndPairs = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L57">        this.callback = callback;</span>
+<span class="nc" id="L58">    }</span>
+
+    public void start() {
+<span class="nc" id="L61">        long everySize = fileLength / PROCESSOR_COUNT;</span>
+        try {
+<span class="nc" id="L63">            calculateStartEnd(0, everySize);</span>
+<span class="nc" id="L64">        } catch (IOException e) {</span>
+<span class="nc" id="L65">            logger.error(&quot;start&quot;, e);</span>
+<span class="nc" id="L66">            return;</span>
+<span class="nc" id="L67">        }</span>
+
+<span class="nc" id="L69">        final long startTime = System.currentTimeMillis();</span>
+<span class="nc" id="L70">        int parties = startEndPairs.size();</span>
+<span class="nc" id="L71">        logger.info(&quot;[TaskTracing]Parties: &quot; + parties);</span>
+<span class="nc" id="L72">        cyclicBarrier = new CyclicBarrier(parties, () -&gt; {</span>
+<span class="nc" id="L73">            logger.info(&quot;use time: &quot; + (System.currentTimeMillis() - startTime) + &quot;ms&quot;);</span>
+<span class="nc" id="L74">            logger.info(&quot;all line: &quot; + counter.get());</span>
+<span class="nc" id="L75">            callback.onComplete(null);</span>
+<span class="nc" id="L76">        });</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (StartEndPair pair : startEndPairs) {</span>
+<span class="nc" id="L78">            logger.info(&quot;pair: &quot; + pair);</span>
+<span class="nc" id="L79">            executorService.execute(new SliceReaderTask(pair));</span>
+<span class="nc" id="L80">        }</span>
+<span class="nc" id="L81">    }</span>
+
+    private void calculateStartEnd(long start, long size) throws IOException {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (start &gt; fileLength - 1) {</span>
+<span class="nc" id="L85">            return;</span>
+        }
+<span class="nc" id="L87">        StartEndPair pair = new StartEndPair();</span>
+<span class="nc" id="L88">        pair.start = start;</span>
+<span class="nc" id="L89">        long endPosition = start + size - 1;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (endPosition &gt;= fileLength - 1) {</span>
+<span class="nc" id="L91">            pair.end = fileLength - 1;</span>
+<span class="nc" id="L92">            startEndPairs.add(pair);</span>
+<span class="nc" id="L93">            return;</span>
+        }
+
+<span class="nc" id="L96">        rAccessFile.seek(endPosition);</span>
+<span class="nc" id="L97">        byte tmp = (byte) rAccessFile.read();</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">        while (tmp != '\n' &amp;&amp; tmp != '\r') {</span>
+<span class="nc" id="L99">            endPosition++;</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (endPosition &gt;= fileLength - 1) {</span>
+<span class="nc" id="L101">                endPosition = fileLength - 1;</span>
+<span class="nc" id="L102">                break;</span>
+            }
+<span class="nc" id="L104">            rAccessFile.seek(endPosition);</span>
+<span class="nc" id="L105">            tmp = (byte) rAccessFile.read();</span>
+        }
+<span class="nc" id="L107">        pair.end = endPosition;</span>
+<span class="nc" id="L108">        startEndPairs.add(pair);</span>
+
+<span class="nc" id="L110">        calculateStartEnd(endPosition + 1, size);</span>
+<span class="nc" id="L111">    }</span>
+
+    public void shutdown() {
+        try {
+<span class="nc" id="L115">            rAccessFile.close();</span>
+<span class="nc" id="L116">        } catch (IOException e) {</span>
+<span class="nc" id="L117">            logger.error(&quot;shutdown IOException&quot;);</span>
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">        executorService.shutdown();</span>
+<span class="nc" id="L120">        logger.info(&quot;shutdown executorService&quot;);</span>
+<span class="nc" id="L121">    }</span>
+
+    private void handle(byte[] bytes) throws UnsupportedEncodingException {
+<span class="nc bnc" id="L124" title="All 4 branches missed.">        if (success.compareAndSet(true, true) || panel.getCurrentState() != State.WORKING) {</span>
+<span class="nc" id="L125">            return;</span>
+        }
+
+        String line;
+<span class="nc bnc" id="L129" title="All 2 branches missed.">        if (charset == null) {</span>
+<span class="nc" id="L130">            line = new String(bytes);</span>
+        } else {
+<span class="nc" id="L132">            line = new String(bytes, charset);</span>
+        }
+
+<span class="nc" id="L135">        panel.setCurrentPassword(line);</span>
+<span class="nc" id="L136">        panel.increaseProgressBarValue();</span>
+<span class="nc" id="L137">        counter.decrementAndGet();</span>
+
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (panel.getCurrentFileChecker().checkPassword(line)) {</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">            if (success.compareAndSet(false, true)) {</span>
+<span class="nc" id="L141">                logger.info(&quot;find password: {}&quot;, line);</span>
+<span class="nc" id="L142">                callback.onComplete(line);</span>
+            }
+        } else {
+<span class="nc bnc" id="L145" title="All 4 branches missed.">            if (!success.compareAndSet(true, true) &amp;&amp; panel.getCurrentState() == State.WORKING) {</span>
+<span class="nc" id="L146">                logger.info(&quot;try password[{}] failed&quot;, line);</span>
+            }
+        }
+<span class="nc" id="L149">    }</span>
+
+    private static class StartEndPair {
+        public long start;
+        public long end;
+
+        @Override
+        public String toString() {
+<span class="nc" id="L157">            return &quot;star=&quot; + start + &quot;;end=&quot; + end;</span>
+        }
+
+        @Override
+        public int hashCode() {
+<span class="nc" id="L162">            final int prime = 31;</span>
+<span class="nc" id="L163">            int result = 1;</span>
+<span class="nc" id="L164">            result = prime * result + (int) (end ^ (end &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L165">            result = prime * result + (int) (start ^ (start &gt;&gt;&gt; 32));</span>
+<span class="nc" id="L166">            return result;</span>
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if (this == obj)</span>
+<span class="nc" id="L172">                return true;</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">            if (obj == null)</span>
+<span class="nc" id="L174">                return false;</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">            if (getClass() != obj.getClass())</span>
+<span class="nc" id="L176">                return false;</span>
+<span class="nc" id="L177">            StartEndPair other = (StartEndPair) obj;</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">            if (end != other.end)</span>
+<span class="nc" id="L179">                return false;</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">            return start == other.start;</span>
+        }
+
+    }
+
+    private class SliceReaderTask implements Runnable {
+        private final long start;
+        private final long sliceSize;
+        private final byte[] readBuff;
+
+<span class="nc" id="L190">        public SliceReaderTask(StartEndPair pair) {</span>
+<span class="nc" id="L191">            this.start = pair.start;</span>
+<span class="nc" id="L192">            this.sliceSize = pair.end - pair.start + 1;</span>
+<span class="nc" id="L193">            this.readBuff = new byte[bufferSize];</span>
+<span class="nc" id="L194">        }</span>
+
+        @Override
+        public void run() {
+            try {
+<span class="nc" id="L199">                MappedByteBuffer mapBuffer = rAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, start, this.sliceSize);</span>
+<span class="nc" id="L200">                ByteArrayOutputStream bos = new ByteArrayOutputStream();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">                for (int offset = 0; offset &lt; sliceSize; offset += bufferSize) {</span>
+                    int readLength;
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                    if (offset + bufferSize &lt;= sliceSize) {</span>
+<span class="nc" id="L204">                        readLength = bufferSize;</span>
+                    } else {
+<span class="nc" id="L206">                        readLength = (int) (sliceSize - offset);</span>
+                    }
+<span class="nc" id="L208">                    mapBuffer.get(readBuff, 0, readLength);</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                    for (int i = 0; i &lt; readLength; i++) {</span>
+<span class="nc" id="L210">                        byte tmp = readBuff[i];</span>
+<span class="nc bnc" id="L211" title="All 4 branches missed.">                        if (tmp == '\n' || tmp == '\r') {</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                            if (bos.size() &gt; 0) {</span>
+<span class="nc" id="L213">                                handle(bos.toByteArray());</span>
+                            }
+<span class="nc" id="L215">                            bos.reset();</span>
+                        } else {
+<span class="nc" id="L217">                            bos.write(tmp);</span>
+                        }
+                    }
+                }
+<span class="nc bnc" id="L221" title="All 2 branches missed.">                if (bos.size() &gt; 0) {</span>
+<span class="nc" id="L222">                    handle(bos.toByteArray());</span>
+                }
+<span class="nc" id="L224">                logger.info(&quot;[TaskTracing]Waiting number: &quot; + cyclicBarrier.getNumberWaiting());</span>
+<span class="nc" id="L225">            } catch (Exception e) {</span>
+<span class="nc" id="L226">                logger.error(&quot;run Exception&quot; + e.getMessage());</span>
+<span class="nc" id="L227">            }</span>
+            try {
+<span class="nc" id="L229">                cyclicBarrier.await();</span>
+<span class="nc" id="L230">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L231">                logger.error(&quot;await InterruptedException&quot;);</span>
+<span class="nc" id="L232">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L233">            } catch (BrokenBarrierException e) {</span>
+<span class="nc" id="L234">                logger.error(&quot;await BrokenBarrierException&quot;);</span>
+<span class="nc" id="L235">            }</span>
+<span class="nc" id="L236">        }</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

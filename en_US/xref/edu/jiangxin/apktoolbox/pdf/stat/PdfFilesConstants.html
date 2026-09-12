@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en_US" lang="en_US">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>PdfFilesConstants xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../apidocs/edu/jiangxin/apktoolbox/pdf/stat/PdfFilesConstants.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> edu.jiangxin.apktoolbox.pdf.stat;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> java.awt.*;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> java.util.Vector;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="PdfFilesConstants" href="../../../../../edu/jiangxin/apktoolbox/pdf/stat/PdfFilesConstants.html#PdfFilesConstants">PdfFilesConstants</a> {
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_INDEX = <span class="jxr_string">"Index"</span>;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_FILE_PARENT = <span class="jxr_string">"ParentPath"</span>;
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_FILE_NAME = <span class="jxr_string">"FileName"</span>;
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_FILE_SIZE = <span class="jxr_string">"FileSize"</span>;
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_MODIFY_TIME = <span class="jxr_string">"ModifyTime"</span>;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> String COLUMN_NAME_PAGE_COUNT = <span class="jxr_string">"PageCount"</span>;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>  
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Vector&lt;String&gt; COLUMN_NAMES;
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Vector&lt;Color&gt; BACKGROUND;
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <strong class="jxr_keyword">static</strong> {
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          COLUMN_NAMES = <strong class="jxr_keyword">new</strong> Vector&lt;&gt;();
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          COLUMN_NAMES.add(COLUMN_NAME_INDEX);
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          COLUMN_NAMES.add(COLUMN_NAME_FILE_PARENT);
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          COLUMN_NAMES.add(COLUMN_NAME_FILE_NAME);
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          COLUMN_NAMES.add(COLUMN_NAME_FILE_SIZE);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          COLUMN_NAMES.add(COLUMN_NAME_MODIFY_TIME);
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          COLUMN_NAMES.add(COLUMN_NAME_PAGE_COUNT);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>  
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          BACKGROUND = <strong class="jxr_keyword">new</strong> Vector&lt;&gt;();
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          BACKGROUND.add(<strong class="jxr_keyword">new</strong> Color(255, 182, 193, 30));
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          BACKGROUND.add(<strong class="jxr_keyword">new</strong> Color(123, 104, 238, 30));
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          BACKGROUND.add(<strong class="jxr_keyword">new</strong> Color(127, 255, 170, 30));
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          BACKGROUND.add(<strong class="jxr_keyword">new</strong> Color(255, 255, 0, 30));
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>      }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  }
+</pre>
+<hr/>
+<div id="footer">© 2026</div>
+</body>
+</html>

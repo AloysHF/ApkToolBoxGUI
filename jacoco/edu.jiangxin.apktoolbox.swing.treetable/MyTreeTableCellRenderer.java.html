@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MyTreeTableCellRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.treetable</a> &gt; <span class="el_source">MyTreeTableCellRenderer.java</span></div><h1>MyTreeTableCellRenderer.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.treetable;
+
+import java.awt.Component;
+import java.awt.Graphics;
+import java.io.Serial;
+
+import javax.swing.JTable;
+import javax.swing.JTree;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.tree.TreeModel;
+
+
+public class MyTreeTableCellRenderer extends JTree implements TableCellRenderer {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    /** Die letzte Zeile, die gerendert wurde. */
+    protected int visibleRow;
+
+    private MyTreeTable treeTable;
+
+    public MyTreeTableCellRenderer(MyTreeTable treeTable, TreeModel model) {
+<span class="nc" id="L23">        super(model);</span>
+<span class="nc" id="L24">        this.treeTable = treeTable;</span>
+<span class="nc" id="L25">    }</span>
+
+    // in case of escape of &quot;this&quot;
+    public void initialize() {
+        // Setzen der Zeilenhoehe fuer die JTable
+        // Muss explizit aufgerufen werden, weil treeTable noch
+        // null ist, wenn super(model) setRowHeight aufruft!
+<span class="nc" id="L32">        setRowHeight(getRowHeight());</span>
+<span class="nc" id="L33">    }</span>
+
+    /**
+     * Tree und Table muessen die gleiche Hoehe haben.
+     */
+    public void setRowHeight(int rowHeight) {
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (rowHeight &gt; 0) {</span>
+<span class="nc" id="L40">            super.setRowHeight(rowHeight);</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">            if (treeTable != null &amp;&amp; treeTable.getRowHeight() != rowHeight) {</span>
+<span class="nc" id="L42">                treeTable.setRowHeight(getRowHeight());</span>
+            }
+        }
+<span class="nc" id="L45">    }</span>
+
+    /**
+     * Tree muss die gleiche Hoehe haben wie Table.
+     */
+    public void setBounds(int x, int y, int w, int h) {
+<span class="nc" id="L51">        super.setBounds(x, 0, w, treeTable.getHeight());</span>
+<span class="nc" id="L52">    }</span>
+
+    /**
+     * Sorgt fuer die Einrueckung der Ordner.
+     */
+    public void paint(Graphics g) {
+<span class="nc" id="L58">        g.translate(0, -visibleRow * getRowHeight());</span>
+
+<span class="nc" id="L60">        super.paint(g);</span>
+<span class="nc" id="L61">    }</span>
+
+    /**
+     * Liefert den Renderer mit der passenden Hintergrundfarbe zurueck.
+     */
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (isSelected)</span>
+<span class="nc" id="L68">            setBackground(table.getSelectionBackground());</span>
+        else
+<span class="nc" id="L70">            setBackground(table.getBackground());</span>
+
+<span class="nc" id="L72">        visibleRow = row;</span>
+<span class="nc" id="L73">        return this;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

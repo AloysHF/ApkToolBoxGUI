@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.checker</a> &gt; <span class="el_source">FileChecker.java</span></div><h1>FileChecker.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.checker;
+
+import edu.jiangxin.apktoolbox.utils.Utils;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+
+public abstract class FileChecker implements IChecker {
+    protected File file;
+    protected Logger logger;
+    protected Configuration conf;
+
+<span class="nc" id="L15">    public FileChecker() {</span>
+<span class="nc" id="L16">        logger = LogManager.getLogger(this.getClass().getSimpleName());</span>
+<span class="nc" id="L17">        conf = Utils.getConfiguration();</span>
+<span class="nc" id="L18">    }</span>
+
+    public void attachFile(File file) {
+<span class="nc" id="L21">        this.file = file;</span>
+<span class="nc" id="L22">    }</span>
+
+    public boolean prepareChecker() {
+<span class="nc" id="L25">        return true;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L30">        return getDescription();</span>
+    }
+
+    /**
+     * Return all supported file extensions in LOWERCASE, for example: [&quot;zip&quot;, &quot;7z&quot;, &quot;rar&quot;]
+     *
+     * @return All supported file extensions in LOWERCASE
+     */
+    public abstract String[] getFileExtensions();
+
+    public abstract String getFileDescription();
+
+    public abstract String getDescription();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Pic2PdfPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.pdf.pic2pdf</a> &gt; <span class="el_source">Pic2PdfPanel.java</span></div><h1>Pic2PdfPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.pdf.pic2pdf;
+
+import edu.jiangxin.apktoolbox.pdf.PdfUtils;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
+import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.Serial;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+<span class="nc" id="L21">public class Pic2PdfPanel  extends EasyPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private FileListPanel fileListPanel;
+
+    private JCheckBox isRecursiveSearched;
+
+    private FilePanel targetDirPanel;
+
+    private JButton startButton;
+    private JButton cancelButton;
+
+    private transient WorkderThread convertThread;
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L38">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L39">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L41">        createInputPanel();</span>
+<span class="nc" id="L42">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L44">        createOutputPanel();</span>
+<span class="nc" id="L45">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L47">        createOptionPanel();</span>
+<span class="nc" id="L48">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L50">        createOperationPanel();</span>
+<span class="nc" id="L51">    }</span>
+
+    private void createInputPanel() {
+<span class="nc" id="L54">        fileListPanel = new FileListPanel();</span>
+<span class="nc" id="L55">        fileListPanel.initialize();</span>
+<span class="nc" id="L56">        add(fileListPanel);</span>
+<span class="nc" id="L57">    }</span>
+
+    private void createOutputPanel() {
+<span class="nc" id="L60">        targetDirPanel = new FilePanel(&quot;Target Directory&quot;);</span>
+<span class="nc" id="L61">        targetDirPanel.initialize();</span>
+<span class="nc" id="L62">        targetDirPanel.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L63">        add(targetDirPanel);</span>
+<span class="nc" id="L64">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L67">        JPanel optionPanel = new JPanel();</span>
+<span class="nc" id="L68">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L69">        optionPanel.setBorder(BorderFactory.createTitledBorder(&quot;Options&quot;));</span>
+
+<span class="nc" id="L71">        isRecursiveSearched = new JCheckBox(&quot;Recursive Search&quot;);</span>
+<span class="nc" id="L72">        isRecursiveSearched.setSelected(true);</span>
+<span class="nc" id="L73">        optionPanel.add(isRecursiveSearched);</span>
+<span class="nc" id="L74">        optionPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L76">        add(optionPanel);</span>
+<span class="nc" id="L77">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L80">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L81">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L82">        operationPanel.setBorder(BorderFactory.createTitledBorder(&quot;Operations&quot;));</span>
+
+<span class="nc" id="L84">        startButton = new JButton(&quot;Start&quot;);</span>
+<span class="nc" id="L85">        cancelButton = new JButton(&quot;Cancel&quot;);</span>
+<span class="nc" id="L86">        cancelButton.setEnabled(false);</span>
+<span class="nc" id="L87">        startButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L88">        cancelButton.addActionListener(new OperationButtonActionListener());</span>
+<span class="nc" id="L89">        operationPanel.add(startButton);</span>
+<span class="nc" id="L90">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L91">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L92">        operationPanel.add(cancelButton);</span>
+<span class="nc" id="L93">        operationPanel.add(Box.createHorizontalGlue());</span>
+
+<span class="nc" id="L95">        add(operationPanel);</span>
+<span class="nc" id="L96">    }</span>
+
+    private void processFile(File encryptedFile, File targetDir) {
+        try {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">            if (Thread.currentThread().isInterrupted()) {</span>
+<span class="nc" id="L101">                return;</span>
+            }
+<span class="nc" id="L103">            PdfUtils.removePasswordWithIText(encryptedFile, targetDir);</span>
+<span class="nc" id="L104">        } catch (Throwable t) {</span>
+<span class="nc" id="L105">            logger.error(&quot;Process file failed: {}&quot;, encryptedFile.getAbsolutePath(), t);</span>
+<span class="nc" id="L106">        }</span>
+<span class="nc" id="L107">    }</span>
+
+<span class="nc" id="L109">    class OperationButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L112">            Object source = e.getSource();</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">            if (source.equals(startButton)) {</span>
+<span class="nc" id="L114">                startButton.setEnabled(false);</span>
+<span class="nc" id="L115">                cancelButton.setEnabled(true);</span>
+<span class="nc" id="L116">                convertThread = new WorkderThread(isRecursiveSearched.isSelected());</span>
+<span class="nc" id="L117">                convertThread.start();</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            } else if (source.equals(cancelButton)) {</span>
+<span class="nc" id="L119">                startButton.setEnabled(true);</span>
+<span class="nc" id="L120">                cancelButton.setEnabled(false);</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                if (convertThread.isAlive()) {</span>
+<span class="nc" id="L122">                    convertThread.interrupt();</span>
+<span class="nc" id="L123">                    convertThread.executorService.shutdownNow();</span>
+                }
+            }
+
+<span class="nc" id="L127">        }</span>
+    }
+
+    class WorkderThread extends Thread {
+        public final ExecutorService executorService;
+        private final boolean isRecursiveSearched;
+
+<span class="nc" id="L134">        public WorkderThread(boolean isRecursiveSearched) {</span>
+<span class="nc" id="L135">            super();</span>
+<span class="nc" id="L136">            this.isRecursiveSearched = isRecursiveSearched;</span>
+<span class="nc" id="L137">            this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());</span>
+<span class="nc" id="L138">        }</span>
+
+        @Override
+        public void run() {
+            try {
+<span class="nc" id="L143">                List&lt;File&gt; fileList = fileListPanel.getFileList();</span>
+<span class="nc" id="L144">                Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;();</span>
+<span class="nc" id="L145">                String[] extensions = new String[]{&quot;jpg&quot;, &quot;jpeg&quot;, &quot;png&quot;};</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">                for (File file : fileList) {</span>
+<span class="nc" id="L147">                    fileSet.addAll(FileUtils.listFiles(file, extensions, isRecursiveSearched));</span>
+<span class="nc" id="L148">                }</span>
+
+<span class="nc" id="L150">                PdfUtils.imagesToPdf(fileSet, new File(targetDirPanel.getFile(), &quot;result.pdf&quot;));</span>
+<span class="nc" id="L151">            } catch (Exception e) {</span>
+<span class="nc" id="L152">                logger.error(&quot;Remove process failed&quot;, e);</span>
+            } finally {
+<span class="nc" id="L154">                executorService.shutdown();</span>
+<span class="nc" id="L155">                SwingUtilities.invokeLater(() -&gt; {</span>
+<span class="nc" id="L156">                    startButton.setEnabled(true);</span>
+<span class="nc" id="L157">                    cancelButton.setEnabled(false);</span>
+<span class="nc" id="L158">                });</span>
+            }
+<span class="nc" id="L160">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

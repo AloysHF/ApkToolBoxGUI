@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZhConvertPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.zhconvert</a> &gt; <span class="el_source">ZhConvertPanel.java</span></div><h1>ZhConvertPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.zhconvert;
+
+import com.github.houbb.opencc4j.util.ZhConverterUtil;
+import edu.jiangxin.apktoolbox.swing.extend.FileListPanel;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.util.List;
+import java.util.*;
+
+public class ZhConvertPanel extends EasyPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel northPanel;
+
+    private JSplitPane centerPanel;
+
+    private FileListPanel fileListPanel;
+
+    private JTextField suffixTextField;
+
+    private JCheckBox recursiveCheckBox;
+
+    private JComboBox&lt;String&gt; comboBox;
+
+    private JTextField keyText;
+
+    private JTextField valueText;
+
+    private JTextArea textArea;
+
+    private JList&lt;Object&gt; transformList;
+
+<span class="nc" id="L44">    private static ZHConverterUtils myZHConverterUtils = new ZHConverterUtils();</span>
+
+    public ZhConvertPanel() throws HeadlessException {
+<span class="nc" id="L47">        super();</span>
+<span class="nc" id="L48">    }</span>
+
+    @Override
+    public void initUI() {
+        // JSplitPanel只能用BorderLayout，JFrame默认是BorderLayout，JPanel默认是BoxLayout
+<span class="nc" id="L53">        BorderLayout boxLayout = new BorderLayout();</span>
+<span class="nc" id="L54">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L56">        createNorthPanel();</span>
+<span class="nc" id="L57">        add(northPanel, BorderLayout.NORTH);</span>
+
+<span class="nc" id="L59">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L61">        createCenterPanel();</span>
+<span class="nc" id="L62">        add(centerPanel, BorderLayout.CENTER);</span>
+<span class="nc" id="L63">    }</span>
+
+    private void createNorthPanel() {
+<span class="nc" id="L66">        northPanel = new JPanel();</span>
+<span class="nc" id="L67">        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L69">        fileListPanel = new FileListPanel();</span>
+<span class="nc" id="L70">        fileListPanel.initialize();</span>
+<span class="nc" id="L71">        northPanel.add(fileListPanel);</span>
+<span class="nc" id="L72">        northPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L74">        JPanel optionPanel = new JPanel();</span>
+<span class="nc" id="L75">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L76">        northPanel.add(optionPanel);</span>
+
+<span class="nc" id="L78">        JLabel suffixLabel = new JLabel(&quot;Suffix:&quot;);</span>
+<span class="nc" id="L79">        suffixTextField = new JTextField();</span>
+<span class="nc" id="L80">        suffixTextField.setToolTipText(&quot;an array of extensions, ex. {\&quot;java\&quot;,\&quot;xml\&quot;}. If this parameter is empty, all files are returned.&quot;);</span>
+<span class="nc" id="L81">        suffixTextField.setText(conf.getString(&quot;osconvert.suffix&quot;));</span>
+<span class="nc" id="L82">        optionPanel.add(suffixLabel);</span>
+<span class="nc" id="L83">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L84">        optionPanel.add(suffixTextField);</span>
+<span class="nc" id="L85">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L87">        recursiveCheckBox = new JCheckBox(&quot;Recursive&quot;);</span>
+<span class="nc" id="L88">        recursiveCheckBox.setSelected(true);</span>
+<span class="nc" id="L89">        optionPanel.add(recursiveCheckBox);</span>
+<span class="nc" id="L90">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+
+<span class="nc" id="L92">        comboBox = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L93">        comboBox.addItem(Constants.zhSimple2zhTw);</span>
+<span class="nc" id="L94">        comboBox.addItem(Constants.zhTw2zhSimple);</span>
+<span class="nc" id="L95">        optionPanel.add(comboBox);</span>
+
+<span class="nc" id="L97">        JButton convertBtn = new JButton(&quot;确认转换&quot;);</span>
+<span class="nc" id="L98">        convertBtn.addActionListener(new ConvertBtnActionListener());</span>
+<span class="nc" id="L99">        northPanel.add(convertBtn);</span>
+
+<span class="nc" id="L101">        JFileChooser fileChooser = new JFileChooser();</span>
+<span class="nc" id="L102">        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);</span>
+<span class="nc" id="L103">    }</span>
+
+    private void createCenterPanel() {
+<span class="nc" id="L106">        JPanel centerLeftTopPanel = new JPanel();</span>
+<span class="nc" id="L107">        centerLeftTopPanel.setLayout(new BoxLayout(centerLeftTopPanel, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L109">        JPanel keyValuePanel = new JPanel();</span>
+<span class="nc" id="L110">        keyValuePanel.setLayout(new BoxLayout(keyValuePanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L111">        centerLeftTopPanel.add(keyValuePanel);</span>
+
+<span class="nc" id="L113">        keyText = new JTextField(10);</span>
+<span class="nc" id="L114">        keyValuePanel.add(keyText);</span>
+
+<span class="nc" id="L116">        valueText = new JTextField(10);</span>
+<span class="nc" id="L117">        keyValuePanel.add(valueText);</span>
+
+<span class="nc" id="L119">        JButton saveBtn = new JButton(&quot;添加词组定义&quot;);</span>
+<span class="nc" id="L120">        saveBtn.addActionListener(new SaveBtnActionListener());</span>
+<span class="nc" id="L121">        centerLeftTopPanel.add(saveBtn);</span>
+
+<span class="nc" id="L123">        JScrollPane centerLeftBottomPanel = new JScrollPane();</span>
+<span class="nc" id="L124">        textArea = new JTextArea();</span>
+<span class="nc" id="L125">        textArea.setMargin(new Insets(10, 10, 10, 10));</span>
+        //自动换行
+<span class="nc" id="L127">        textArea.setLineWrap(true);</span>
+<span class="nc" id="L128">        textArea.setEditable(false);</span>
+<span class="nc" id="L129">        centerLeftBottomPanel.add(textArea);</span>
+
+        //垂直滚动条自动出现
+<span class="nc" id="L132">        centerLeftBottomPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);</span>
+<span class="nc" id="L133">        JSplitPane centerLeftSplitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, centerLeftTopPanel, centerLeftBottomPanel);</span>
+
+<span class="nc" id="L135">        transformList = new JList&lt;&gt;();</span>
+<span class="nc" id="L136">        refreshListData();</span>
+<span class="nc" id="L137">        transformList.setFont(new Font(&quot;Dialog&quot;, 1, 18));</span>
+<span class="nc" id="L138">        transformList.setBorder(BorderFactory.createTitledBorder(&quot;词组转换定义&quot;));</span>
+<span class="nc" id="L139">        JScrollPane centerRightScrollPanel = new JScrollPane(transformList);</span>
+
+<span class="nc" id="L141">        centerPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerLeftSplitPanel, centerRightScrollPanel);</span>
+<span class="nc" id="L142">        centerPanel.setDividerLocation(0.7f);</span>
+<span class="nc" id="L143">    }</span>
+
+<span class="nc" id="L145">    private final class ConvertBtnActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L148">            new Thread(() -&gt; {</span>
+<span class="nc" id="L149">                String converType = comboBox.getSelectedItem().toString();</span>
+<span class="nc" id="L150">                System.out.println(converType);</span>
+
+<span class="nc" id="L152">                List&lt;File&gt; fileList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">                for (File file : fileListPanel.getFileList()) {</span>
+<span class="nc" id="L154">                    String[] extensions = null;</span>
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                    if (StringUtils.isNotEmpty(suffixTextField.getText())) {</span>
+<span class="nc" id="L156">                        extensions = suffixTextField.getText().split(&quot;,&quot;);</span>
+                    }
+<span class="nc" id="L158">                    fileList.addAll(FileUtils.listFiles(file, extensions, recursiveCheckBox.isSelected()));</span>
+<span class="nc" id="L159">                }</span>
+<span class="nc" id="L160">                Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;(fileList);</span>
+<span class="nc" id="L161">                fileList.clear();</span>
+<span class="nc" id="L162">                fileList.addAll(fileSet);</span>
+
+<span class="nc" id="L164">                textArea.setCaretPosition(textArea.getText().length());</span>
+                try {
+<span class="nc" id="L166">                    scanFolderAndConver(fileList, converType, textArea);</span>
+<span class="nc" id="L167">                    JOptionPane.showMessageDialog(getFrame(), &quot;转换成功&quot; , &quot;提示&quot;,JOptionPane.WARNING_MESSAGE);</span>
+<span class="nc" id="L168">                    textArea.append(&quot;done...&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L169">                    textArea.setCaretPosition(textArea.getText().length());</span>
+<span class="nc" id="L170">                } catch (IOException e1) {</span>
+<span class="nc" id="L171">                    JOptionPane.showMessageDialog(getFrame(), &quot;异常：&quot; + e1.getMessage(), &quot;异常&quot;,JOptionPane.ERROR_MESSAGE);</span>
+<span class="nc" id="L172">                    textArea.append(&quot;转换异常...&quot; + &quot;\n&quot;);</span>
+<span class="nc" id="L173">                    textArea.setCaretPosition(textArea.getText().length());</span>
+<span class="nc" id="L174">                }</span>
+<span class="nc" id="L175">            }).start();</span>
+<span class="nc" id="L176">        }</span>
+    }
+
+<span class="nc" id="L179">    private final class SaveBtnActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L182">            String key = keyText.getText();</span>
+<span class="nc" id="L183">            String value = valueText.getText();</span>
+
+<span class="nc bnc" id="L185" title="All 4 branches missed.">            if (StringUtils.isNotBlank(key) &amp;&amp; StringUtils.isNotBlank(value)){</span>
+<span class="nc" id="L186">                myZHConverterUtils.storeDataToProperties(key,value);</span>
+<span class="nc" id="L187">                JOptionPane.showMessageDialog(ZhConvertPanel.this, &quot;成功插入一条词组对应信息&quot;, &quot;提示&quot;,JOptionPane.WARNING_MESSAGE);</span>
+<span class="nc" id="L188">                refreshListData();</span>
+<span class="nc" id="L189">                textArea.append(&quot;成功插入一条词组对应信息：&quot; + key + &quot; &lt;===&gt; &quot; + value + &quot;\n&quot;);</span>
+            }else{
+<span class="nc" id="L191">                JOptionPane.showMessageDialog(ZhConvertPanel.this, &quot;键值对不能为空&quot;, &quot;提示&quot;,JOptionPane.WARNING_MESSAGE);</span>
+            }
+<span class="nc" id="L193">        }</span>
+    }
+
+    private void refreshListData(){
+<span class="nc" id="L197">        List&lt;String&gt; listModel = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L198">        Properties properties = myZHConverterUtils.getCharMap();</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">        for (String key2 : properties.stringPropertyNames()) {</span>
+<span class="nc" id="L200">            listModel.add(key2 + &quot; &lt;===&gt; &quot; + properties.getProperty(key2));</span>
+<span class="nc" id="L201">        }</span>
+<span class="nc" id="L202">        transformList.setListData(listModel.toArray());</span>
+<span class="nc" id="L203">    }</span>
+
+    private static void scanFolderAndConver(List&lt;File&gt; fileList, String converType, JTextArea jTextArea) throws IOException {
+<span class="nc" id="L206">        jTextArea.append(&quot;文件转换开始：\n&quot;);</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">        for (File file : fileList){</span>
+<span class="nc" id="L208">            jTextArea.append(&quot;开始转换：&quot;+file + &quot;\n&quot;);</span>
+<span class="nc" id="L209">            String content = org.apache.commons.io.FileUtils.readFileToString(file, &quot;utf-8&quot;);</span>
+
+<span class="nc bnc" id="L211" title="All 2 branches missed.">            if (converType.equals(Constants.zhSimple2zhTw)){</span>
+<span class="nc" id="L212">                String str = myZHConverterUtils.myConvertToTW(content);</span>
+<span class="nc" id="L213">                String result = ZhConverterUtil.toTraditional(str);</span>
+<span class="nc" id="L214">                org.apache.commons.io.FileUtils.write(file,result,&quot;UTF-8&quot;);</span>
+<span class="nc" id="L215">            }else{</span>
+<span class="nc" id="L216">                String str = myZHConverterUtils.myConvertToSimple(content);</span>
+<span class="nc" id="L217">                String result = ZhConverterUtil.toSimple(str);</span>
+<span class="nc" id="L218">                org.apache.commons.io.FileUtils.write(file,result,&quot;UTF-8&quot;);</span>
+            }
+<span class="nc" id="L220">            jTextArea.append(&quot;转换完成：&quot;+file + &quot;\n&quot;);</span>
+<span class="nc" id="L221">            jTextArea.setCaretPosition(jTextArea.getText().length());</span>
+<span class="nc" id="L222">        }</span>
+<span class="nc" id="L223">        jTextArea.append(&quot;文件转换结束：\n&quot;);</span>
+<span class="nc" id="L224">        jTextArea.append(&quot;==========================================================================：\n&quot;);</span>
+<span class="nc" id="L225">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

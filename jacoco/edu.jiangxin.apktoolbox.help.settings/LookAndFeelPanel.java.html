@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LookAndFeelPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help.settings</a> &gt; <span class="el_source">LookAndFeelPanel.java</span></div><h1>LookAndFeelPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help.settings;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.Serial;
+
+<span class="nc" id="L14">public class LookAndFeelPanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel optionPanel;
+
+    private JComboBox&lt;String&gt; typeComboBox;
+
+    private JPanel operationPanel;
+
+    static {
+        // Avoid install duplicated Look And Feel, we install them in static block
+<span class="nc" id="L26">        UIManager.installLookAndFeel(&quot;Flat Light&quot;, &quot;com.formdev.flatlaf.FlatLightLaf&quot;);</span>
+<span class="nc" id="L27">        UIManager.installLookAndFeel(&quot;Flat Dark&quot;, &quot;com.formdev.flatlaf.FlatDarkLaf&quot;);</span>
+<span class="nc" id="L28">        UIManager.installLookAndFeel(&quot;Flat IntelliJ&quot;, &quot;com.formdev.flatlaf.FlatIntelliJLaf&quot;);</span>
+<span class="nc" id="L29">        UIManager.installLookAndFeel(&quot;Flat Darcula&quot;, &quot;com.formdev.flatlaf.FlatDarculaLaf&quot;);</span>
+<span class="nc" id="L30">    }</span>
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L34">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L35">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L37">        createOptionPanel();</span>
+<span class="nc" id="L38">        add(optionPanel);</span>
+
+<span class="nc" id="L40">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L42">        createOperationPanel();</span>
+<span class="nc" id="L43">        add(operationPanel);</span>
+
+<span class="nc" id="L45">        add(Box.createVerticalStrut(15 * Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L46">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L49">        optionPanel = new JPanel();</span>
+<span class="nc" id="L50">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L52">        JLabel typeLabel = new JLabel(&quot;Type:&quot;);</span>
+<span class="nc" id="L53">        typeComboBox = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L54">        typeComboBox.setMaximumSize(new Dimension(Constants.DEFAULT_COMBOBOX_WIDTH, Constants.DEFAULT_COMBOBOX_HEIGHT));</span>
+
+<span class="nc" id="L56">        UIManager.LookAndFeelInfo[] lookAndFeelInfos = UIManager.getInstalledLookAndFeels();</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        if (ArrayUtils.isEmpty(lookAndFeelInfos)) {</span>
+<span class="nc" id="L58">            typeComboBox.setEnabled(false);</span>
+        } else {
+<span class="nc" id="L60">            typeComboBox.setEnabled(true);</span>
+<span class="nc" id="L61">            String className = conf.getString(&quot;look.and.feel.class.name&quot;);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">            for (UIManager.LookAndFeelInfo info : lookAndFeelInfos) {</span>
+<span class="nc" id="L63">                typeComboBox.addItem(info.getName());</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                if (Strings.CS.equals(className, info.getClassName())) {</span>
+<span class="nc" id="L65">                    typeComboBox.setSelectedItem(info.getName());</span>
+                }
+            }
+        }
+
+<span class="nc" id="L70">        optionPanel.add(typeLabel);</span>
+<span class="nc" id="L71">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L72">        optionPanel.add(typeComboBox);</span>
+<span class="nc" id="L73">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L76">        operationPanel = new JPanel();</span>
+<span class="nc" id="L77">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L79">        JButton applyButton = new JButton(&quot;Apply&quot;);</span>
+<span class="nc" id="L80">        applyButton.addActionListener(new ApplyButtonActionListener());</span>
+
+<span class="nc" id="L82">        operationPanel.add(applyButton);</span>
+<span class="nc" id="L83">    }</span>
+
+<span class="nc" id="L85">    private final class ApplyButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+<span class="nc" id="L88">            String name = (String) typeComboBox.getSelectedItem();</span>
+<span class="nc" id="L89">            String className = getLookAndFeelClassNameFromName(name);</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (className == null) {</span>
+<span class="nc" id="L91">                logger.warn(&quot;className is null&quot;);</span>
+<span class="nc" id="L92">                return;</span>
+            }
+<span class="nc" id="L94">            conf.setProperty(&quot;look.and.feel.class.name&quot;, className);</span>
+            try {
+<span class="nc" id="L96">                UIManager.setLookAndFeel(className);</span>
+<span class="nc" id="L97">            } catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e) {</span>
+<span class="nc" id="L98">                logger.error(&quot;setLookAndFeel failed, use default instead&quot;, e);</span>
+<span class="nc" id="L99">            }</span>
+<span class="nc" id="L100">            SwingUtilities.updateComponentTreeUI(getFrame());</span>
+<span class="nc" id="L101">            getFrame().refreshSizeAndLocation();</span>
+<span class="nc" id="L102">        }</span>
+    }
+
+    private String getLookAndFeelClassNameFromName(String name) {
+<span class="nc" id="L106">        UIManager.LookAndFeelInfo[] lookAndFeelInfos = UIManager.getInstalledLookAndFeels();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        for (UIManager.LookAndFeelInfo info : lookAndFeelInfos) {</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (Strings.CS.equals(name, info.getName())) {</span>
+<span class="nc" id="L109">                return info.getClassName();</span>
+            }
+        }
+<span class="nc" id="L112">        return null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AlwaysOnTopPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help.settings</a> &gt; <span class="el_source">AlwaysOnTopPanel.java</span></div><h1>AlwaysOnTopPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help.settings;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+
+import javax.swing.*;
+import java.io.Serial;
+
+<span class="nc" id="L9">public class AlwaysOnTopPanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel optionPanel;
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L17">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L18">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L20">        createOptionPanel();</span>
+<span class="nc" id="L21">        add(optionPanel);</span>
+
+<span class="nc" id="L23">        add(Box.createVerticalStrut(15 * Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L24">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L27">        optionPanel = new JPanel();</span>
+<span class="nc" id="L28">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L30">        JLabel typeLabel = new JLabel(&quot;Always on top:&quot;);</span>
+<span class="nc" id="L31">        JCheckBox alwaysOnTopCheckBox = new JCheckBox();</span>
+<span class="nc" id="L32">        alwaysOnTopCheckBox.setSelected(conf.getBoolean(&quot;always.on.top&quot;, false));</span>
+<span class="nc" id="L33">        alwaysOnTopCheckBox.addActionListener(e -&gt; {</span>
+<span class="nc" id="L34">            conf.setProperty(&quot;always.on.top&quot;, alwaysOnTopCheckBox.isSelected());</span>
+<span class="nc" id="L35">            getFrame().setAlwaysOnTop(alwaysOnTopCheckBox.isSelected());</span>
+<span class="nc" id="L36">            SwingUtilities.updateComponentTreeUI(getFrame());</span>
+<span class="nc" id="L37">            getFrame().refreshSizeAndLocation();</span>
+<span class="nc" id="L38">        });</span>
+
+<span class="nc" id="L40">        optionPanel.add(typeLabel);</span>
+<span class="nc" id="L41">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L42">        optionPanel.add(alwaysOnTopCheckBox);</span>
+<span class="nc" id="L43">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

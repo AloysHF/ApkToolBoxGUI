@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BruteForceTaskParam.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce</a> &gt; <span class="el_source">BruteForceTaskParam.java</span></div><h1>BruteForceTaskParam.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.checker.IChecker;
+
+public class BruteForceTaskParam {
+    final int numThreads;
+    final int passwordLength;
+    final long passwordRangeSize;
+    final long passwordSubRangeSize;
+    final IChecker checker;
+    final String charsSet;
+
+<span class="nc" id="L13">    public BruteForceTaskParam(int numThreads, int passwordLength, IChecker checker, String charsSet) {</span>
+<span class="nc" id="L14">        this.numThreads = numThreads;</span>
+<span class="nc" id="L15">        this.passwordLength = passwordLength;</span>
+<span class="nc" id="L16">        this.checker = checker;</span>
+<span class="nc" id="L17">        this.passwordRangeSize = (long) Math.pow(charsSet.length(), passwordLength);</span>
+<span class="nc" id="L18">        this.passwordSubRangeSize = (passwordRangeSize + numThreads - 1) / numThreads;</span>
+<span class="nc" id="L19">        this.charsSet = charsSet;</span>
+<span class="nc" id="L20">    }</span>
+
+    public int getPasswordLength() {
+<span class="nc" id="L23">        return passwordLength;</span>
+    }
+
+    public long getPasswordTotalRangeSize() {
+<span class="nc" id="L27">        return passwordRangeSize;</span>
+    }
+
+    public long getPasswordSubRangeSize() {
+<span class="nc" id="L31">        return passwordSubRangeSize;</span>
+    }
+
+    public IChecker getChecker() {
+<span class="nc" id="L35">        return checker;</span>
+    }
+
+    public String getCharsSet() {
+<span class="nc" id="L39">        return charsSet;</span>
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

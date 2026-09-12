@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExcelExporter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.utils</a> &gt; <span class="el_source">ExcelExporter.java</span></div><h1>ExcelExporter.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.utils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.TableModel;
+import java.awt.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+/**
+ * 工具类：将 JTable 的 TableModel 数据导出为 .xlsx 文件。
+ */
+public class ExcelExporter {
+
+<span class="nc" id="L22">    private static final Logger logger = LogManager.getLogger(ExcelExporter.class);</span>
+
+    private ExcelExporter() {
+        // 工具类，禁止实例化
+    }
+
+    /**
+     * 完整导出流程：空数据检查 → 文件选择 → 写文件 → 结果提示。
+     * 必须在 EDT 中调用。
+     *
+     * @param tableModel      数据来源
+     * @param defaultFileName 文件保存对话框的默认文件名，例如 &quot;pdf_stat_export.xlsx&quot;
+     * @param parent          父组件，用于对话框定位
+     */
+    public static void export(TableModel tableModel, String defaultFileName, Component parent) {
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if (tableModel.getRowCount() == 0) {</span>
+<span class="nc" id="L38">            SwingUtilities.invokeLater(() -&gt;</span>
+<span class="nc" id="L39">                JOptionPane.showMessageDialog(parent, &quot;当前没有可导出的数据&quot;, &quot;提示&quot;, JOptionPane.INFORMATION_MESSAGE));</span>
+<span class="nc" id="L40">            return;</span>
+        }
+
+<span class="nc" id="L43">        JFileChooser fileChooser = new JFileChooser();</span>
+<span class="nc" id="L44">        fileChooser.setDialogTitle(&quot;保存 Excel 文件&quot;);</span>
+<span class="nc" id="L45">        fileChooser.setFileFilter(new FileNameExtensionFilter(&quot;Excel 文件 (*.xlsx)&quot;, &quot;xlsx&quot;));</span>
+<span class="nc" id="L46">        fileChooser.setSelectedFile(new File(defaultFileName));</span>
+
+<span class="nc" id="L48">        int result = fileChooser.showSaveDialog(parent);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (result != JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L50">            return;</span>
+        }
+
+<span class="nc" id="L53">        File selectedFile = fileChooser.getSelectedFile();</span>
+        // 自动追加 .xlsx 后缀
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (!selectedFile.getName().toLowerCase().endsWith(&quot;.xlsx&quot;)) {</span>
+<span class="nc" id="L56">            selectedFile = new File(selectedFile.getAbsolutePath() + &quot;.xlsx&quot;);</span>
+        }
+<span class="nc" id="L58">        final File targetFile = selectedFile;</span>
+
+        // 在后台线程写文件，避免阻塞 EDT
+<span class="nc" id="L61">        final TableModel modelSnapshot = tableModel;</span>
+<span class="nc" id="L62">        new Thread(() -&gt; {</span>
+            try {
+<span class="nc" id="L64">                writeToFile(modelSnapshot, targetFile);</span>
+<span class="nc" id="L65">                final String absolutePath = targetFile.getAbsolutePath();</span>
+<span class="nc" id="L66">                SwingUtilities.invokeLater(() -&gt;</span>
+<span class="nc" id="L67">                    JOptionPane.showMessageDialog(parent, &quot;导出成功：&quot; + absolutePath, &quot;成功&quot;, JOptionPane.INFORMATION_MESSAGE));</span>
+<span class="nc" id="L68">            } catch (IOException e) {</span>
+<span class="nc" id="L69">                logger.error(&quot;导出 Excel 失败&quot;, e);</span>
+<span class="nc" id="L70">                final String errorMsg = e.getMessage();</span>
+<span class="nc" id="L71">                SwingUtilities.invokeLater(() -&gt;</span>
+<span class="nc" id="L72">                    JOptionPane.showMessageDialog(parent, &quot;导出失败：&quot; + errorMsg, &quot;错误&quot;, JOptionPane.ERROR_MESSAGE));</span>
+<span class="nc" id="L73">            }</span>
+<span class="nc" id="L74">        }).start();</span>
+<span class="nc" id="L75">    }</span>
+
+    /**
+     * 将 TableModel 数据写入指定文件（在后台线程调用）。
+     */
+    static void writeToFile(TableModel tableModel, File targetFile) throws IOException {
+<span class="nc" id="L81">        try (XSSFWorkbook workbook = new XSSFWorkbook()) {</span>
+<span class="nc" id="L82">            Sheet sheet = workbook.createSheet(&quot;Sheet1&quot;);</span>
+
+            // 写表头
+<span class="nc" id="L85">            Row headerRow = sheet.createRow(0);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            for (int col = 0; col &lt; tableModel.getColumnCount(); col++) {</span>
+<span class="nc" id="L87">                headerRow.createCell(col).setCellValue(tableModel.getColumnName(col));</span>
+            }
+
+            // 写数据行
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            for (int row = 0; row &lt; tableModel.getRowCount(); row++) {</span>
+<span class="nc" id="L92">                Row dataRow = sheet.createRow(row + 1);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">                for (int col = 0; col &lt; tableModel.getColumnCount(); col++) {</span>
+<span class="nc" id="L94">                    Object value = tableModel.getValueAt(row, col);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                    dataRow.createCell(col).setCellValue(value == null ? &quot;&quot; : value.toString());</span>
+                }
+            }
+
+<span class="nc" id="L99">            try (FileOutputStream fos = new FileOutputStream(targetFile)) {</span>
+<span class="nc" id="L100">                workbook.write(fos);</span>
+            }
+        }
+<span class="nc" id="L103">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

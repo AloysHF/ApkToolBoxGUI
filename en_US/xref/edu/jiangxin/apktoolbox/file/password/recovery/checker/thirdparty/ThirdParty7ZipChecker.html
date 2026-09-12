@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en_US" lang="en_US">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ThirdParty7ZipChecker xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../../../../apidocs/edu/jiangxin/apktoolbox/file/password/recovery/checker/thirdparty/ThirdParty7ZipChecker.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> edu.jiangxin.apktoolbox.file.password.recovery.checker.thirdparty;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.utils.Constants;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a name="ThirdParty7ZipChecker" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/checker/thirdparty/ThirdParty7ZipChecker.html#ThirdParty7ZipChecker">ThirdParty7ZipChecker</a> <strong class="jxr_keyword">extends</strong> <a name="AbstractThirdPartyChecker" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/checker/thirdparty/AbstractThirdPartyChecker.html#AbstractThirdPartyChecker">AbstractThirdPartyChecker</a> {
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>       @Override
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>       <strong class="jxr_keyword">public</strong> String[] getFileExtensions() {
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"7z"</span>, <span class="jxr_string">"zip"</span>, <span class="jxr_string">"rar"</span>, <span class="jxr_string">"gz"</span>, <span class="jxr_string">"tar"</span>, <span class="jxr_string">"xz"</span>, <span class="jxr_string">"z"</span>, <span class="jxr_string">"001"</span>};
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>       }
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>  
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      @Override
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">public</strong> String getFileDescription() {
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"*.7z; *.zip; *.rar; ..."</span>;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>      }
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>  
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      @Override
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">public</strong> String getDescription() {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"ThirdParty7ZipChecker(Using 7z.exe)"</span>;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      }
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>  
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>      @Override
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      <strong class="jxr_keyword">public</strong> String getToolPath() {
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <strong class="jxr_keyword">return</strong> conf.getString(Constants.SEVEN_ZIP_PATH_KEY);
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      }
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>  
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>      @Override
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">boolean</strong> isFiltered(String password) {
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          <strong class="jxr_keyword">if</strong> (password != <strong class="jxr_keyword">null</strong> &amp;&amp; password.contains(<span class="jxr_string">"\&quot;"</span>)) {
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>              <em class="jxr_comment">// It is useless to escape the password</em>
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>              logger.warn(<span class="jxr_string">"checkPassword password contain double quote characters[Not Supported]"</span>);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>              <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          }
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>          <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>      }
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>      @Override
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> String getCmd(String password) {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          String target = file.getAbsolutePath();
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          <strong class="jxr_keyword">return</strong> String.format(<span class="jxr_string">"%s t \&quot;%s\&quot; -p\&quot;%s\&quot;"</span>, toolPath, target, password);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>      }
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  }
+</pre>
+<hr/>
+<div id="footer">© 2026</div>
+</body>
+</html>

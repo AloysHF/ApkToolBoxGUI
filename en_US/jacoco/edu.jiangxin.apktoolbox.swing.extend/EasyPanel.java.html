@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EasyPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend</a> &gt; <span class="el_source">EasyPanel.java</span></div><h1>EasyPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend;
+
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+import edu.jiangxin.apktoolbox.utils.Utils;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.ResourceBundle;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class EasyPanel extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+    protected transient Logger logger;
+    protected transient Configuration conf;
+    protected transient ResourceBundle bundle;
+
+<span class="nc" id="L27">    protected boolean isInited = false;</span>
+    
+    public EasyPanel() throws HeadlessException {
+<span class="nc" id="L30">        super();</span>
+<span class="nc" id="L31">        logger = LogManager.getLogger(this.getClass().getSimpleName());</span>
+<span class="nc" id="L32">        conf = Utils.getConfiguration();</span>
+<span class="nc" id="L33">        bundle = ResourceBundle.getBundle(&quot;apktoolbox&quot;);</span>
+<span class="nc" id="L34">        logger.info(&quot;Panel start: &quot; + this.getClass().getSimpleName());</span>
+<span class="nc" id="L35">    }</span>
+
+    public boolean isNeedPreChangeMenu() {
+<span class="nc" id="L38">        return false;</span>
+    }
+
+    public void init() {
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (!isInited) {</span>
+<span class="nc" id="L43">            initUI();</span>
+<span class="nc" id="L44">            isInited = true;</span>
+        }
+<span class="nc" id="L46">    }</span>
+
+    public void initUI() {
+        // do nothing
+<span class="nc" id="L50">    }</span>
+
+    public void afterPainted() {
+        // do nothing
+<span class="nc" id="L54">    }</span>
+
+    protected EasyFrame getFrame() {
+        //Java/Swing: Obtain Window/JFrame from inside a JPanel:
+        // https://stackoverflow.com/questions/9650874/java-swing-obtain-window-jframe-from-inside-a-jpanel
+<span class="nc" id="L59">        Window window = SwingUtilities.getWindowAncestor(this);</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (window instanceof EasyFrame) {</span>
+<span class="nc" id="L61">            return (EasyFrame) window;</span>
+        }
+<span class="nc" id="L63">        return null;</span>
+    }
+
+    protected String checkAndGetFileContent(JTextField textField, String key, String msg) {
+<span class="nc" id="L67">        File file = new File(textField.getText());</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if (!file.exists() || !file.isFile()) {</span>
+<span class="nc" id="L69">            logger.error(msg);</span>
+<span class="nc" id="L70">            Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L71">            JOptionPane.showMessageDialog(this, msg, Constants.MESSAGE_DIALOG_TITLE,</span>
+                    JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L73">            textField.requestFocus();</span>
+<span class="nc" id="L74">            return null;</span>
+        }
+<span class="nc" id="L76">        String path = FileUtils.getCanonicalPathQuiet(file);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (path != null) {</span>
+<span class="nc" id="L78">            conf.setProperty(key, path);</span>
+        }
+<span class="nc" id="L80">        return path;</span>
+    }
+
+    protected String checkAndGetNewFileContent(JTextField textField, String key, String msg) {
+<span class="nc" id="L84">        File file = new File(textField.getText());</span>
+<span class="nc" id="L85">        File parentFile = file.getParentFile();</span>
+<span class="nc bnc" id="L86" title="All 4 branches missed.">        if (!parentFile.exists() || !parentFile.isDirectory()) {</span>
+<span class="nc" id="L87">            logger.error(msg);</span>
+<span class="nc" id="L88">            Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L89">            JOptionPane.showMessageDialog(this, msg, Constants.MESSAGE_DIALOG_TITLE,</span>
+                    JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L91">            textField.requestFocus();</span>
+<span class="nc" id="L92">            return null;</span>
+        }
+<span class="nc" id="L94">        String path = FileUtils.getCanonicalPathQuiet(file);</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (path != null) {</span>
+<span class="nc" id="L96">            conf.setProperty(key, path);</span>
+        }
+<span class="nc" id="L98">        return path;</span>
+    }
+
+    protected String checkAndGetDirContent(JTextField textField, String key, String msg) {
+<span class="nc" id="L102">        File file = new File(textField.getText());</span>
+<span class="nc bnc" id="L103" title="All 4 branches missed.">        if (!file.exists() || !file.isDirectory()) {</span>
+<span class="nc" id="L104">            logger.error(msg);</span>
+<span class="nc" id="L105">            Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L106">            JOptionPane.showMessageDialog(this, msg, Constants.MESSAGE_DIALOG_TITLE,</span>
+                    JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L108">            textField.requestFocus();</span>
+<span class="nc" id="L109">            return null;</span>
+        }
+<span class="nc" id="L111">        String path = FileUtils.getCanonicalPathQuiet(file);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        if (path != null) {</span>
+<span class="nc" id="L113">            conf.setProperty(key, path);</span>
+        }
+<span class="nc" id="L115">        return path;</span>
+    }
+
+    protected String checkAndGetStringContent(JTextField textField, String key, String msg) {
+<span class="nc" id="L119">        String content = textField.getText();</span>
+<span class="nc bnc" id="L120" title="All 4 branches missed.">        if (content == null || content.isEmpty()) {</span>
+<span class="nc" id="L121">            logger.error(msg);</span>
+<span class="nc" id="L122">            Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L123">            JOptionPane.showMessageDialog(this, msg, Constants.MESSAGE_DIALOG_TITLE,</span>
+                    JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L125">            textField.requestFocus();</span>
+<span class="nc" id="L126">            return null;</span>
+        }
+<span class="nc" id="L128">        conf.setProperty(key, content);</span>
+<span class="nc" id="L129">        return content;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>I18nFindLongestPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.i18n</a> &gt; <span class="el_source">I18nFindLongestPanel.java</span></div><h1>I18nFindLongestPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.i18n;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.SAXBuilderHelper;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class I18nFindLongestPanel extends EasyPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L34">    private final transient List&lt;I18nInfo&gt; infos = new ArrayList&lt;&gt;();</span>
+
+    private JTextField srcTextField;
+
+    private JTextField itemTextField;
+
+    public I18nFindLongestPanel() throws HeadlessException {
+<span class="nc" id="L41">        super();</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L46">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L47">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L49">        createSourcePanel();</span>
+<span class="nc" id="L50">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L51">        createItemPanel();</span>
+<span class="nc" id="L52">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L53">        createOperationPanel();</span>
+<span class="nc" id="L54">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L57">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L58">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L59">        add(operationPanel);</span>
+
+<span class="nc" id="L61">        JButton findButton = new JButton(bundle.getString(&quot;android.i18n.longest.find&quot;));</span>
+<span class="nc" id="L62">        findButton.addActionListener(new ActionListener() {</span>
+            @Override
+            public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L65">                infos.clear();</span>
+
+<span class="nc" id="L67">                String srcPath = checkAndGetDirContent(srcTextField, &quot;android.i18n.longest.src.dir&quot;, &quot;Source directory is invalid&quot;);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">                if (StringUtils.isEmpty(srcPath)) {</span>
+<span class="nc" id="L69">                    return;</span>
+                }
+
+<span class="nc" id="L72">                String item = checkAndGetStringContent(itemTextField, &quot;android.i18n.longest.items&quot;, &quot;Item is empty&quot;);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (StringUtils.isEmpty(item)) {</span>
+<span class="nc" id="L74">                    return;</span>
+                }
+
+<span class="nc" id="L77">                sort(srcPath, itemTextField.getText());</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">                if (CollectionUtils.isEmpty(infos)) {</span>
+<span class="nc" id="L79">                    Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L80">                    JOptionPane.showMessageDialog(I18nFindLongestPanel.this, &quot;Failed, please see the log&quot;, &quot;ERROR&quot;,</span>
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+<span class="nc" id="L83">                    I18nInfo info = infos.get(0);</span>
+<span class="nc" id="L84">                    StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L85">                    sb.append(&quot;length: &quot;).append(info.length).append(System.lineSeparator())</span>
+<span class="nc" id="L86">                            .append(&quot;text: &quot;).append(info.text).append(System.lineSeparator())</span>
+<span class="nc" id="L87">                            .append(&quot;path: &quot;).append(info.path);</span>
+<span class="nc" id="L88">                    Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L89">                    JOptionPane.showMessageDialog(I18nFindLongestPanel.this, sb.toString(), &quot;INFO&quot;,</span>
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+
+<span class="nc" id="L93">            }</span>
+        });
+
+<span class="nc" id="L96">        operationPanel.add(findButton);</span>
+<span class="nc" id="L97">    }</span>
+
+    private void createItemPanel() {
+<span class="nc" id="L100">        JPanel itemPanel = new JPanel();</span>
+<span class="nc" id="L101">        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L102">        add(itemPanel);</span>
+        
+<span class="nc" id="L104">        itemTextField = new JTextField();</span>
+<span class="nc" id="L105">        itemTextField.setText(conf.getString(&quot;android.i18n.longest.items&quot;));</span>
+
+<span class="nc" id="L107">        JLabel itemLabel = new JLabel(&quot;Items&quot;);</span>
+
+<span class="nc" id="L109">        itemPanel.add(itemTextField);</span>
+<span class="nc" id="L110">        itemPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L111">        itemPanel.add(itemLabel);</span>
+<span class="nc" id="L112">    }</span>
+
+    private void createSourcePanel() {
+<span class="nc" id="L115">        JPanel sourcePanel = new JPanel();</span>
+<span class="nc" id="L116">        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L117">        add(sourcePanel);</span>
+        
+<span class="nc" id="L119">        srcTextField = new JTextField();</span>
+<span class="nc" id="L120">        srcTextField.setText(conf.getString(&quot;android.i18n.longest.src.dir&quot;));</span>
+
+<span class="nc" id="L122">        JButton srcButton = new JButton(&quot;Source Directory&quot;);</span>
+<span class="nc" id="L123">        srcButton.addActionListener(new SelectDirectoryListener(&quot;select a directory&quot;, srcTextField));</span>
+
+<span class="nc" id="L125">        sourcePanel.add(srcTextField);</span>
+<span class="nc" id="L126">        sourcePanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L127">        sourcePanel.add(srcButton);</span>
+<span class="nc" id="L128">    }</span>
+
+    private String getCanonicalPath(File file) {
+<span class="nc bnc" id="L131" title="All 2 branches missed.">        if (file == null) {</span>
+<span class="nc" id="L132">            logger.error(&quot;file is null&quot;);</span>
+<span class="nc" id="L133">            return null;</span>
+        }
+        try {
+<span class="nc" id="L136">            return file.getCanonicalPath();</span>
+<span class="nc" id="L137">        } catch (IOException e) {</span>
+<span class="nc" id="L138">            logger.error(&quot;getCanonicalPath failed: {}&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L139">            return null;</span>
+        }
+    }
+
+    private void sort(String sourceBaseStr, String itemName) {
+<span class="nc" id="L144">        File[] sourceParentFiles = new File(sourceBaseStr).listFiles(new FileFilter() {</span>
+            @Override
+            public boolean accept(File pathname) {
+<span class="nc" id="L147">                return pathname.getName().startsWith(&quot;values&quot;);</span>
+            }
+        });
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (sourceParentFiles == null) {</span>
+<span class="nc" id="L151">            logger.error(&quot;None valid directory found&quot;);</span>
+<span class="nc" id="L152">            return;</span>
+        }
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        for (File sourceParentFile : sourceParentFiles) {</span>
+<span class="nc" id="L155">            File sourceFile = new File(sourceParentFile, &quot;strings.xml&quot;);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">            if (sourceFile.exists()) {</span>
+<span class="nc" id="L157">                SAXBuilder builder = new SAXBuilder();</span>
+<span class="nc" id="L158">                SAXBuilderHelper.setSecurityFeatures(builder);</span>
+                Document sourceDoc;
+                try {
+<span class="nc" id="L161">                    sourceDoc = builder.build(sourceFile);</span>
+<span class="nc" id="L162">                } catch (JDOMException | IOException e) {</span>
+<span class="nc" id="L163">                    logger.error(&quot;build failed: {}&quot;, sourceFile);</span>
+<span class="nc" id="L164">                    continue;</span>
+<span class="nc" id="L165">                }</span>
+<span class="nc" id="L166">                Element sourceRoot = sourceDoc.getRootElement();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                for (Element child : sourceRoot.getChildren()) {</span>
+<span class="nc" id="L168">                    String value = child.getAttributeValue(&quot;name&quot;);</span>
+<span class="nc bnc" id="L169" title="All 4 branches missed.">                    if (value != null &amp;&amp; value.equals(itemName)) {</span>
+<span class="nc" id="L170">                        String text = child.getText();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                        if (text != null) {</span>
+<span class="nc" id="L172">                            I18nInfo info = new I18nInfo(getCanonicalPath(sourceFile), text, text.length());</span>
+<span class="nc" id="L173">                            infos.add(info);</span>
+<span class="nc" id="L174">                            break;</span>
+                        }
+                    }
+<span class="nc" id="L177">                }</span>
+
+            }
+
+        }
+<span class="nc" id="L182">        infos.sort((o1, o2) -&gt; o2.length - o1.length);</span>
+
+<span class="nc" id="L184">        logger.info(infos);</span>
+<span class="nc" id="L185">    }</span>
+
+    static class I18nInfo {
+        String path;
+        String text;
+        int length;
+
+<span class="nc" id="L192">        public I18nInfo(String path, String text, int length) {</span>
+<span class="nc" id="L193">            this.path = path;</span>
+<span class="nc" id="L194">            this.text = text;</span>
+<span class="nc" id="L195">            this.length = length;</span>
+<span class="nc" id="L196">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L200">            return &quot;I18NInfo [path=&quot; + path + &quot;, text=&quot; + text + &quot;, length=&quot; + length + &quot;]&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

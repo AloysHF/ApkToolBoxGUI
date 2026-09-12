@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScreenShotPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.screenshot</a> &gt; <span class="el_source">ScreenShotPanel.java</span></div><h1>ScreenShotPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.screenshot;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.DateUtils;
+import edu.jiangxin.apktoolbox.utils.Utils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class ScreenShotPanel extends EasyPanel {
+    private static final long serialVersionUID = 1L;
+
+    private JTextField directoryTextField;
+
+    private JTextField fileNameTextField;
+
+    private JCheckBox openCheckBox;
+
+    private JCheckBox copyCheckBox;
+
+    public ScreenShotPanel() throws HeadlessException {
+<span class="nc" id="L37">        super();</span>
+<span class="nc" id="L38">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L42">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L43">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L45">        createDirectoryPanel();</span>
+<span class="nc" id="L46">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L47">        createFileNamePanel();</span>
+<span class="nc" id="L48">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L49">        createScreenshotPanel();</span>
+<span class="nc" id="L50">    }</span>
+
+    private void createScreenshotPanel() {
+<span class="nc" id="L53">        JPanel screenshotPanel = new JPanel();</span>
+<span class="nc" id="L54">        screenshotPanel.setLayout(new BoxLayout(screenshotPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L55">        add(screenshotPanel);</span>
+
+<span class="nc" id="L57">        openCheckBox = new JCheckBox(&quot;Open Dir&quot;);</span>
+<span class="nc" id="L58">        openCheckBox.setSelected(false);</span>
+
+<span class="nc" id="L60">        copyCheckBox = new JCheckBox(&quot;Copy Pic&quot;);</span>
+<span class="nc" id="L61">        copyCheckBox.setSelected(false);</span>
+
+<span class="nc" id="L63">        JButton screenshotButton = new JButton(&quot;Sceenshot&quot;);</span>
+<span class="nc" id="L64">        screenshotButton.addActionListener(new ScreenshotButtonActionListener());</span>
+
+<span class="nc" id="L66">        JButton getExistButton = new JButton(&quot;Get Exist&quot;);</span>
+<span class="nc" id="L67">        getExistButton.addActionListener(new GetExistButtonActionListener());</span>
+
+<span class="nc" id="L69">        screenshotPanel.add(openCheckBox);</span>
+<span class="nc" id="L70">        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L71">        screenshotPanel.add(copyCheckBox);</span>
+<span class="nc" id="L72">        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L73">        screenshotPanel.add(screenshotButton);</span>
+<span class="nc" id="L74">        screenshotPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L75">        screenshotPanel.add(getExistButton);</span>
+<span class="nc" id="L76">    }</span>
+
+    private void createFileNamePanel() {
+<span class="nc" id="L79">        JPanel fileNamePanel = new JPanel();</span>
+<span class="nc" id="L80">        fileNamePanel.setLayout(new BoxLayout(fileNamePanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L81">        add(fileNamePanel);</span>
+
+<span class="nc" id="L83">        fileNameTextField = new JTextField();</span>
+<span class="nc" id="L84">        fileNameTextField.setToolTipText(&quot;timestamp default(for example: 20180101122345.png)&quot;);</span>
+
+<span class="nc" id="L86">        JButton fileNameButton = new JButton(&quot;File name&quot;);</span>
+
+<span class="nc" id="L88">        fileNamePanel.add(fileNameTextField);</span>
+<span class="nc" id="L89">        fileNamePanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L90">        fileNamePanel.add(fileNameButton);</span>
+<span class="nc" id="L91">    }</span>
+
+    private void createDirectoryPanel() {
+<span class="nc" id="L94">        JPanel directoryPanel = new JPanel();</span>
+<span class="nc" id="L95">        directoryPanel.setLayout(new BoxLayout(directoryPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L96">        add(directoryPanel);</span>
+
+<span class="nc" id="L98">        directoryTextField = new JTextField();</span>
+<span class="nc" id="L99">        directoryTextField.setText(conf.getString(&quot;screenshot.save.dir&quot;, System.getenv(&quot;USERPROFILE&quot;)));</span>
+<span class="nc" id="L100">        directoryTextField.setTransferHandler(new DirectoryTextFieldTransferHandler());</span>
+
+<span class="nc" id="L102">        JButton directoryButton = new JButton(&quot;Save Directory&quot;);</span>
+<span class="nc" id="L103">        directoryButton.addActionListener(new DirectoryButtonActionListener());</span>
+
+<span class="nc" id="L105">        directoryPanel.add(directoryTextField);</span>
+<span class="nc" id="L106">        directoryPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L107">        directoryPanel.add(directoryButton);</span>
+<span class="nc" id="L108">    }</span>
+
+<span class="nc" id="L110">    private final class DirectoryButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L113">            JFileChooser jfc = new JFileChooser(directoryTextField.getText());</span>
+<span class="nc" id="L114">            jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L115">            jfc.setDialogTitle(&quot;select a directory&quot;);</span>
+<span class="nc" id="L116">            int ret = jfc.showDialog(new JLabel(), null);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            switch (ret) {</span>
+                case JFileChooser.APPROVE_OPTION:
+<span class="nc" id="L119">                    File file = jfc.getSelectedFile();</span>
+<span class="nc" id="L120">                    directoryTextField.setText(file.getAbsolutePath());</span>
+<span class="nc" id="L121">                    conf.setProperty(&quot;screenshot.save.dir&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L122">                    break;</span>
+
+                default:
+                    break;
+            }
+
+<span class="nc" id="L128">        }</span>
+    }
+
+<span class="nc" id="L131">    private final class GetExistButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L134">            System.out.println(&quot;Get Exist&quot;);</span>
+<span class="nc" id="L135">        }</span>
+    }
+
+<span class="nc" id="L138">    private final class ScreenshotButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L141">            String title = Utils.getFrameTitle(ScreenShotPanel.this);</span>
+<span class="nc" id="L142">            Utils.setFrameTitle(ScreenShotPanel.this, title + &quot;    [Processing]&quot;);</span>
+<span class="nc" id="L143">            String dirName = fileNameTextField.getText();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (StringUtils.isEmpty(dirName)) {</span>
+<span class="nc" id="L145">                String defaultDir = System.getenv(&quot;USERPROFILE&quot;);</span>
+<span class="nc" id="L146">                dirName = conf.getString(&quot;screenshot.save.dir&quot;, defaultDir);</span>
+<span class="nc" id="L147">                logger.info(&quot;dirName: &quot; + dirName);</span>
+            }
+<span class="nc" id="L149">            String fileName = fileNameTextField.getText();</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (StringUtils.isEmpty(fileName)) {</span>
+<span class="nc" id="L151">                fileName = DateUtils.getCurrentDateString() + &quot;.png&quot;;</span>
+            }
+<span class="nc" id="L153">            File file = new File(dirName, fileName);</span>
+            try {
+<span class="nc" id="L155">                Utils.executor(&quot;adb shell /system/bin/screencap -p /sdcard/screenshot.png&quot;, true);</span>
+<span class="nc" id="L156">                logger.info(&quot;screencap finish&quot;);</span>
+<span class="nc" id="L157">                Utils.executor(&quot;adb pull /sdcard/screenshot.png &quot; + file.getCanonicalPath(), true);</span>
+<span class="nc" id="L158">                logger.info(&quot;pull finish&quot;);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                if (openCheckBox.isSelected()) {</span>
+<span class="nc" id="L160">                    Utils.executor(&quot;explorer /e,/select, &quot; + file.getCanonicalPath(), true);</span>
+<span class="nc" id="L161">                    logger.info(&quot;open dir finish&quot;);</span>
+                }
+<span class="nc bnc" id="L163" title="All 2 branches missed.">                if (copyCheckBox.isSelected()) {</span>
+<span class="nc" id="L164">                    logger.info(&quot;copy the snapshot&quot;);</span>
+<span class="nc" id="L165">                    Image image = ImageIO.read(file);</span>
+<span class="nc" id="L166">                    setClipboardImage(ScreenShotPanel.this, image);</span>
+<span class="nc" id="L167">                    logger.info(&quot;copy finish&quot;);</span>
+                }
+<span class="nc" id="L169">            } catch (IOException e1) {</span>
+<span class="nc" id="L170">                logger.error(&quot;screenshot fail&quot;, e1);</span>
+            } finally {
+<span class="nc" id="L172">                Utils.setFrameTitle(ScreenShotPanel.this, title);</span>
+            }
+<span class="nc" id="L174">        }</span>
+    }
+
+<span class="nc" id="L177">    private final class DirectoryTextFieldTransferHandler extends TransferHandler {</span>
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public boolean importData(JComponent comp, Transferable t) {
+            try {
+<span class="nc" id="L183">                Object o = t.getTransferData(DataFlavor.javaFileListFlavor);</span>
+<span class="nc" id="L184">                String filepath = o.toString();</span>
+<span class="nc" id="L185">                filepath = filepath.substring(1, filepath.length() - 1);</span>
+<span class="nc" id="L186">                directoryTextField.setText(filepath);</span>
+<span class="nc" id="L187">                return true;</span>
+<span class="nc" id="L188">            } catch (Exception e) {</span>
+<span class="nc" id="L189">                logger.error(&quot;import data excetion&quot;, e);</span>
+            }
+<span class="nc" id="L191">            return false;</span>
+        }
+
+        @Override
+        public boolean canImport(JComponent jComponent, DataFlavor[] dataFlavors) {
+<span class="nc bnc" id="L196" title="All 2 branches missed.">            for (int i = 0; i &lt; dataFlavors.length; i++) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">                if (DataFlavor.javaFileListFlavor.equals(dataFlavors[i])) {</span>
+<span class="nc" id="L198">                    return true;</span>
+                }
+            }
+<span class="nc" id="L201">            return false;</span>
+        }
+    }
+
+    private static void setClipboardImage(JPanel frame, final Image image) {
+<span class="nc" id="L206">        Transferable trans = new Transferable() {</span>
+            @Override
+            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">                if (isDataFlavorSupported(flavor)) {</span>
+<span class="nc" id="L210">                    return image;</span>
+                }
+<span class="nc" id="L212">                throw new UnsupportedFlavorException(flavor);</span>
+            }
+
+            @Override
+            public DataFlavor[] getTransferDataFlavors() {
+<span class="nc" id="L217">                return new DataFlavor[] { DataFlavor.imageFlavor };</span>
+            }
+
+            @Override
+            public boolean isDataFlavorSupported(DataFlavor flavor) {
+<span class="nc" id="L222">                return DataFlavor.imageFlavor.equals(flavor);</span>
+            }
+        };
+
+<span class="nc" id="L226">        frame.getToolkit().getSystemClipboard().setContents(trans, null);</span>
+<span class="nc" id="L227">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

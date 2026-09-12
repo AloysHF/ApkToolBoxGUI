@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BatchRenamePanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.batchrename</a> &gt; <span class="el_source">BatchRenamePanel.java</span></div><h1>BatchRenamePanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.batchrename;
+
+import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serial;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
+
+//https://www.zhihu.com/question/50890909
+public class BatchRenamePanel extends EasyPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private static final String STRING_TYPE_PARENT_NAME = &quot;使用父目录名&quot;;
+
+    private static final String STRING_TYPE_PARENT_PATH = &quot;使用目录路径&quot;;
+
+    private static final String STRING_TYPE_SPECIALISE_STRING = &quot;使用指定字符&quot;;
+
+    private JPanel warningPanel;
+
+    private JPanel sourcePanel;
+
+    private JPanel rulePanel;
+
+    private JPanel operationPanel;
+
+    private JPanel statusPanel;
+
+    private JTextField sourceTextField;
+    private JTextField suffixTextField;
+    private JCheckBox recursiveCheckBox;
+    private JRadioButton ruleRadioButton1;
+    private JRadioButton ruleRadioButton2;
+    private JRadioButton ruleRadioButton3;
+    private JRadioButton ruleRadioButton4;
+    private JRadioButton ruleRadioButton5;
+    private JRadioButton ruleRadioButton6;
+    private JTextField textField21;
+    private JSpinner spinner21;
+    private JCheckBox checkBox31;
+    private JCheckBox checkBox32;
+    private JCheckBox checkBox33;
+    private JTextField textField31;
+    private JTextField textField32;
+    private JSpinner spinner31;
+    private JSpinner spinner32;
+    private JSpinner spinner41;
+    private JComboBox&lt;String&gt; comboBoxStringType;
+    private JTextField textField43;
+    private JSpinner spinner51;
+    private JSpinner spinner52;
+    private JTextField textField61;
+    private JTextField textField62;
+    private JTextField currentTextField;
+
+    public BatchRenamePanel() throws HeadlessException {
+<span class="nc" id="L73">        super();</span>
+<span class="nc" id="L74">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L78">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L79">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L81">        createWarningPanel();</span>
+<span class="nc" id="L82">        add(warningPanel);</span>
+<span class="nc" id="L83">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L85">        createSourcePanel();</span>
+<span class="nc" id="L86">        add(sourcePanel);</span>
+<span class="nc" id="L87">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L89">        createRulePanel();</span>
+<span class="nc" id="L90">        add(rulePanel);</span>
+<span class="nc" id="L91">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L93">        createOperationPanel();</span>
+<span class="nc" id="L94">        add(operationPanel);</span>
+<span class="nc" id="L95">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L97">        createStatusPanel();</span>
+<span class="nc" id="L98">        add(statusPanel);</span>
+<span class="nc" id="L99">    }</span>
+
+    private void createWarningPanel() {
+<span class="nc" id="L102">        warningPanel = new JPanel();</span>
+<span class="nc" id="L103">        warningPanel.setLayout(new BoxLayout(warningPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L105">        JTextArea warningTextArea = new JTextArea();</span>
+<span class="nc" id="L106">        warningTextArea.setText(&quot;It is dangerous to operate on the original files! \nPlease back up at first and check the result carefully at end!&quot;);</span>
+<span class="nc" id="L107">        warningTextArea.setForeground(Color.RED);</span>
+<span class="nc" id="L108">        warningTextArea.setFont(new Font(&quot;宋体&quot;, Font.BOLD, 20));</span>
+<span class="nc" id="L109">        warningTextArea.setBorder(null);</span>
+<span class="nc" id="L110">        warningTextArea.setEditable(false);</span>
+
+<span class="nc" id="L112">        warningPanel.add(warningTextArea);</span>
+<span class="nc" id="L113">        warningPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L114">    }</span>
+
+    private void createSourcePanel() {
+<span class="nc" id="L117">        sourcePanel = new JPanel();</span>
+<span class="nc" id="L118">        sourcePanel.setBorder(BorderFactory.createTitledBorder(&quot;1. 源文件&quot;));</span>
+<span class="nc" id="L119">        sourcePanel.setLayout(new BorderLayout());</span>
+
+<span class="nc" id="L121">        JPanel secondLevelPanel = new JPanel();</span>
+<span class="nc" id="L122">        secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L123">        sourcePanel.add(secondLevelPanel);</span>
+
+<span class="nc" id="L125">        JPanel thirdLevelPanel1 = new JPanel();</span>
+<span class="nc" id="L126">        thirdLevelPanel1.setLayout(new BoxLayout(thirdLevelPanel1, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L128">        JPanel thirdLevelPanel2 = new JPanel();</span>
+<span class="nc" id="L129">        thirdLevelPanel2.setLayout(new BoxLayout(thirdLevelPanel2, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L131">        secondLevelPanel.add(thirdLevelPanel1);</span>
+<span class="nc" id="L132">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L133">        secondLevelPanel.add(thirdLevelPanel2);</span>
+
+<span class="nc" id="L135">        JLabel label = new JLabel(&quot;源文件所在目录：&quot;);</span>
+<span class="nc" id="L136">        sourceTextField = new JTextField();</span>
+<span class="nc" id="L137">        JButton button = new JButton(&quot;选择&quot;);</span>
+<span class="nc" id="L138">        button.addActionListener(new SelectDirectoryListener(&quot;Select a directory&quot;, sourceTextField));</span>
+<span class="nc" id="L139">        thirdLevelPanel1.add(label);</span>
+<span class="nc" id="L140">        thirdLevelPanel1.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L141">        thirdLevelPanel1.add(sourceTextField);</span>
+<span class="nc" id="L142">        thirdLevelPanel1.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L143">        thirdLevelPanel1.add(button);</span>
+
+<span class="nc" id="L145">        JLabel label2 = new JLabel(&quot;后缀：&quot;);</span>
+<span class="nc" id="L146">        suffixTextField = new JTextField();</span>
+<span class="nc" id="L147">        suffixTextField.setToolTipText(&quot;an array of extensions, ex. java,xml,mp4. If this parameter is empty, all files are returned.&quot;);</span>
+<span class="nc" id="L148">        recursiveCheckBox = new JCheckBox(&quot;包括子目录&quot;);</span>
+
+<span class="nc" id="L150">        thirdLevelPanel2.add(label2);</span>
+<span class="nc" id="L151">        thirdLevelPanel2.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L152">        thirdLevelPanel2.add(suffixTextField);</span>
+<span class="nc" id="L153">        thirdLevelPanel2.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L154">        thirdLevelPanel2.add(recursiveCheckBox);</span>
+<span class="nc" id="L155">    }</span>
+
+    private void createRulePanel() {
+<span class="nc" id="L158">        rulePanel = new JPanel();</span>
+<span class="nc" id="L159">        rulePanel.setBorder(BorderFactory.createTitledBorder(&quot;3. 更名规则&quot;));</span>
+<span class="nc" id="L160">        rulePanel.setLayout(new BorderLayout());</span>
+
+<span class="nc" id="L162">        JPanel secondLevelPanel = new JPanel();</span>
+<span class="nc" id="L163">        secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L164">        rulePanel.add(secondLevelPanel);</span>
+
+<span class="nc" id="L166">        JPanel thirdLevelPanel1 = new JPanel();</span>
+<span class="nc" id="L167">        thirdLevelPanel1.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L169">        JPanel thirdLevelPanel2 = new JPanel();</span>
+<span class="nc" id="L170">        thirdLevelPanel2.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L172">        JPanel thirdLevelPanel3 = new JPanel();</span>
+<span class="nc" id="L173">        thirdLevelPanel3.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L175">        JPanel thirdLevelPanel4 = new JPanel();</span>
+<span class="nc" id="L176">        thirdLevelPanel4.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L178">        JPanel thirdLevelPanel5 = new JPanel();</span>
+<span class="nc" id="L179">        thirdLevelPanel5.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L181">        JPanel thirdLevelPanel6 = new JPanel();</span>
+<span class="nc" id="L182">        thirdLevelPanel6.setLayout(new FlowLayout(FlowLayout.LEFT,10,3));</span>
+
+<span class="nc" id="L184">        secondLevelPanel.add(thirdLevelPanel1);</span>
+<span class="nc" id="L185">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L186">        secondLevelPanel.add(thirdLevelPanel2);</span>
+<span class="nc" id="L187">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L188">        secondLevelPanel.add(thirdLevelPanel3);</span>
+<span class="nc" id="L189">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L190">        secondLevelPanel.add(thirdLevelPanel4);</span>
+<span class="nc" id="L191">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L192">        secondLevelPanel.add(thirdLevelPanel5);</span>
+<span class="nc" id="L193">        secondLevelPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L194">        secondLevelPanel.add(thirdLevelPanel6);</span>
+
+<span class="nc" id="L196">        ButtonGroup buttonGroup = new ButtonGroup();</span>
+
+        {
+<span class="nc" id="L199">            ruleRadioButton1 = new JRadioButton(&quot;只在文件重名时才更名&quot;);</span>
+<span class="nc" id="L200">            ruleRadioButton1.setSelected(true);</span>
+<span class="nc" id="L201">            thirdLevelPanel1.add(ruleRadioButton1);</span>
+<span class="nc" id="L202">            buttonGroup.add(ruleRadioButton1);</span>
+        }
+
+        {
+<span class="nc" id="L206">            ruleRadioButton2 = new JRadioButton(&quot;将前缀{String}后的数字改为{Int}位&quot;);</span>
+<span class="nc" id="L207">            thirdLevelPanel2.add(ruleRadioButton2);</span>
+<span class="nc" id="L208">            buttonGroup.add(ruleRadioButton2);</span>
+
+<span class="nc" id="L210">            JLabel label21 = new JLabel(&quot;String&quot;);</span>
+<span class="nc" id="L211">            textField21 = new JTextField(&quot;&quot;);</span>
+<span class="nc" id="L212">            JLabel label22 = new JLabel(&quot;Int&quot;);</span>
+<span class="nc" id="L213">            spinner21 = new JSpinner();</span>
+<span class="nc" id="L214">            spinner21.setValue(4);</span>
+<span class="nc" id="L215">            thirdLevelPanel2.add(label21);</span>
+<span class="nc" id="L216">            thirdLevelPanel2.add(textField21);</span>
+<span class="nc" id="L217">            thirdLevelPanel2.add(label22);</span>
+<span class="nc" id="L218">            thirdLevelPanel2.add(spinner21);</span>
+        }
+
+        {
+<span class="nc" id="L222">            ruleRadioButton3 = new JRadioButton(&quot;重编号所有文件&quot;);</span>
+<span class="nc" id="L223">            thirdLevelPanel3.add(ruleRadioButton3);</span>
+<span class="nc" id="L224">            buttonGroup.add(ruleRadioButton3);</span>
+
+<span class="nc" id="L226">            checkBox31 = new JCheckBox(&quot;编号先按原文件名排序&quot;);</span>
+<span class="nc" id="L227">            checkBox32 = new JCheckBox(&quot;按末尾数字排序&quot;);</span>
+<span class="nc" id="L228">            checkBox33 = new JCheckBox(&quot;用目录名为前缀&quot;);</span>
+<span class="nc" id="L229">            JLabel label31 = new JLabel(&quot;分隔字符&quot;);</span>
+<span class="nc" id="L230">            textField31 = new JTextField(&quot;_&quot;);</span>
+<span class="nc" id="L231">            JLabel label32 = new JLabel(&quot;前缀&quot;);</span>
+<span class="nc" id="L232">            textField32 = new JTextField(&quot;File&quot;);</span>
+<span class="nc" id="L233">            JLabel label33 = new JLabel(&quot;起始号码&quot;);</span>
+<span class="nc" id="L234">            spinner31 = new JSpinner();</span>
+<span class="nc" id="L235">            spinner31.setValue(1);</span>
+<span class="nc" id="L236">            JLabel label34 = new JLabel(&quot;号码位数&quot;);</span>
+<span class="nc" id="L237">            spinner32 = new JSpinner();</span>
+<span class="nc" id="L238">            spinner32.setValue(3);</span>
+<span class="nc" id="L239">            thirdLevelPanel3.add(checkBox31);</span>
+<span class="nc" id="L240">            thirdLevelPanel3.add(checkBox32);</span>
+<span class="nc" id="L241">            thirdLevelPanel3.add(checkBox33);</span>
+<span class="nc" id="L242">            thirdLevelPanel3.add(label31);</span>
+<span class="nc" id="L243">            thirdLevelPanel3.add(textField31);</span>
+<span class="nc" id="L244">            thirdLevelPanel3.add(label32);</span>
+<span class="nc" id="L245">            thirdLevelPanel3.add(textField32);</span>
+<span class="nc" id="L246">            thirdLevelPanel3.add(label33);</span>
+<span class="nc" id="L247">            thirdLevelPanel3.add(spinner31);</span>
+<span class="nc" id="L248">            thirdLevelPanel3.add(label34);</span>
+<span class="nc" id="L249">            thirdLevelPanel3.add(spinner32);</span>
+        }
+
+        {
+<span class="nc" id="L253">            ruleRadioButton4 = new JRadioButton(&quot;在第{Int}个字符后添加{String}&quot;);</span>
+<span class="nc" id="L254">            thirdLevelPanel4.add(ruleRadioButton4);</span>
+<span class="nc" id="L255">            buttonGroup.add(ruleRadioButton4);</span>
+
+<span class="nc" id="L257">            JLabel stringType = new JLabel(&quot;字符串类型&quot;);</span>
+
+<span class="nc" id="L259">            comboBoxStringType = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L260">            comboBoxStringType.addItem(STRING_TYPE_PARENT_NAME);</span>
+<span class="nc" id="L261">            comboBoxStringType.addItem(STRING_TYPE_PARENT_PATH);</span>
+<span class="nc" id="L262">            comboBoxStringType.addItem(STRING_TYPE_SPECIALISE_STRING);</span>
+<span class="nc" id="L263">            comboBoxStringType.setSelectedItem(STRING_TYPE_SPECIALISE_STRING);</span>
+<span class="nc" id="L264">            comboBoxStringType.addItemListener(e -&gt; textField43.setEditable(e.getItem().equals(STRING_TYPE_SPECIALISE_STRING)));</span>
+
+<span class="nc" id="L266">            JLabel label41 = new JLabel(&quot;Int&quot;);</span>
+<span class="nc" id="L267">            spinner41 = new JSpinner();</span>
+<span class="nc" id="L268">            spinner41.setValue(0);</span>
+
+<span class="nc" id="L270">            JLabel label43 = new JLabel(&quot;String&quot;);</span>
+<span class="nc" id="L271">            textField43 = new JTextField(&quot;&quot;);</span>
+
+<span class="nc" id="L273">            thirdLevelPanel4.add(label41);</span>
+<span class="nc" id="L274">            thirdLevelPanel4.add(spinner41);</span>
+<span class="nc" id="L275">            thirdLevelPanel4.add(label43);</span>
+<span class="nc" id="L276">            thirdLevelPanel4.add(textField43);</span>
+<span class="nc" id="L277">            thirdLevelPanel4.add(stringType);</span>
+<span class="nc" id="L278">            thirdLevelPanel4.add(comboBoxStringType);</span>
+        }
+
+        {
+<span class="nc" id="L282">            ruleRadioButton5 = new JRadioButton(&quot;删除自第{Int:1}个字符开始的{Int:2}个字符&quot;);</span>
+<span class="nc" id="L283">            thirdLevelPanel5.add(ruleRadioButton5);</span>
+<span class="nc" id="L284">            buttonGroup.add(ruleRadioButton5);</span>
+
+<span class="nc" id="L286">            JLabel label51 = new JLabel(&quot;Int:1&quot;);</span>
+<span class="nc" id="L287">            spinner51 = new JSpinner();</span>
+<span class="nc" id="L288">            spinner51.setValue(1);</span>
+<span class="nc" id="L289">            JLabel label52 = new JLabel(&quot;Int:2&quot;);</span>
+<span class="nc" id="L290">            spinner52 = new JSpinner();</span>
+<span class="nc" id="L291">            spinner52.setValue(1);</span>
+<span class="nc" id="L292">            thirdLevelPanel5.add(label51);</span>
+<span class="nc" id="L293">            thirdLevelPanel5.add(spinner51);</span>
+<span class="nc" id="L294">            thirdLevelPanel5.add(label52);</span>
+<span class="nc" id="L295">            thirdLevelPanel5.add(spinner52);</span>
+        }
+
+        {
+<span class="nc" id="L299">            ruleRadioButton6 = new JRadioButton(&quot;将文件名中出现的字符串{String:1}替换为{String:2}&quot;);</span>
+<span class="nc" id="L300">            thirdLevelPanel6.add(ruleRadioButton6);</span>
+<span class="nc" id="L301">            buttonGroup.add(ruleRadioButton6);</span>
+
+<span class="nc" id="L303">            JLabel label61 = new JLabel(&quot;String:1&quot;);</span>
+<span class="nc" id="L304">            textField61 = new JTextField(&quot;&quot;);</span>
+<span class="nc" id="L305">            JLabel label62 = new JLabel(&quot;String:2&quot;);</span>
+<span class="nc" id="L306">            textField62 = new JTextField(&quot;&quot;);</span>
+<span class="nc" id="L307">            thirdLevelPanel6.add(label61);</span>
+<span class="nc" id="L308">            thirdLevelPanel6.add(textField61);</span>
+<span class="nc" id="L309">            thirdLevelPanel6.add(label62);</span>
+<span class="nc" id="L310">            thirdLevelPanel6.add(textField62);</span>
+        }
+<span class="nc" id="L312">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L315">        operationPanel = new JPanel();</span>
+<span class="nc" id="L316">        operationPanel.setBorder(BorderFactory.createTitledBorder(&quot;6. 操作&quot;));</span>
+<span class="nc" id="L317">        operationPanel.setLayout(new BorderLayout());</span>
+
+<span class="nc" id="L319">        JPanel secondLevelPanel = new JPanel();</span>
+<span class="nc" id="L320">        secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L321">        operationPanel.add(secondLevelPanel);</span>
+
+<span class="nc" id="L323">        JButton button = new JButton(&quot;开始&quot;);</span>
+<span class="nc" id="L324">        button.addActionListener(new StartButtonActionListener());</span>
+<span class="nc" id="L325">        secondLevelPanel.add(button);</span>
+<span class="nc" id="L326">        secondLevelPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L327">    }</span>
+
+    private void createStatusPanel() {
+<span class="nc" id="L330">        statusPanel = new JPanel();</span>
+<span class="nc" id="L331">        statusPanel.setBorder(BorderFactory.createTitledBorder(&quot;正在处理&quot;));</span>
+<span class="nc" id="L332">        statusPanel.setLayout(new BorderLayout());</span>
+
+<span class="nc" id="L334">        JPanel secondLevelPanel = new JPanel();</span>
+<span class="nc" id="L335">        secondLevelPanel.setLayout(new BoxLayout(secondLevelPanel, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L336">        statusPanel.add(secondLevelPanel);</span>
+
+<span class="nc" id="L338">        currentTextField = new JTextField();</span>
+<span class="nc" id="L339">        secondLevelPanel.add(currentTextField);</span>
+<span class="nc" id="L340">    }</span>
+
+<span class="nc" id="L342">    private final class StartButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L345">            String sourceString = sourceTextField.getText();</span>
+<span class="nc bnc" id="L346" title="All 2 branches missed.">            if (StringUtils.isEmpty(sourceString)) {</span>
+<span class="nc" id="L347">                JOptionPane.showMessageDialog(BatchRenamePanel.this, &quot;sourceString is empty&quot;, &quot;ERROR&quot;,</span>
+                        JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L349">                return;</span>
+            }
+<span class="nc" id="L351">            File sourceFile = new File(sourceString);</span>
+<span class="nc bnc" id="L352" title="All 4 branches missed.">            if (!sourceFile.exists() || !sourceFile.isDirectory()) {</span>
+<span class="nc" id="L353">                JOptionPane.showMessageDialog(BatchRenamePanel.this, &quot;sourceFile does not exist or not directory&quot;, &quot;ERROR&quot;,</span>
+                        JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L355">                return;</span>
+            }
+<span class="nc" id="L357">            String[] extensions = null;</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(suffixTextField.getText())) {</span>
+<span class="nc" id="L359">                extensions = suffixTextField.getText().split(&quot;,&quot;);</span>
+            }
+<span class="nc" id="L361">            Collection&lt;File&gt; fileCollection = FileUtils.listFiles(sourceFile, extensions, recursiveCheckBox.isSelected());</span>
+<span class="nc" id="L362">            Set&lt;File&gt; fileSet = new TreeSet&lt;&gt;(fileCollection);</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">            if (fileSet.isEmpty()) {</span>
+<span class="nc" id="L364">                JOptionPane.showMessageDialog(BatchRenamePanel.this, &quot;fileSet is empty&quot;, &quot;ERROR&quot;,</span>
+                        JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L366">                return;</span>
+            }
+<span class="nc bnc" id="L368" title="All 2 branches missed.">            for (File file : fileSet) {</span>
+<span class="nc" id="L369">                renameSingleFile(file);</span>
+<span class="nc" id="L370">            }</span>
+<span class="nc" id="L371">        }</span>
+    }
+
+    private void renameSingleFile(File file) {
+<span class="nc" id="L375">        String sourceFile = FilenameUtils.normalizeNoEndSeparator(file.getAbsolutePath());</span>
+<span class="nc" id="L376">        String sourceFileName = FilenameUtils.getName(sourceFile);</span>
+<span class="nc" id="L377">        String currentDir = FilenameUtils.getPath(sourceFile);</span>
+<span class="nc" id="L378">        String targetFileName = &quot;&quot;;</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        if (ruleRadioButton1.isSelected()) {</span>
+<span class="nc" id="L380">            logger.info(&quot;unimplemented&quot;);</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">        } else if (ruleRadioButton2.isSelected()) {</span>
+<span class="nc" id="L382">            targetFileName = getNewFileNameWhen2Selected(sourceFileName);</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        } else if (ruleRadioButton3.isSelected()) {</span>
+<span class="nc" id="L384">            targetFileName = getNewFileNameWhen3Selected();</span>
+<span class="nc bnc" id="L385" title="All 2 branches missed.">        } else if (ruleRadioButton4.isSelected()) {</span>
+<span class="nc" id="L386">            targetFileName = getNewFileNameWhen4Selected(file);</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">        } else if (ruleRadioButton5.isSelected()) {</span>
+<span class="nc" id="L388">            targetFileName = getNewFileNameWhen5Selected(sourceFileName);</span>
+<span class="nc bnc" id="L389" title="All 2 branches missed.">        } else if (ruleRadioButton6.isSelected()) {</span>
+<span class="nc" id="L390">            targetFileName = getNewFileNameWhen6Selected(sourceFileName);</span>
+        } else {
+<span class="nc" id="L392">            logger.error(&quot;ruleRadioButton select status error&quot;);</span>
+<span class="nc" id="L393">            return;</span>
+        }
+
+        try {
+<span class="nc" id="L397">            Path sourcePath = new File(sourceFile).toPath();</span>
+<span class="nc" id="L398">            Files.move(sourcePath, sourcePath.resolveSibling(targetFileName));</span>
+<span class="nc" id="L399">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L400">            sb.append(currentDir).append(&quot; [&quot;).append(sourceFileName).append(&quot;]-&gt;[&quot;).append(targetFileName).append(&quot;]&quot;);</span>
+<span class="nc" id="L401">            currentTextField.setText(sb.toString());</span>
+<span class="nc" id="L402">            logger.info(sb.toString());</span>
+<span class="nc" id="L403">        } catch (IOException e) {</span>
+<span class="nc" id="L404">            logger.error(&quot;copy file failed: IOException. current: &quot; + sourceFile);</span>
+<span class="nc" id="L405">        }</span>
+<span class="nc" id="L406">    }</span>
+
+    private String getNewFileNameWhen2Selected(String oldFileName) {
+<span class="nc" id="L409">        String prefix = textField21.getText();</span>
+<span class="nc" id="L410">        String sourceFileNameWithoutSuffix = FilenameUtils.getBaseName(oldFileName);</span>
+<span class="nc" id="L411">        String serialNumberStr = StringUtils.substringAfter(sourceFileNameWithoutSuffix, prefix);</span>
+<span class="nc" id="L412">        int serialNumber = Integer.parseInt(serialNumberStr);</span>
+<span class="nc" id="L413">        int digit = (Integer) spinner21.getValue();</span>
+<span class="nc" id="L414">        String format = &quot;%0&quot; + digit + &quot;d&quot;;</span>
+<span class="nc" id="L415">        return oldFileName.replaceAll(serialNumberStr, String.format(format, serialNumber));</span>
+    }
+
+    private String getNewFileNameWhen3Selected() {
+<span class="nc" id="L419">        String separator = textField31.getText();</span>
+<span class="nc" id="L420">        String prefix = textField32.getText();</span>
+<span class="nc" id="L421">        int start = (Integer) spinner31.getValue();</span>
+<span class="nc" id="L422">        int digit = (Integer) spinner32.getValue();</span>
+<span class="nc" id="L423">        boolean isCheckBox31Selected = checkBox31.isSelected();</span>
+<span class="nc" id="L424">        boolean isCheckBox32Selected = checkBox32.isSelected();</span>
+<span class="nc" id="L425">        boolean isCheckBox33Selected = checkBox33.isSelected();</span>
+<span class="nc" id="L426">        logger.info(&quot;unimplemented: separator: {}, prefix: {}, start: {}, digit: {}&quot;, separator, prefix, start, digit);</span>
+<span class="nc" id="L427">        logger.info(&quot;unimplemented: isCheckBox31Selected: {}, isCheckBox32Selected: {}, isCheckBox33Selected: {}&quot;,</span>
+<span class="nc" id="L428">                isCheckBox31Selected, isCheckBox32Selected, isCheckBox33Selected);</span>
+<span class="nc" id="L429">        return &quot;&quot;;</span>
+    }
+
+    private String getNewFileNameWhen4Selected(File file) {
+<span class="nc" id="L433">        String sourceFile = FilenameUtils.normalizeNoEndSeparator(file.getAbsolutePath());</span>
+<span class="nc" id="L434">        String sourceFileName = FilenameUtils.getName(sourceFile);</span>
+<span class="nc" id="L435">        int index = (Integer) spinner41.getValue();</span>
+<span class="nc" id="L436">        String insertString = &quot;&quot;;</span>
+<span class="nc bnc" id="L437" title="All 4 branches missed.">        switch ((String) comboBoxStringType.getSelectedItem()) {</span>
+            case STRING_TYPE_PARENT_PATH:
+<span class="nc" id="L439">                break;</span>
+            case STRING_TYPE_PARENT_NAME:
+<span class="nc" id="L441">                String parentFile = FilenameUtils.normalizeNoEndSeparator(file.getParentFile().getAbsolutePath());</span>
+<span class="nc" id="L442">                insertString = FilenameUtils.getName(parentFile);</span>
+<span class="nc" id="L443">                break;</span>
+            case STRING_TYPE_SPECIALISE_STRING:
+<span class="nc" id="L445">                insertString = textField43.getText();</span>
+                break;
+        }
+<span class="nc" id="L448">        return StringUtils.substring(sourceFileName, 0, index) + insertString + StringUtils.substring(sourceFileName, index);</span>
+    }
+
+    private String getNewFileNameWhen5Selected(String oldFileName) {
+<span class="nc" id="L452">        int start = (Integer) spinner51.getValue();</span>
+<span class="nc" id="L453">        int length = (Integer) spinner52.getValue();</span>
+<span class="nc" id="L454">        return StringUtils.substring(oldFileName, 0, start - 1) + StringUtils.substring(oldFileName, start + length - 1);</span>
+    }
+
+    private String getNewFileNameWhen6Selected(String oldFileName) {
+<span class="nc" id="L458">        return Strings.CS.replace(oldFileName, textField61.getText(), textField62.getText());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

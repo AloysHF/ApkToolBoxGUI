@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Alarm2Json.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.dumpsys.tojson</a> &gt; <span class="el_source">Alarm2Json.java</span></div><h1>Alarm2Json.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.dumpsys.tojson;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+<span class="fc" id="L13">public class Alarm2Json implements IDumpsys2Json {</span>
+    @Override
+    public String dumpsys2Json(File file) {
+        String content;
+        try {
+<span class="fc" id="L18">            content = new String(Files.readAllBytes(file.toPath()));</span>
+<span class="nc" id="L19">        } catch (IOException e) {</span>
+<span class="nc" id="L20">            throw new RuntimeException(&quot;读取文件失败: &quot; + file.getAbsolutePath(), e);</span>
+<span class="fc" id="L21">        }</span>
+<span class="fc" id="L22">        JSONObject result = new JSONObject();</span>
+<span class="fc" id="L23">        parseSections(content, result);</span>
+<span class="fc" id="L24">        return result.toString(2);</span>
+    }
+
+    private void parseSections(String content, JSONObject result) {
+        // 以两个换行分割各大段
+<span class="fc" id="L29">        String[] sections = content.split(&quot;\n\\s*\n&quot;);</span>
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        for (String section : sections) {</span>
+<span class="fc" id="L31">            String title = getSectionTitle(section);</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">            if (title != null) {</span>
+<span class="fc" id="L33">                Object value = parseSectionContent(title, section);</span>
+<span class="fc" id="L34">                result.put(title, value);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">            } else if (section.trim().startsWith(&quot;nowRTC=&quot;)) {</span>
+<span class="fc" id="L36">                Object value = parseSectionContent(&quot;TimeInfo&quot;, section);</span>
+<span class="fc" id="L37">                result.put(&quot;TimeInfo&quot;, value);</span>
+            }
+        }
+<span class="fc" id="L40">    }</span>
+
+    private String getSectionTitle(String section) {
+<span class="fc" id="L43">        Matcher m = Pattern.compile(&quot;^\\s*([\\w .-]+):&quot;, Pattern.MULTILINE).matcher(section);</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">        if (m.find()) {</span>
+<span class="fc" id="L45">            return m.group(1).trim();</span>
+        }
+<span class="fc" id="L47">        return null;</span>
+    }
+
+    private Object parseSectionContent(String title, String section) {
+<span class="pc bpc" id="L51" title="1 of 4 branches missed.">        if (title.equals(&quot;Settings&quot;) || title.equals(&quot;Feature Flags&quot;)) {</span>
+<span class="fc" id="L52">            return parseKeyValueSection(section);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        } else if (title.equals(&quot;Current AppStateTracker State&quot;)) {</span>
+<span class="fc" id="L54">            return parseAppStateSection(section);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">        } else if (title.contains(&quot;pending alarms&quot;)) {</span>
+<span class="fc" id="L56">            return parsePendingAlarms(section);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">        } else if (title.contains(&quot;TimeInfo&quot;)) {</span>
+<span class="fc" id="L58">            return parseTimeInfoSection(section);</span>
+        } else {
+<span class="fc" id="L60">            return section.trim();</span>
+        }
+    }
+
+    private JSONObject parseKeyValueSection(String section) {
+<span class="fc" id="L65">        JSONObject obj = new JSONObject();</span>
+<span class="fc" id="L66">        Matcher m = Pattern.compile(&quot;^\\s*([\\w._-]+)=(.+)$&quot;, Pattern.MULTILINE).matcher(section);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">        while (m.find()) {</span>
+<span class="fc" id="L68">            obj.put(m.group(1).trim(), m.group(2).trim());</span>
+        }
+<span class="fc" id="L70">        return obj;</span>
+    }
+
+    private JSONObject parseAppStateSection(String section) {
+<span class="fc" id="L74">        JSONObject obj = new JSONObject();</span>
+<span class="fc" id="L75">        Matcher m = Pattern.compile(&quot;^\\s*([\\w .-]+): (.+)$&quot;, Pattern.MULTILINE).matcher(section);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">        while (m.find()) {</span>
+<span class="fc" id="L77">            String key = m.group(1).trim();</span>
+<span class="fc" id="L78">            String value = m.group(2).trim();</span>
+<span class="pc bpc" id="L79" title="1 of 4 branches missed.">            if (value.startsWith(&quot;[&quot;) &amp;&amp; value.endsWith(&quot;]&quot;)) {</span>
+<span class="fc" id="L80">                value = value.substring(1, value.length() - 1);</span>
+<span class="fc" id="L81">                JSONArray arr = new JSONArray();</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">                for (String v : value.split(&quot;, ?&quot;)) {</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">                    if (!v.isEmpty()) arr.put(v.trim());</span>
+                }
+<span class="fc" id="L85">                obj.put(key, arr);</span>
+<span class="fc" id="L86">            } else {</span>
+<span class="fc" id="L87">                obj.put(key, value);</span>
+            }
+<span class="fc" id="L89">        }</span>
+<span class="fc" id="L90">        Matcher userMatcher = Pattern.compile(&quot;User (\\d+)\\n([\\s\\S]+?)(?=\\n\\s*\\w|$)&quot;).matcher(section);</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        while (userMatcher.find()) {</span>
+<span class="nc" id="L92">            String userKey = &quot;User &quot; + userMatcher.group(1);</span>
+<span class="nc" id="L93">            String pkgs = userMatcher.group(2);</span>
+<span class="nc" id="L94">            JSONArray pkgArr = new JSONArray();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            for (String line : pkgs.split(&quot;\n&quot;)) {</span>
+<span class="nc" id="L96">                line = line.trim();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">                if (!line.isEmpty()) pkgArr.put(line);</span>
+            }
+<span class="nc" id="L99">            obj.put(userKey, pkgArr);</span>
+<span class="nc" id="L100">        }</span>
+<span class="fc" id="L101">        return obj;</span>
+    }
+
+    private JSONArray parsePendingAlarms(String section) {
+<span class="fc" id="L105">        JSONArray alarms = new JSONArray();</span>
+<span class="fc" id="L106">        Pattern alarmStartPattern = Pattern.compile(&quot;^\s*(ELAPSED|ELAPSED_WAKEUP|RTC|RTC_WAKEUP) #(\\d+): (Alarm\\{.*?)(?=(^\\s*(ELAPSED|ELAPSED_WAKEUP|RTC|RTC_WAKEUP) #(\\d+):)|(\\s{2}))&quot;, Pattern.MULTILINE | Pattern.DOTALL);</span>
+<span class="fc" id="L107">        Matcher m = alarmStartPattern.matcher(section);</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">        while (m.find()) {</span>
+<span class="fc" id="L109">            JSONObject alarm = new JSONObject();</span>
+<span class="fc" id="L110">            alarm.put(&quot;type&quot;, m.group(1));</span>
+<span class="fc" id="L111">            alarm.put(&quot;number&quot;, m.group(2));</span>
+<span class="fc" id="L112">            String details = m.group(3).trim();</span>
+<span class="fc" id="L113">            String[] tmpArray = details.split(&quot;\\n&quot;, 2);</span>
+<span class="fc" id="L114">            alarm.put(&quot;alarmInfo&quot;, tmpArray[0]);</span>
+<span class="fc" id="L115">            details = details.replace(tmpArray[0], &quot;&quot;);</span>
+<span class="fc" id="L116">            Pattern fieldPattern = Pattern.compile(</span>
+                    &quot;tag=([^\n]+)|type=([^\\s]+)|origWhen=([^\\s]+)|window=([^\\s]+)|repeatInterval=([^\\s]+)|count=([^\\s]+)|flags=([^\\s]+)|operation=([^\n]+)|listener=([^\n]+)|idle-options=([^\n]+)&quot;,
+                    Pattern.MULTILINE);
+<span class="fc" id="L119">            Matcher fieldMatcher = fieldPattern.matcher(details);</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">            while (fieldMatcher.find()) {</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">                if (fieldMatcher.group(1) != null) alarm.put(&quot;tag&quot;, fieldMatcher.group(1).trim());</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                if (fieldMatcher.group(2) != null) alarm.put(&quot;alarmType&quot;, fieldMatcher.group(2).trim());</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                if (fieldMatcher.group(3) != null) alarm.put(&quot;origWhen&quot;, fieldMatcher.group(3).trim());</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">                if (fieldMatcher.group(4) != null) alarm.put(&quot;window&quot;, fieldMatcher.group(4).trim());</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                if (fieldMatcher.group(5) != null) alarm.put(&quot;repeatInterval&quot;, fieldMatcher.group(5).trim());</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                if (fieldMatcher.group(6) != null) alarm.put(&quot;count&quot;, fieldMatcher.group(6).trim());</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">                if (fieldMatcher.group(7) != null) alarm.put(&quot;flags&quot;, fieldMatcher.group(7).trim());</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">                if (fieldMatcher.group(8) != null) alarm.put(&quot;operation&quot;, fieldMatcher.group(8).trim());</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">                if (fieldMatcher.group(9) != null) alarm.put(&quot;listener&quot;, fieldMatcher.group(9).trim());</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">                if (fieldMatcher.group(10) != null) alarm.put(&quot;idleOptions&quot;, fieldMatcher.group(10).trim());</span>
+            }
+<span class="fc" id="L132">            Pattern extraPattern = Pattern.compile(</span>
+                    &quot;policyWhenElapsed: ([^\n]+)|whenElapsed=([^\\s]+)|maxWhenElapsed=([^\\s]+)|exactAllowReason=([^\\s]+)|procName ([^\\s]+)|PendingIntent\\{([^:]+): ([^}]+)\\}&quot;,
+                    Pattern.MULTILINE);
+<span class="fc" id="L135">            Matcher extraMatcher = extraPattern.matcher(details);</span>
+<span class="pc bpc" id="L136" title="1 of 2 branches missed.">            while (extraMatcher.find()) {</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">                if (extraMatcher.group(1) != null) alarm.put(&quot;policyWhenElapsed&quot;, extraMatcher.group(1).trim());</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                if (extraMatcher.group(2) != null) alarm.put(&quot;whenElapsed&quot;, extraMatcher.group(2).trim());</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">                if (extraMatcher.group(3) != null) alarm.put(&quot;maxWhenElapsed&quot;, extraMatcher.group(3).trim());</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                if (extraMatcher.group(4) != null) alarm.put(&quot;exactAllowReason&quot;, extraMatcher.group(4).trim());</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                if (extraMatcher.group(5) != null) alarm.put(&quot;procName&quot;, extraMatcher.group(5).trim());</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">                if (extraMatcher.group(6) != null &amp;&amp; extraMatcher.group(7) != null) {</span>
+<span class="nc" id="L143">                    alarm.put(&quot;pendingIntent&quot;, extraMatcher.group(7).trim());</span>
+                }
+            }
+<span class="fc" id="L146">            alarm.put(&quot;rawDetails&quot;, details); // 保留原始内容</span>
+<span class="fc" id="L147">            alarms.put(alarm);</span>
+<span class="fc" id="L148">        }</span>
+<span class="fc" id="L149">        return alarms;</span>
+    }
+
+    private JSONObject parseTimeInfoSection(String section) {
+<span class="fc" id="L153">        JSONObject obj = new JSONObject();</span>
+
+<span class="fc" id="L155">        String timeInformation = StringUtils.substringBetween(section, &quot;nowRTC=&quot;, &quot;mLastTimeChangeClockTime=&quot;).trim().replace(&quot; &quot;, &quot;=&quot;);</span>
+<span class="fc" id="L156">        String[] components = timeInformation.split(&quot;=&quot;);</span>
+
+<span class="fc" id="L158">        String dateTime = components[1] + &quot; &quot; + components[2];</span>
+<span class="fc" id="L159">        Long uptimeMs = Long.valueOf(components[4]);</span>
+
+<span class="fc" id="L161">        long uptimeSeconds = uptimeMs / 1000;</span>
+<span class="fc" id="L162">        long uptimeHours = uptimeSeconds / 3600;</span>
+<span class="fc" id="L163">        long uptimeMinutes = uptimeSeconds % 3600 / 60;</span>
+<span class="fc" id="L164">        long uptimeSecs = uptimeSeconds % 60;</span>
+
+<span class="fc" id="L166">        obj.put(&quot;System Uptime(ms)&quot;, uptimeMs);</span>
+<span class="fc" id="L167">        obj.put(&quot;System Uptime&quot;, uptimeHours + &quot;:&quot; + uptimeMinutes + &quot;:&quot; + uptimeSecs);</span>
+<span class="fc" id="L168">        obj.put(&quot;Last DateTime&quot;, dateTime);</span>
+<span class="fc" id="L169">        return obj;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BruteForceRunnable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce</a> &gt; <span class="el_source">BruteForceRunnable.java</span></div><h1>BruteForceRunnable.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.RecoveryPanel;
+import edu.jiangxin.apktoolbox.file.password.recovery.checker.IChecker;
+import edu.jiangxin.apktoolbox.file.password.recovery.exception.UnsupportedVersionException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class BruteForceRunnable implements Runnable {
+<span class="nc" id="L10">    private static final Logger logger = LogManager.getLogger(BruteForceRunnable.class.getSimpleName());</span>
+    private final int taskId;
+    private final BruteForceFuture bruteForceFuture;
+    private final BruteForceTaskParam consts;
+
+    RecoveryPanel panel;
+
+<span class="nc" id="L17">    public BruteForceRunnable(int taskId, BruteForceTaskParam consts, BruteForceFuture bruteForceFuture, RecoveryPanel panel) {</span>
+<span class="nc" id="L18">        this.taskId = taskId;</span>
+<span class="nc" id="L19">        this.consts = consts;</span>
+<span class="nc" id="L20">        this.bruteForceFuture = bruteForceFuture;</span>
+<span class="nc" id="L21">        this.panel = panel;</span>
+<span class="nc" id="L22">    }</span>
+
+    @Override
+    public void run() {
+<span class="nc" id="L26">        long rangeBegin = taskId * consts.getPasswordSubRangeSize();</span>
+<span class="nc" id="L27">        long rangeEnd = (taskId + 1) * consts.getPasswordSubRangeSize() - 1;</span>
+<span class="nc" id="L28">        logger.info(&quot;rangeBegin: {}, rangeEnd: {}&quot;, rangeBegin, rangeEnd);</span>
+<span class="nc" id="L29">        String passwordOrNull = findPasswordInRange(rangeBegin, rangeEnd, consts.getChecker());</span>
+<span class="nc" id="L30">        bruteForceFuture.set(passwordOrNull);</span>
+<span class="nc" id="L31">    }</span>
+
+    /*
+     * The findPasswordInRange method find the original password using md5 hash function
+     * if a thread discovers the password, it returns original password string; otherwise, it returns null;
+     */
+    public String findPasswordInRange(long rangeBegin, long rangeEnd, IChecker checker) {
+<span class="nc" id="L38">        int[] passwordIterator = new int[consts.getPasswordLength()];</span>
+<span class="nc" id="L39">        transformDecToBaseN(rangeBegin, passwordIterator, consts.getCharsSet().length());</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        for (long iterator = rangeBegin; iterator &lt;= rangeEnd; iterator++) {</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            if (bruteForceFuture.isDone()) {</span>
+<span class="nc" id="L42">                logger.info(&quot;isDone: ThreadName: {}&quot;, Thread.currentThread().getName());</span>
+<span class="nc" id="L43">                return null;</span>
+            }
+<span class="nc bnc" id="L45" title="All 2 branches missed.">            if (bruteForceFuture.isCancelled()) {</span>
+<span class="nc" id="L46">                logger.info(&quot;isCancelled: ThreadName: {}&quot;, Thread.currentThread().getName());</span>
+<span class="nc" id="L47">                return null;</span>
+            }
+<span class="nc" id="L49">            String password = transformIntToStr(passwordIterator, consts.getCharsSet());</span>
+            int result;
+            try {
+<span class="nc bnc" id="L52" title="All 2 branches missed.">                result = checker.checkPassword(password) ? 1 : 0;</span>
+<span class="nc" id="L53">            } catch (UnsupportedVersionException e) {</span>
+<span class="nc" id="L54">                logger.error(&quot;UnsupportedVersionException, stop&quot;);</span>
+<span class="nc" id="L55">                result = -1;</span>
+<span class="nc" id="L56">            } catch (Exception e) {</span>
+<span class="nc" id="L57">                logger.error(&quot;Exception, stop&quot;, e);</span>
+<span class="nc" id="L58">                result = -1;</span>
+            } finally {
+<span class="nc" id="L60">                panel.setCurrentPassword(password);</span>
+<span class="nc" id="L61">                panel.increaseProgressBarValue();</span>
+            }
+<span class="nc bnc" id="L63" title="All 2 branches missed.">            if (result == 0) {</span>
+<span class="nc" id="L64">                getNextCandidate(passwordIterator, consts.getCharsSet().length());</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            } else if (result == 1) {</span>
+<span class="nc" id="L66">                return password;</span>
+            } else {
+<span class="nc" id="L68">                return null;</span>
+            }
+        }
+<span class="nc" id="L71">        return null;</span>
+    }
+
+    /*
+     * The transformDecToBaseN transforms decimal into numArray that is base N number system
+     * If you don't understand, refer to the homework01 overview
+     */
+    protected void transformDecToBaseN(long numInDec, int[] numArrayInBaseN, final int charSetLength) {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (int index = consts.getPasswordLength() - 1; index &gt;= 0; index--) {</span>
+<span class="nc" id="L80">            numArrayInBaseN[index] = (int) (numInDec % charSetLength);</span>
+<span class="nc" id="L81">            numInDec = numInDec / charSetLength;</span>
+        }
+<span class="nc" id="L83">    }</span>
+
+    /*
+     * The getNextCandidate update the possible password represented by N base system
+     */
+    private void getNextCandidate(int[] candidateChars, final int charsSetLength) {
+<span class="nc" id="L89">        int reminder = 1;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        for (int index = consts.getPasswordLength() - 1; index &gt;= 0; index--) {</span>
+<span class="nc" id="L91">            candidateChars[index] += reminder;</span>
+<span class="nc" id="L92">            reminder = candidateChars[index] / charsSetLength;</span>
+<span class="nc" id="L93">            candidateChars[index] %= charsSetLength;</span>
+        }
+<span class="nc" id="L95">    }</span>
+
+    /*
+     * We assume that each character can be represented to a number : 0 (0) , 1 (1), 2 (2) ... a (10), b (11), c (12), ... x (33), y (34), z (35)
+     * The transformIntToStr transforms int-array into string (numbers and lower-case alphabets)
+     * int array is password represented by base-N system
+     * return : password String
+     *
+     * For example, if you write the code like this,
+     *     int[] pwdBase36 = {10, 11, 12, 13, 0, 1, 9, 2};
+     *     String password = transfromIntoStr(pwdBase36);
+     *     System.out.println(password);
+     *     output is abcd0192.
+     *
+     */
+    private static String transformIntToStr(int[] charsArray, final String charsSet) {
+<span class="nc" id="L111">        char[] password = new char[charsArray.length];</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">        for (int i = 0; i &lt; password.length; i++) {</span>
+<span class="nc" id="L113">            password[i] = charsSet.charAt(charsArray[i]);</span>
+        }
+<span class="nc" id="L115">        return new String(password);</span>
+    }
+}
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

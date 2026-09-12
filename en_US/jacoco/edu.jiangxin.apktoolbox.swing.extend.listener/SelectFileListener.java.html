@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SelectFileListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.listener</a> &gt; <span class="el_source">SelectFileListener.java</span></div><h1>SelectFileListener.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.listener;
+
+import edu.jiangxin.apktoolbox.utils.FileUtils;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+
+public class SelectFileListener implements ActionListener {
+
+    private final String dialogTitle;
+    private final JTextField pathTextField;
+
+    private FileFilter fileFilter;
+
+    public SelectFileListener(String dialogTitle, JTextField pathTextField) {
+<span class="nc" id="L19">        super();</span>
+<span class="nc" id="L20">        this.dialogTitle = dialogTitle;</span>
+<span class="nc" id="L21">        this.pathTextField = pathTextField;</span>
+<span class="nc" id="L22">    }</span>
+
+    public SelectFileListener(String dialogTitle, JTextField pathTextField, FileFilter fileFilter) {
+<span class="nc" id="L25">        super();</span>
+<span class="nc" id="L26">        this.dialogTitle = dialogTitle;</span>
+<span class="nc" id="L27">        this.pathTextField = pathTextField;</span>
+<span class="nc" id="L28">        this.fileFilter = fileFilter;</span>
+<span class="nc" id="L29">    }</span>
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L33">        JFileChooser jfc = new JFileChooser();</span>
+<span class="nc" id="L34">        jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);</span>
+<span class="nc" id="L35">        jfc.setDialogTitle(dialogTitle);</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">        if (fileFilter != null) {</span>
+<span class="nc" id="L37">            jfc.setFileFilter(fileFilter);</span>
+        }
+<span class="nc" id="L39">        int ret = jfc.showDialog(new JLabel(), null);</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if (ret == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L41">            File file = jfc.getSelectedFile();</span>
+<span class="nc" id="L42">            String path = FileUtils.getCanonicalPathQuiet(file);</span>
+<span class="nc" id="L43">            pathTextField.setText(path);</span>
+        }
+<span class="nc" id="L45">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

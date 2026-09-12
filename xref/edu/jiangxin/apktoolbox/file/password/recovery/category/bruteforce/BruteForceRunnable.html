@@ -1,0 +1,133 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>BruteForceRunnable xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../../../../apidocs/edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceRunnable.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> edu.jiangxin.apktoolbox.file.password.recovery.category.bruteforce;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.file.password.recovery.RecoveryPanel;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.file.password.recovery.checker.IChecker;
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.file.password.recovery.exception.UnsupportedVersionException;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> org.apache.logging.log4j.LogManager;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> org.apache.logging.log4j.Logger;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="BruteForceRunnable" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceRunnable.html#BruteForceRunnable">BruteForceRunnable</a> <strong class="jxr_keyword">implements</strong> Runnable {
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger logger = LogManager.getLogger(BruteForceRunnable.<strong class="jxr_keyword">class</strong>.getSimpleName());
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> taskId;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="BruteForceFuture" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceFuture.html#BruteForceFuture">BruteForceFuture</a> bruteForceFuture;
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <a name="BruteForceTaskParam" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceTaskParam.html#BruteForceTaskParam">BruteForceTaskParam</a> consts;
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <a name="RecoveryPanel" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/RecoveryPanel.html#RecoveryPanel">RecoveryPanel</a> panel;
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>  
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>      <strong class="jxr_keyword">public</strong> <a name="BruteForceRunnable" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceRunnable.html#BruteForceRunnable">BruteForceRunnable</a>(<strong class="jxr_keyword">int</strong> taskId, <a name="BruteForceTaskParam" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceTaskParam.html#BruteForceTaskParam">BruteForceTaskParam</a> consts, <a name="BruteForceFuture" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/category/bruteforce/BruteForceFuture.html#BruteForceFuture">BruteForceFuture</a> bruteForceFuture, <a name="RecoveryPanel" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/RecoveryPanel.html#RecoveryPanel">RecoveryPanel</a> panel) {
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>          <strong class="jxr_keyword">this</strong>.taskId = taskId;
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>          <strong class="jxr_keyword">this</strong>.consts = consts;
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          <strong class="jxr_keyword">this</strong>.bruteForceFuture = bruteForceFuture;
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          <strong class="jxr_keyword">this</strong>.panel = panel;
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>      }
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>  
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>      @Override
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> run() {
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          <strong class="jxr_keyword">long</strong> rangeBegin = taskId * consts.getPasswordSubRangeSize();
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>          <strong class="jxr_keyword">long</strong> rangeEnd = (taskId + 1) * consts.getPasswordSubRangeSize() - 1;
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          logger.info(<span class="jxr_string">"rangeBegin: {}, rangeEnd: {}"</span>, rangeBegin, rangeEnd);
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>          String passwordOrNull = findPasswordInRange(rangeBegin, rangeEnd, consts.getChecker());
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          bruteForceFuture.set(passwordOrNull);
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>      }
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>  
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>      <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>  <em class="jxr_comment">     * The findPasswordInRange method find the original password using md5 hash function</em>
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  <em class="jxr_comment">     * if a thread discovers the password, it returns original password string; otherwise, it returns null;</em>
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>  <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>      <strong class="jxr_keyword">public</strong> String findPasswordInRange(<strong class="jxr_keyword">long</strong> rangeBegin, <strong class="jxr_keyword">long</strong> rangeEnd, <a name="IChecker" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/checker/IChecker.html#IChecker">IChecker</a> checker) {
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          <strong class="jxr_keyword">int</strong>[] passwordIterator = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">int</strong>[consts.getPasswordLength()];
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          transformDecToBaseN(rangeBegin, passwordIterator, consts.getCharsSet().length());
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">long</strong> iterator = rangeBegin; iterator &lt;= rangeEnd; iterator++) {
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>              <strong class="jxr_keyword">if</strong> (bruteForceFuture.isDone()) {
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>                  logger.info(<span class="jxr_string">"isDone: ThreadName: {}"</span>, Thread.currentThread().getName());
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>                  <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>              }
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>              <strong class="jxr_keyword">if</strong> (bruteForceFuture.isCancelled()) {
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>                  logger.info(<span class="jxr_string">"isCancelled: ThreadName: {}"</span>, Thread.currentThread().getName());
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>                  <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>              }
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>              String password = transformIntToStr(passwordIterator, consts.getCharsSet());
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>              <strong class="jxr_keyword">int</strong> result;
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>              <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>                  result = checker.checkPassword(password) ? 1 : 0;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>              } <strong class="jxr_keyword">catch</strong> (<a name="UnsupportedVersionException" href="../../../../../../../../edu/jiangxin/apktoolbox/file/password/recovery/exception/UnsupportedVersionException.html#UnsupportedVersionException">UnsupportedVersionException</a> e) {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>                  logger.error(<span class="jxr_string">"UnsupportedVersionException, stop"</span>);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>                  result = -1;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>              } <strong class="jxr_keyword">catch</strong> (Exception e) {
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>                  logger.error(<span class="jxr_string">"Exception, stop"</span>, e);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>                  result = -1;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>              } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>                  panel.setCurrentPassword(password);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>                  panel.increaseProgressBarValue();
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>              <strong class="jxr_keyword">if</strong> (result == 0) {
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>                  getNextCandidate(passwordIterator, consts.getCharsSet().length());
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>              } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (result == 1) {
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>                  <strong class="jxr_keyword">return</strong> password;
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>              } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>                  <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>              }
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>          }
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      }
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>  
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>      <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  <em class="jxr_comment">     * The transformDecToBaseN transforms decimal into numArray that is base N number system</em>
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  <em class="jxr_comment">     * If you don't understand, refer to the homework01 overview</em>
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>  <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>      <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> transformDecToBaseN(<strong class="jxr_keyword">long</strong> numInDec, <strong class="jxr_keyword">int</strong>[] numArrayInBaseN, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> charSetLength) {
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> index = consts.getPasswordLength() - 1; index &gt;= 0; index--) {
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>              numArrayInBaseN[index] = (<strong class="jxr_keyword">int</strong>) (numInDec % charSetLength);
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>              numInDec = numInDec / charSetLength;
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>          }
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>      }
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>  
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>      <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>  <em class="jxr_comment">     * The getNextCandidate update the possible password represented by N base system</em>
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>  <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> getNextCandidate(<strong class="jxr_keyword">int</strong>[] candidateChars, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> charsSetLength) {
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          <strong class="jxr_keyword">int</strong> reminder = 1;
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> index = consts.getPasswordLength() - 1; index &gt;= 0; index--) {
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>              candidateChars[index] += reminder;
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>              reminder = candidateChars[index] / charsSetLength;
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>              candidateChars[index] %= charsSetLength;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>          }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      }
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <em class="jxr_comment">/*</em>
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  <em class="jxr_comment">     * We assume that each character can be represented to a number : 0 (0) , 1 (1), 2 (2) ... a (10), b (11), c (12), ... x (33), y (34), z (35)</em>
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>  <em class="jxr_comment">     * The transformIntToStr transforms int-array into string (numbers and lower-case alphabets)</em>
+<a class="jxr_linenumber" name="L100" href="#L100">100</a> <em class="jxr_comment">     * int array is password represented by base-N system</em>
+<a class="jxr_linenumber" name="L101" href="#L101">101</a> <em class="jxr_comment">     * return : password String</em>
+<a class="jxr_linenumber" name="L102" href="#L102">102</a> <em class="jxr_comment">     *</em>
+<a class="jxr_linenumber" name="L103" href="#L103">103</a> <em class="jxr_comment">     * For example, if you write the code like this,</em>
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> <em class="jxr_comment">     *     int[] pwdBase36 = {10, 11, 12, 13, 0, 1, 9, 2};</em>
+<a class="jxr_linenumber" name="L105" href="#L105">105</a> <em class="jxr_comment">     *     String password = transfromIntoStr(pwdBase36);</em>
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> <em class="jxr_comment">     *     System.out.println(password);</em>
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> <em class="jxr_comment">     *     output is abcd0192.</em>
+<a class="jxr_linenumber" name="L108" href="#L108">108</a> <em class="jxr_comment">     *</em>
+<a class="jxr_linenumber" name="L109" href="#L109">109</a> <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String transformIntToStr(<strong class="jxr_keyword">int</strong>[] charsArray, <strong class="jxr_keyword">final</strong> String charsSet) {
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         <strong class="jxr_keyword">char</strong>[] password = <strong class="jxr_keyword">new</strong> <strong class="jxr_keyword">char</strong>[charsArray.length];
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; password.length; i++) {
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>             password[i] = charsSet.charAt(charsArray[i]);
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>         }
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> String(password);
+<a class="jxr_linenumber" name="L116" href="#L116">116</a>     }
+<a class="jxr_linenumber" name="L117" href="#L117">117</a> }
+<a class="jxr_linenumber" name="L118" href="#L118">118</a> 
+<a class="jxr_linenumber" name="L119" href="#L119">119</a> 
+<a class="jxr_linenumber" name="L120" href="#L120">120</a> 
+</pre>
+<hr/>
+<div id="footer">© 2026</div>
+</body>
+</html>

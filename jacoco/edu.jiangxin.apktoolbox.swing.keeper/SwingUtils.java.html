@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SwingUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.keeper</a> &gt; <span class="el_source">SwingUtils.java</span></div><h1>SwingUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.keeper;
+
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+
+<span class="nc" id="L7">public final class SwingUtils {</span>
+    public static List&lt;Component&gt; getAllComponents(Container root) {
+<span class="nc" id="L9">        List&lt;Component&gt; list = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L10">        addAll(root, list);</span>
+<span class="nc" id="L11">        return list;</span>
+    }
+    private static void addAll(Container parent, List&lt;Component&gt; list) {
+<span class="nc bnc" id="L14" title="All 2 branches missed.">        for (Component c : parent.getComponents()) {</span>
+<span class="nc" id="L15">            list.add(c);</span>
+<span class="nc bnc" id="L16" title="All 2 branches missed.">            if (c instanceof Container) {</span>
+<span class="nc" id="L17">                addAll((Container) c, list);</span>
+            }
+        }
+<span class="nc" id="L20">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

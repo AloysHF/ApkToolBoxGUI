@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EncoderConvert.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.core</a> &gt; <span class="el_source">EncoderConvert.java</span></div><h1>EncoderConvert.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.core;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+/**
+ * 文件编码转换的工具类.
+ * 
+ * @author jiangxin
+ * @author 2018-09-09
+ *
+ */
+<span class="nc" id="L25">public class EncoderConvert {</span>
+
+    private static final String TMP_SUFFIX = &quot;.temp&quot;;
+<span class="fc" id="L28">    private static final Logger logger = LogManager.getLogger(EncoderDetector.class.getSimpleName());</span>
+
+    /**
+     * 实现对文件的编码转换.
+     * 
+     * @param srcFileString 源文件文件名
+     * @param srcEncoder    源文件编码
+     * @param desFileString 目的文件文件名
+     * @param desEncoder    需要转换的编码
+     */
+    public static void encodeFile(String srcFileString, String srcEncoder, String desFileString, String desEncoder) {
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">        if (srcFileString.equals(desFileString)) {</span>
+<span class="nc" id="L40">            srcFileString = srcFileString + TMP_SUFFIX;</span>
+<span class="nc" id="L41">            FileProcess.copyFile(desFileString, srcFileString);</span>
+        }
+<span class="fc" id="L43">        File srcFileFile = new File(srcFileString);</span>
+<span class="fc" id="L44">        File desFileFile = new File(desFileString);</span>
+
+<span class="fc" id="L46">        File parentDir = desFileFile.getParentFile();</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">        if (!parentDir.exists()) {</span>
+<span class="fc" id="L48">            boolean success = parentDir.mkdirs();</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">            if (!success) {</span>
+<span class="nc" id="L50">                logger.error(&quot;delete srcFileFile failed&quot;);</span>
+<span class="nc" id="L51">                return;</span>
+            }
+        }
+
+<span class="fc" id="L55">        try (BufferedReader reader = new BufferedReader(</span>
+                new InputStreamReader(new FileInputStream(srcFileFile), srcEncoder));
+<span class="fc" id="L57">                BufferedWriter writer = new BufferedWriter(</span>
+                        new OutputStreamWriter(new FileOutputStream(desFileFile), desEncoder))) {
+<span class="fc" id="L59">            int ch = 0;</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">            while ((ch = reader.read()) != -1) {</span>
+<span class="fc" id="L61">                writer.write(ch);</span>
+            }
+<span class="nc" id="L63">        } catch (Exception e) {</span>
+<span class="nc" id="L64">            logger.error(&quot;Exception&quot;, e);</span>
+<span class="nc" id="L65">            return;</span>
+<span class="fc" id="L66">        }</span>
+
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (srcFileString.equals(desFileString + TMP_SUFFIX)) {</span>
+<span class="nc" id="L69">            boolean success = srcFileFile.delete();</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if (!success) {</span>
+<span class="nc" id="L71">                logger.error(&quot;delete srcFileFile failed&quot;);</span>
+            }
+        }
+<span class="fc" id="L74">    }</span>
+
+    /**
+     * 实现文件的编码转换. see {@link #encodeFile(String, String, String, String)}
+     * 
+     * @param fileString 文件名
+     * @param srcEncoder 原始编码
+     * @param desEncoder 需要转换的编码
+     */
+    public static void encodeFile(String fileString, String srcEncoder, String desEncoder) {
+<span class="nc" id="L84">        encodeFile(fileString, srcEncoder, fileString, desEncoder);</span>
+<span class="nc" id="L85">    }</span>
+
+    /**
+     * 实现文件夹中特定文件的批量编码转换. see {@link #encodeFile(String, String, String, String)}
+     * 
+     * @param srcDirString 原始文件夹
+     * @param srcEncoder   原始编码
+     * @param desDirString 目的文件夹
+     * @param desEncoder   需要转换的编码
+     * @param suffix       指定需要转换的后缀
+     */
+    public static void encodeDir(String srcDirString, String srcEncoder, String desDirString, String desEncoder,
+            String suffix) {
+        // File srcDirFile = new File(srcDirString);
+<span class="fc" id="L99">        File desDirFile = new File(desDirString);</span>
+        // 获取所有符合条件的文件
+<span class="fc" id="L101">        String[] extensions = null;</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">        if (StringUtils.isNotEmpty(suffix)) {</span>
+<span class="nc" id="L103">            extensions = suffix.split(&quot;,&quot;);</span>
+        }
+<span class="fc" id="L105">        Collection&lt;File&gt; files = FileUtils.listFiles(new File(srcDirString), extensions, true);</span>
+<span class="fc" id="L106">        Iterator&lt;File&gt; it = files.iterator();</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        while (it.hasNext()) {</span>
+<span class="fc" id="L108">            File tempFile = it.next();</span>
+<span class="fc" id="L109">            String desFileString = desDirFile.getAbsolutePath() + File.separator + tempFile.getName();</span>
+<span class="fc" id="L110">            String srcFileString = tempFile.getAbsolutePath();</span>
+<span class="fc" id="L111">            encodeFile(srcFileString, srcEncoder, desFileString, desEncoder);</span>
+<span class="fc" id="L112">        }</span>
+<span class="fc" id="L113">    }</span>
+
+    /**
+     * 实现文件夹中特定文件的批量编码转换. see {@link #encodeFile(String, String, String, String)}
+     * 
+     * @param srcDirString 原始文件夹
+     * @param srcEncoder   原始编码
+     * @param desDirString 目的文件夹
+     * @param desEncoder   需要转换的编码
+     */
+    public static void encodeDir(String srcDirString, String srcEncoder, String desDirString, String desEncoder) {
+<span class="fc" id="L124">        encodeDir(srcDirString, srcEncoder, desDirString, desEncoder, null);</span>
+<span class="fc" id="L125">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

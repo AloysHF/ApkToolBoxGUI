@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalePanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help.settings</a> &gt; <span class="el_source">LocalePanel.java</span></div><h1>LocalePanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help.settings;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.Serial;
+import java.util.Locale;
+
+<span class="nc" id="L15">public class LocalePanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel optionPanel;
+
+    private JComboBox&lt;String&gt; typeComboBox;
+
+    private JPanel operationPanel;
+
+<span class="nc" id="L25">    private static final String[] SUPPORTED_LANGUAGES = {Locale.CHINESE.getLanguage(), Locale.ENGLISH.getLanguage()};</span>
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L29">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L30">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L32">        createOptionPanel();</span>
+<span class="nc" id="L33">        add(optionPanel);</span>
+
+<span class="nc" id="L35">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L37">        createOperationPanel();</span>
+<span class="nc" id="L38">        add(operationPanel);</span>
+
+<span class="nc" id="L40">        add(Box.createVerticalStrut(15 * Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L41">    }</span>
+
+    private void createOptionPanel() {
+<span class="nc" id="L44">        optionPanel = new JPanel();</span>
+<span class="nc" id="L45">        optionPanel.setLayout(new BoxLayout(optionPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L47">        JLabel typeLabel = new JLabel(&quot;Locale:&quot;);</span>
+<span class="nc" id="L48">        typeComboBox = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L49">        typeComboBox.setMaximumSize(new Dimension(Constants.DEFAULT_COMBOBOX_WIDTH, Constants.DEFAULT_COMBOBOX_HEIGHT));</span>
+
+<span class="nc" id="L51">        String currentLocaleLanguage = conf.getString(&quot;locale.language&quot;);</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">        if (StringUtils.isEmpty(currentLocaleLanguage)) {</span>
+<span class="nc" id="L53">            currentLocaleLanguage = Locale.ENGLISH.getLanguage();</span>
+<span class="nc" id="L54">            conf.setProperty(&quot;locale.language&quot;, currentLocaleLanguage);</span>
+        }
+
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        for (String language : SUPPORTED_LANGUAGES) {</span>
+<span class="nc" id="L58">            typeComboBox.addItem(language);</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            if (Strings.CS.equals(currentLocaleLanguage, language)) {</span>
+<span class="nc" id="L60">                typeComboBox.setSelectedItem(language);</span>
+            }
+        }
+
+<span class="nc" id="L64">        optionPanel.add(typeLabel);</span>
+<span class="nc" id="L65">        optionPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L66">        optionPanel.add(typeComboBox);</span>
+<span class="nc" id="L67">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L70">        operationPanel = new JPanel();</span>
+<span class="nc" id="L71">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+
+<span class="nc" id="L73">        JButton applyButton = new JButton(&quot;Apply&quot;);</span>
+<span class="nc" id="L74">        applyButton.addActionListener(new ApplyButtonActionListener());</span>
+
+<span class="nc" id="L76">        operationPanel.add(applyButton);</span>
+<span class="nc" id="L77">    }</span>
+
+<span class="nc" id="L79">    private final class ApplyButtonActionListener implements ActionListener {</span>
+        @Override
+        public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L82">            String language = (String)typeComboBox.getSelectedItem();</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            if (StringUtils.isNotEmpty(language)) {</span>
+<span class="nc" id="L84">                conf.setProperty(&quot;locale.language&quot;, language);</span>
+<span class="nc" id="L85">                JOptionPane.showMessageDialog(LocalePanel.this, &quot;Setting locale successfully, restart the program please&quot;);</span>
+            }
+<span class="nc" id="L87">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

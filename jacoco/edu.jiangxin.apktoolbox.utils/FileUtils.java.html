@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FileUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.utils</a> &gt; <span class="el_source">FileUtils.java</span></div><h1>FileUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.utils;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.util.Set;
+import java.util.TreeSet;
+
+<span class="nc" id="L15">public class FileUtils {</span>
+
+<span class="fc" id="L17">    private static final Logger LOGGER = LogManager.getLogger(FileUtils.class.getSimpleName());</span>
+
+    public static final long ONE_KB = 1024;
+
+<span class="fc" id="L21">    public static final BigInteger ONE_KB_BI = BigInteger.valueOf(ONE_KB);</span>
+
+<span class="fc" id="L23">    public static final BigInteger ONE_MB_BI = ONE_KB_BI.multiply(ONE_KB_BI);</span>
+
+<span class="fc" id="L25">    public static final BigInteger ONE_GB_BI = ONE_KB_BI.multiply(ONE_MB_BI);</span>
+
+<span class="fc" id="L27">    public static final BigInteger ONE_TB_BI = ONE_KB_BI.multiply(ONE_GB_BI);</span>
+
+<span class="fc" id="L29">    public static final BigInteger ONE_PB_BI = ONE_KB_BI.multiply(ONE_TB_BI);</span>
+
+<span class="fc" id="L31">    public static final BigInteger ONE_EB_BI = ONE_KB_BI.multiply(ONE_PB_BI);</span>
+
+    public static String sizeOfInHumanFormat(final File file) {
+<span class="nc" id="L34">        return sizeOfInHumanFormat(file.length());</span>
+    }
+
+    public static String sizeOfInHumanFormat(final long length) {
+<span class="nc" id="L38">        BigInteger size = BigInteger.valueOf(length);</span>
+        String displaySize;
+
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (size.divide(ONE_EB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L42">            displaySize = divide(size, ONE_EB_BI) + &quot; EB&quot;;</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        } else if (size.divide(ONE_PB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L44">            displaySize = divide(size, ONE_PB_BI) + &quot; PB&quot;;</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (size.divide(ONE_TB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L46">            displaySize = divide(size, ONE_TB_BI) + &quot; TB&quot;;</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">        } else if (size.divide(ONE_GB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L48">            displaySize = divide(size, ONE_GB_BI) + &quot; GB&quot;;</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        } else if (size.divide(ONE_MB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L50">            displaySize = divide(size, ONE_MB_BI) + &quot; MB&quot;;</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">        } else if (size.divide(ONE_KB_BI).compareTo(BigInteger.ZERO) &gt; 0) {</span>
+<span class="nc" id="L52">            displaySize = divide(size, ONE_KB_BI) + &quot; KB&quot;;</span>
+        } else {
+<span class="nc" id="L54">            displaySize = size + &quot; bytes&quot;;</span>
+        }
+<span class="nc" id="L56">        return displaySize;</span>
+    }
+
+    public static String lastModifiedInHumanFormat(File file) {
+<span class="nc" id="L60">        long lastModified = file.lastModified();</span>
+<span class="nc" id="L61">        return DateUtils.millisecondToHumanFormat(lastModified);</span>
+    }
+
+    public static double divide(BigInteger size, BigInteger one_bi) {
+<span class="nc" id="L65">        BigDecimal decimalSize = BigDecimal.valueOf(size.doubleValue())</span>
+<span class="nc" id="L66">                .divide(BigDecimal.valueOf(one_bi.doubleValue()), 2, RoundingMode.HALF_UP);</span>
+<span class="nc" id="L67">        return decimalSize.doubleValue();</span>
+    }
+
+    public static String getCanonicalPathQuiet(File file) {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">        if (file == null) {</span>
+<span class="nc" id="L72">            LOGGER.warn(&quot;getCanonicalPathQuiet failed: file is null&quot;);</span>
+<span class="nc" id="L73">            return null;</span>
+        }
+        try {
+<span class="nc" id="L76">            return file.getCanonicalPath();</span>
+<span class="nc" id="L77">        } catch (IOException e) {</span>
+<span class="nc" id="L78">            LOGGER.error(&quot;getCanonicalPathQuiet failed: IOException&quot;);</span>
+<span class="nc" id="L79">            return null;</span>
+        }
+    }
+
+
+    public static Set&lt;File&gt; listFiles(final File file, final String[] extensions, final boolean recursive) {
+<span class="fc" id="L85">        Set&lt;File&gt; files = new TreeSet&lt;&gt;();</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (!file.exists()) {</span>
+<span class="nc" id="L87">            LOGGER.error(&quot;file does not exist: {}&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L88">            return files;</span>
+        }
+
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (file.isDirectory()) {</span>
+<span class="fc" id="L92">            files.addAll(org.apache.commons.io.FileUtils.listFiles(file, extensions, recursive));</span>
+<span class="fc" id="L93">            return files;</span>
+        }
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (file.isFile()) {</span>
+<span class="nc" id="L96">            String fileName = file.getName();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">            if (ArrayUtils.isEmpty(extensions)) {</span>
+<span class="nc" id="L98">                files.add(file);</span>
+<span class="nc" id="L99">                return files;</span>
+            }
+<span class="nc bnc" id="L101" title="All 2 branches missed.">            for (String extension : extensions) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">                if (fileName.endsWith(extension)) {</span>
+<span class="nc" id="L103">                    files.add(file);</span>
+<span class="nc" id="L104">                    return files;</span>
+                }
+            }
+        }
+<span class="nc" id="L108">        LOGGER.warn(&quot;file is not directory or file: {}&quot;, file.getAbsolutePath());</span>
+<span class="nc" id="L109">        return files;</span>
+    }
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

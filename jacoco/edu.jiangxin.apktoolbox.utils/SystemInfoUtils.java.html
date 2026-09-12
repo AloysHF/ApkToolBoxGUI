@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SystemInfoUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.utils</a> &gt; <span class="el_source">SystemInfoUtils.java</span></div><h1>SystemInfoUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.utils;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.List;
+
+public class SystemInfoUtils {
+<span class="nc" id="L9">    private static final Logger logger = LogManager.getLogger(SystemInfoUtils.class.getSimpleName());</span>
+
+<span class="nc" id="L11">    public static final List&lt;String&gt; SYSTEM_INFO_LIST = List.of(&quot;os.name&quot;, &quot;os.arch&quot;, &quot;os.version&quot;,</span>
+            &quot;java.version&quot;, &quot;java.vendor&quot;, &quot;java.vm.version&quot;, &quot;java.vm.vendor&quot;, &quot;java.vm.name&quot;,
+            &quot;java.specification.version&quot;, &quot;java.specification.vendor&quot;, &quot;java.specification.name&quot;,
+            &quot;java.class.version&quot;, &quot;java.class.path&quot;, &quot;java.library.path&quot;, &quot;java.io.tmpdir&quot;,
+            &quot;java.compiler&quot;, &quot;java.ext.dirs&quot;, &quot;user.name&quot;, &quot;user.home&quot;, &quot;user.dir&quot;, &quot;file.encoding&quot;,
+            &quot;sun.jnu.encoding&quot;, &quot;sun.arch.data.model&quot;, &quot;sun.desktop&quot;, &quot;sun.cpu.endian&quot;,
+            &quot;sun.io.unicode.encoding&quot;, &quot;sun.cpu.isalist&quot;);
+
+    private SystemInfoUtils() {
+    }
+
+    public static void logSystemInfo() {
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        if (!logger.isInfoEnabled()) {</span>
+<span class="nc" id="L24">            return;</span>
+        }
+<span class="nc" id="L26">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        for (String key : SYSTEM_INFO_LIST) {</span>
+<span class="nc" id="L28">            sb.append(key).append(&quot;: &quot;).append(System.getProperty(key)).append(&quot;\n&quot;);</span>
+<span class="nc" id="L29">        }</span>
+<span class="nc" id="L30">        logger.info(sb.toString());</span>
+<span class="nc" id="L31">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

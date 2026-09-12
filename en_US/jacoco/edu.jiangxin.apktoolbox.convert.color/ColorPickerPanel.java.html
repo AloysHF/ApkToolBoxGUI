@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ColorPickerPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.convert.color</a> &gt; <span class="el_source">ColorPickerPanel.java</span></div><h1>ColorPickerPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.convert.color;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.lang3.StringUtils;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+
+import javax.swing.*;
+
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.StringSelection;
+
+<span class="nc" id="L22">public class ColorPickerPanel extends EasyPanel {</span>
+
+<span class="nc" id="L24">    enum ColorMode {</span>
+<span class="nc" id="L25">        RGB, HTML, HEX, HSB</span>
+    }
+
+    private static final long serialVersionUID = 1L;
+
+    private static final int TOP_PADDING = 20;
+
+    private static final int BOTTOM_PADDING = 20;
+
+    private static final int LEFT_PADDING = 10;
+
+    private static final int RIGHT_PADDING = 10;
+
+    private static final int TEXT_AREA_WIDTH = 200;
+
+    private static final int DEFAULT_HEIGHT_SMALL = 20;
+
+    private static final int DEFAULT_HEIGHT_BIG = 100;
+
+    private static final int DEFAULT_WIDTH = 100;
+
+    private static final int WIDTH = LEFT_PADDING + DEFAULT_WIDTH * 3 + Constants.DEFAULT_X_BORDER * 3 + TEXT_AREA_WIDTH + RIGHT_PADDING;
+
+    private static final int HEIGHT = TOP_PADDING + DEFAULT_HEIGHT_SMALL * 3 + DEFAULT_HEIGHT_BIG + Constants.DEFAULT_Y_BORDER * 2 + BOTTOM_PADDING;
+
+    private JPanel colorPanel;
+    private JLabel coordinateLabel;
+    private JLabel colorLabel;
+
+    private transient Robot robot;
+    private Point mousePoint; // 光标点
+    private transient Image areaImage; // 待放大的图片
+
+<span class="nc" id="L58">    private int zoomFactor = 2;</span>
+
+<span class="nc" id="L60">    private Point prevPoint = null; // 上一次的光标位置</span>
+
+    private Color currentColor; // 当前的颜色，按键记录才记录163, 184, 204
+
+<span class="nc" id="L64">    private static ColorMode currentColorMode = ColorMode.RGB; // 当前颜色模式</span>
+
+    private transient Line2D crossHorizontal; // 交叉线
+    private transient Line2D crossVertical;
+
+<span class="nc" id="L69">    private int colorRecordMax = 5; // 记录的color record个数</span>
+<span class="nc" id="L70">    private LinkedList&lt;Color&gt; colorQueue = new LinkedList&lt;&gt;();</span>
+
+    private JTextField colorCopyTextField;
+
+    // 边框
+<span class="nc" id="L75">    private transient final Rectangle2D colorRect = new Rectangle2D.Double();</span>
+<span class="nc" id="L76">    private transient final Rectangle2D zoomRect = new Rectangle2D.Double();</span>
+<span class="nc" id="L77">    private transient final Rectangle2D recordRect = new Rectangle2D.Double();</span>
+    // 颜色记录JLabel数组
+<span class="nc" id="L79">    private JLabel colorRecordValue[] = new JLabel[colorRecordMax];</span>
+    // hsb 数组
+    float[] hsbArr;
+
+<span class="nc" id="L83">    private boolean isLocked = false;</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L87">        setLayout(null);</span>
+
+<span class="nc" id="L89">        initFirstColumn();</span>
+
+<span class="nc" id="L91">        initSecondColumn();</span>
+
+<span class="nc" id="L93">        initThirdColumn();</span>
+
+<span class="nc" id="L95">        initFourthColumn();</span>
+
+<span class="nc" id="L97">        final InputMap inputMap = colorPanel.getInputMap(WHEN_IN_FOCUSED_WINDOW);</span>
+<span class="nc" id="L98">        inputMap.put(KeyStroke.getKeyStroke(&quot;alt C&quot;), &quot;record.color&quot;);</span>
+<span class="nc" id="L99">        inputMap.put(KeyStroke.getKeyStroke(&quot;alt L&quot;), &quot;lock.position&quot;);</span>
+<span class="nc" id="L100">        inputMap.put(KeyStroke.getKeyStroke(&quot;alt U&quot;), &quot;unlock.position&quot;);</span>
+
+<span class="nc" id="L102">        final Action recordColorAction = new RecordColorAction(); // '记录'动作</span>
+<span class="nc" id="L103">        final Action lockPositionAction = new LockPositionAction();</span>
+<span class="nc" id="L104">        final Action unlockPositionAction = new UnlockPositionAction();</span>
+
+<span class="nc" id="L106">        final ActionMap actionMap = colorPanel.getActionMap();</span>
+<span class="nc" id="L107">        actionMap.put(&quot;record.color&quot;, recordColorAction);</span>
+<span class="nc" id="L108">        actionMap.put(&quot;lock.position&quot;, lockPositionAction);</span>
+<span class="nc" id="L109">        actionMap.put(&quot;unlock.position&quot;, unlockPositionAction);</span>
+
+<span class="nc" id="L111">        mouseListener();</span>
+<span class="nc" id="L112">    }</span>
+
+    private void initFirstColumn() {
+        // 左侧的颜色框和显示的坐标，颜色值
+        // 添加 panel 组件用来做颜色框
+<span class="nc" id="L117">        colorPanel = new JPanel();</span>
+<span class="nc" id="L118">        colorPanel.setBounds(LEFT_PADDING, TOP_PADDING, DEFAULT_WIDTH, DEFAULT_HEIGHT_BIG);</span>
+<span class="nc" id="L119">        add(colorPanel);</span>
+
+<span class="nc" id="L121">        coordinateLabel = new JLabel();</span>
+<span class="nc" id="L122">        coordinateLabel.setBounds(LEFT_PADDING, TOP_PADDING + DEFAULT_HEIGHT_BIG + Constants.DEFAULT_Y_BORDER, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L123">        add(coordinateLabel);</span>
+
+<span class="nc" id="L125">        colorLabel = new JLabel();</span>
+<span class="nc" id="L126">        colorLabel.setBounds(LEFT_PADDING, TOP_PADDING + DEFAULT_HEIGHT_BIG + DEFAULT_HEIGHT_SMALL + Constants.DEFAULT_Y_BORDER * 2, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L127">        add(colorLabel);</span>
+
+<span class="nc" id="L129">        JComboBox&lt;String&gt; colorModeCombo = new JComboBox&lt;&gt;();</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        for (ColorMode t : ColorMode.values()) {</span>
+<span class="nc" id="L131">            colorModeCombo.addItem(t.toString());</span>
+        }
+
+<span class="nc" id="L134">        colorModeCombo.addActionListener(event -&gt; {</span>
+<span class="nc" id="L135">            currentColorMode = ColorMode.valueOf((String) colorModeCombo.getSelectedItem());</span>
+<span class="nc" id="L136">        });</span>
+<span class="nc" id="L137">        colorModeCombo.setBounds(LEFT_PADDING, TOP_PADDING + DEFAULT_HEIGHT_BIG + DEFAULT_HEIGHT_SMALL * 2 + Constants.DEFAULT_Y_BORDER * 3, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L138">        add(colorModeCombo);</span>
+<span class="nc" id="L139">    }</span>
+
+    private void initSecondColumn() {
+<span class="nc" id="L142">        crossHorizontal = new Line2D.Double(</span>
+                (double) LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG / 2.0,
+                (double) LEFT_PADDING + DEFAULT_WIDTH * 2 + Constants.DEFAULT_X_BORDER,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG / 2.0);
+<span class="nc" id="L147">        crossVertical = new Line2D.Double(</span>
+                (double) LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER + DEFAULT_WIDTH / 2.0,
+                TOP_PADDING,
+                (double) LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER + DEFAULT_WIDTH / 2.0,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG);
+
+<span class="nc" id="L153">        colorCopyTextField = new JTextField();</span>
+<span class="nc" id="L154">        colorCopyTextField.setEditable(false);</span>
+<span class="nc" id="L155">        colorCopyTextField.setBounds(LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER, TOP_PADDING + DEFAULT_HEIGHT_BIG + Constants.DEFAULT_Y_BORDER, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L156">        add(colorCopyTextField);</span>
+
+<span class="nc" id="L158">        JButton colorCopyButton = new JButton(&quot;Copy&quot;);</span>
+<span class="nc" id="L159">        colorCopyButton.addActionListener(event -&gt; {</span>
+<span class="nc" id="L160">            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();</span>
+<span class="nc" id="L161">            Transferable trans = new StringSelection(getColorText(currentColor));</span>
+<span class="nc" id="L162">            clipboard.setContents(trans, null);</span>
+<span class="nc" id="L163">        });</span>
+<span class="nc" id="L164">        colorCopyButton.setBounds(LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER, TOP_PADDING + DEFAULT_HEIGHT_BIG + Constants.DEFAULT_Y_BORDER * 2 + DEFAULT_HEIGHT_SMALL, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L165">        add(colorCopyButton);</span>
+<span class="nc" id="L166">    }</span>
+
+    private void initThirdColumn() {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">        for (int i = 0; i &lt; colorRecordMax; i++) {</span>
+<span class="nc" id="L170">            colorRecordValue[i] = new JLabel();</span>
+<span class="nc" id="L171">            colorRecordValue[i].setOpaque(true); // 背景不透明</span>
+<span class="nc" id="L172">            colorRecordValue[i].setBounds(LEFT_PADDING + DEFAULT_WIDTH * 2 + Constants.DEFAULT_X_BORDER * 2,</span>
+                    TOP_PADDING + i * DEFAULT_HEIGHT_SMALL, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);
+<span class="nc" id="L174">            add(colorRecordValue[i]);</span>
+        }
+<span class="nc" id="L176">        JComboBox&lt;String&gt; magnificationModeCombo = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L177">        magnificationModeCombo.addItem(&quot;Zoom: 100%&quot;);</span>
+<span class="nc" id="L178">        magnificationModeCombo.addItem(&quot;Zoom: 200%&quot;);</span>
+<span class="nc" id="L179">        magnificationModeCombo.addItem(&quot;Zoom: 300%&quot;);</span>
+<span class="nc" id="L180">        magnificationModeCombo.addItem(&quot;Zoom: 400%&quot;);</span>
+<span class="nc" id="L181">        magnificationModeCombo.addItem(&quot;Zoom: 500%&quot;);</span>
+<span class="nc" id="L182">        magnificationModeCombo.addItem(&quot;Zoom: 1200%&quot;);</span>
+<span class="nc" id="L183">        magnificationModeCombo.addItem(&quot;Zoom: 2800%&quot;);</span>
+<span class="nc" id="L184">        magnificationModeCombo.setSelectedItem(&quot;Zoom: 200%&quot;);</span>
+<span class="nc" id="L185">        magnificationModeCombo.addActionListener(event -&gt; {</span>
+<span class="nc" id="L186">            String selectedItem = (String) magnificationModeCombo.getSelectedItem();</span>
+<span class="nc" id="L187">            String tmp = StringUtils.substringBetween(selectedItem, &quot;Zoom: &quot;, &quot;%&quot;);</span>
+<span class="nc" id="L188">            zoomFactor = Integer.valueOf(tmp) / 100;</span>
+<span class="nc" id="L189">            logger.info(&quot;zoomFactor: &quot; + zoomFactor);</span>
+<span class="nc" id="L190">        });</span>
+<span class="nc" id="L191">        magnificationModeCombo.setBounds(LEFT_PADDING + Constants.DEFAULT_X_BORDER * 2 + DEFAULT_WIDTH * 2, TOP_PADDING + DEFAULT_HEIGHT_BIG + Constants.DEFAULT_Y_BORDER, DEFAULT_WIDTH, DEFAULT_HEIGHT_SMALL);</span>
+<span class="nc" id="L192">        add(magnificationModeCombo);</span>
+<span class="nc" id="L193">    }</span>
+
+    private void initFourthColumn() {
+<span class="nc" id="L196">        JTextArea textArea = new JTextArea();</span>
+<span class="nc" id="L197">        textArea.setBounds(LEFT_PADDING + DEFAULT_WIDTH * 3 + Constants.DEFAULT_X_BORDER * 3, TOP_PADDING, TEXT_AREA_WIDTH, DEFAULT_HEIGHT_BIG);</span>
+<span class="nc" id="L198">        textArea.append(&quot;记录颜色: ALT+C&quot; + System.getProperty(&quot;line.separator&quot;));</span>
+<span class="nc" id="L199">        textArea.append(&quot;锁定区域: ALT+L&quot; + System.getProperty(&quot;line.separator&quot;));</span>
+<span class="nc" id="L200">        textArea.append(&quot;取消锁定区域: ALT+U&quot; + System.getProperty(&quot;line.separator&quot;));</span>
+<span class="nc" id="L201">        add(textArea);</span>
+<span class="nc" id="L202">    }</span>
+
+<span class="nc" id="L204">    class RecordColorAction extends AbstractAction {</span>
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(final ActionEvent event) {
+<span class="nc bnc" id="L209" title="All 2 branches missed.">            if (robot == null) {</span>
+<span class="nc" id="L210">                logger.error(&quot;robot is null&quot;);</span>
+<span class="nc" id="L211">                return;</span>
+            }
+<span class="nc" id="L213">            Color color = robot.getPixelColor(mousePoint.x, mousePoint.y);</span>
+<span class="nc" id="L214">            currentColor = color;</span>
+
+            // 头进尾出，就可以满足绘制到顶部的记录是最新的
+<span class="nc" id="L217">            colorQueue.offerFirst(color);</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">            if (colorQueue.size() &gt; colorRecordMax) {</span>
+<span class="nc" id="L219">                colorQueue.pollLast(); // 删除尾</span>
+            }
+
+            // 显示颜色值到文本框
+<span class="nc" id="L223">            colorCopyTextField.setText(getColorText(color));</span>
+<span class="nc" id="L224">            repaint();</span>
+<span class="nc" id="L225">        }</span>
+    }
+
+<span class="nc" id="L228">    class LockPositionAction extends AbstractAction {</span>
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(final ActionEvent event) {
+<span class="nc" id="L233">            isLocked = true;</span>
+<span class="nc" id="L234">        }</span>
+    }
+
+<span class="nc" id="L237">    class UnlockPositionAction extends AbstractAction {</span>
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(final ActionEvent event) {
+<span class="nc" id="L242">            isLocked = false;</span>
+<span class="nc" id="L243">        }</span>
+    }
+
+    /**
+     * 重置窗口大小
+     */
+    public Dimension getPreferredSize() {
+<span class="nc" id="L250">        return new Dimension(WIDTH, HEIGHT);</span>
+    }
+
+    private void mouseListener() {
+        try {
+<span class="nc" id="L255">            robot = new Robot();</span>
+<span class="nc" id="L256">        } catch (final AWTException e) {</span>
+<span class="nc" id="L257">            logger.error(&quot;Create Rebot instance failed&quot;);</span>
+<span class="nc" id="L258">        }</span>
+
+<span class="nc" id="L260">        final Timer timer = new Timer();</span>
+<span class="nc" id="L261">        timer.schedule(new TimerTask() {</span>
+            @Override
+            public void run() {
+<span class="nc" id="L264">                mouseAction();</span>
+<span class="nc" id="L265">            }</span>
+        }, 100, 100);
+<span class="nc" id="L267">    }</span>
+
+    /**
+     * 鼠标事件
+     * 获取位置和颜色，并显示位置和颜色信息
+     */
+    private void mouseAction() {
+        // 获取光标位置之后，与上次比对，避免重复运行
+<span class="nc" id="L275">        PointerInfo pointerInfo = MouseInfo.getPointerInfo();</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">        if (pointerInfo == null) {</span>
+<span class="nc" id="L277">            logger.warn(&quot;pointerInfo is null&quot;);</span>
+<span class="nc" id="L278">            return;</span>
+        }
+<span class="nc" id="L280">        mousePoint = pointerInfo.getLocation();</span>
+
+<span class="nc bnc" id="L282" title="All 2 branches missed.">        if (mousePoint.equals(prevPoint)) {</span>
+<span class="nc" id="L283">            return;</span>
+        } else {
+<span class="nc" id="L285">            prevPoint = mousePoint;</span>
+        }
+<span class="nc bnc" id="L287" title="All 2 branches missed.">        if (robot == null) {</span>
+<span class="nc" id="L288">            logger.error(&quot;robot is null&quot;);</span>
+<span class="nc" id="L289">            return;</span>
+        }
+<span class="nc" id="L291">        final Color pixel = robot.getPixelColor(mousePoint.x, mousePoint.y);</span>
+<span class="nc" id="L292">        colorPanel.setBackground(pixel);</span>
+
+<span class="nc" id="L294">        coordinateLabel.setText(String.format(&quot;[%d, %d]&quot;, mousePoint.x, mousePoint.y));</span>
+<span class="nc" id="L295">        colorLabel.setText(getColorText(pixel));</span>
+
+<span class="nc bnc" id="L297" title="All 2 branches missed.">        if (!isLocked) {</span>
+<span class="nc" id="L298">            getMouseArea();</span>
+        }
+<span class="nc" id="L300">    }</span>
+
+    private String getColorText(final Color color) {
+<span class="nc bnc" id="L303" title="All 2 branches missed.">        if (color == null) {</span>
+<span class="nc" id="L304">            return &quot;&quot;;</span>
+        }
+<span class="nc" id="L306">        String s = &quot;&quot;;</span>
+<span class="nc bnc" id="L307" title="All 5 branches missed.">        switch (currentColorMode) {</span>
+            case RGB:
+<span class="nc" id="L309">                s = String.format(&quot;%d, %d, %d&quot;, color.getRed(), color.getGreen(), color.getBlue());</span>
+<span class="nc" id="L310">                break;</span>
+            case HTML:
+<span class="nc" id="L312">                s = String.format(&quot;#%02x%02x%02x&quot;, color.getRed(), color.getGreen(), color.getBlue());</span>
+<span class="nc" id="L313">                break;</span>
+            case HEX:
+<span class="nc" id="L315">                s = String.format(&quot;0x%02X%02X%02X&quot;, color.getRed(), color.getGreen(), color.getBlue());</span>
+<span class="nc" id="L316">                break;</span>
+            case HSB:
+<span class="nc" id="L318">                hsbArr = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);</span>
+<span class="nc" id="L319">                s = String.format(&quot;%3.0f%% %3.0f%% %3.0f%%&quot;, hsbArr[0] * 100, hsbArr[1] * 100, hsbArr[2] * 100);</span>
+<span class="nc" id="L320">                break;</span>
+            default:
+                break;
+        }
+<span class="nc" id="L324">        return s;</span>
+
+    }
+
+    protected void getMouseArea() {
+
+<span class="nc" id="L330">        final int x = mousePoint.x;</span>
+<span class="nc" id="L331">        final int y = mousePoint.y;</span>
+
+<span class="nc" id="L333">        int length = 100 / zoomFactor;</span>
+<span class="nc" id="L334">        final Rectangle r = new Rectangle(x - length / 2, y - length / 2, length, length);</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        if (robot != null) {</span>
+<span class="nc" id="L336">            areaImage = robot.createScreenCapture(r);</span>
+        }
+<span class="nc" id="L338">        repaint(); // 重绘，调用 paintComponent</span>
+<span class="nc" id="L339">    }</span>
+
+    /**
+     * 绘制界面
+     */
+    public void paintComponent(final Graphics g) {
+        // 父类的paitComponent需要绘制其他默认的组件，比如左侧颜色框panel以及坐标和颜色值label。如果不执行，则绘制的区域会重叠
+<span class="nc" id="L346">        super.paintComponent(g);</span>
+
+        // 中间放大镜
+<span class="nc" id="L349">        final Graphics2D g2 = (Graphics2D) g;</span>
+        //g2.drawImage(areaImage,10,300,null); // 原大小
+<span class="nc" id="L351">        g2.drawImage(areaImage, LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER, TOP_PADDING, DEFAULT_WIDTH, DEFAULT_HEIGHT_BIG, null);</span>
+        // 放大镜的十字线
+<span class="nc" id="L353">        g2.setPaint(Color.RED);</span>
+<span class="nc" id="L354">        g2.draw(crossHorizontal);</span>
+<span class="nc" id="L355">        g2.draw(crossVertical);</span>
+
+        // 右侧颜色历史记录
+<span class="nc" id="L358">        paintColorRecord();</span>
+
+        // 绘制各组件的边框
+<span class="nc" id="L361">        paintBorder(g2);</span>
+
+        // 颜色值重新赋值，因为可能有模式的改变
+<span class="nc" id="L364">        colorCopyTextField.setText(getColorText(currentColor));</span>
+
+<span class="nc" id="L366">    }</span>
+
+    private void paintColorRecord() {
+<span class="nc" id="L369">        int i = 0;</span>
+
+<span class="nc bnc" id="L371" title="All 2 branches missed.">        for (Color c : colorQueue) {</span>
+<span class="nc" id="L372">            Color penC = new Color(255 - c.getRed(), 255 - c.getGreen(), 255 - c.getBlue()); // 反色</span>
+            // 字体颜色设置
+<span class="nc" id="L374">            colorRecordValue[i].setForeground(penC);</span>
+<span class="nc" id="L375">            colorRecordValue[i].setText(getColorText(c));</span>
+
+<span class="nc" id="L377">            colorRecordValue[i].setBackground(c);</span>
+
+<span class="nc bnc" id="L379" title="All 2 branches missed.">            if (++i &gt; colorRecordMax)</span>
+<span class="nc" id="L380">                break;</span>
+<span class="nc" id="L381">        }</span>
+<span class="nc" id="L382">    }</span>
+
+    private void paintBorder(Graphics2D g2) {
+<span class="nc" id="L385">        g2.setPaint(Color.BLACK);</span>
+<span class="nc" id="L386">        colorRect.setFrameFromDiagonal(</span>
+                (double) LEFT_PADDING - 1,
+                (double) TOP_PADDING - 1,
+                (double) LEFT_PADDING + DEFAULT_WIDTH,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG);
+<span class="nc" id="L391">        zoomRect.setFrameFromDiagonal(</span>
+                (double) LEFT_PADDING + DEFAULT_WIDTH + Constants.DEFAULT_X_BORDER - 1,
+                (double) TOP_PADDING - 1,
+                (double) LEFT_PADDING + DEFAULT_WIDTH * 2 + Constants.DEFAULT_X_BORDER,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG);
+<span class="nc" id="L396">        recordRect.setFrameFromDiagonal(</span>
+                (double) LEFT_PADDING + DEFAULT_WIDTH * 2 + Constants.DEFAULT_X_BORDER * 2 - 1,
+                (double) TOP_PADDING - 1,
+                (double) LEFT_PADDING + DEFAULT_WIDTH * 3 + Constants.DEFAULT_X_BORDER * 2,
+                (double) TOP_PADDING + DEFAULT_HEIGHT_BIG);
+<span class="nc" id="L401">        g2.draw(colorRect);</span>
+<span class="nc" id="L402">        g2.draw(zoomRect);</span>
+<span class="nc" id="L403">        g2.draw(recordRect);</span>
+<span class="nc" id="L404">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

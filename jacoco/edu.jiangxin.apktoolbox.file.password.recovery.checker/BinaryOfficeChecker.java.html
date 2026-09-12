@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BinaryOfficeChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.checker</a> &gt; <span class="el_source">BinaryOfficeChecker.java</span></div><h1>BinaryOfficeChecker.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.checker;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.poi.POIDocument;
+import org.apache.poi.hslf.usermodel.HSLFSlideShow;
+import org.apache.poi.hssf.record.crypto.Biff8EncryptionKey;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hwpf.HWPFDocument;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+
+import java.io.*;
+
+public class BinaryOfficeChecker extends FileChecker {
+    private static final boolean DEBUG = true;
+
+    public BinaryOfficeChecker() {
+<span class="nc" id="L17">        super();</span>
+<span class="nc" id="L18">    }</span>
+
+    @Override
+    public String[] getFileExtensions() {
+<span class="nc" id="L22">        return new String[]{&quot;doc&quot;, &quot;ppt&quot;, &quot;xls&quot;};</span>
+    }
+
+    @Override
+    public String getFileDescription() {
+<span class="nc" id="L27">        return &quot;*.doc;*.ppt;*.xls&quot;;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="nc" id="L32">        return &quot;Office File Checker(Binary formats)&quot;;</span>
+    }
+
+    @Override
+    public boolean prepareChecker() {
+<span class="nc" id="L37">        return true;</span>
+    }
+
+    @Override
+    public boolean checkPassword(String password) {
+        if (DEBUG) {
+<span class="nc" id="L43">            logger.info(&quot;checkPassword: &quot; + password);</span>
+        }
+
+<span class="nc" id="L46">        boolean result = false;</span>
+<span class="nc" id="L47">        Biff8EncryptionKey.setCurrentUserPassword(password);</span>
+<span class="nc" id="L48">        try (FileInputStream fis = new FileInputStream(file);</span>
+<span class="nc" id="L49">             POIFSFileSystem pfs = new POIFSFileSystem(fis)) {</span>
+<span class="nc" id="L50">            String extension = FilenameUtils.getExtension(file.getName());</span>
+<span class="nc bnc" id="L51" title="All 4 branches missed.">            switch (extension) {</span>
+                case &quot;xls&quot; -&gt; {
+<span class="nc" id="L53">                    try (POIDocument poiDocument = new HSSFWorkbook(pfs)) {</span>
+<span class="nc" id="L54">                        logger.info(&quot;create workbook successfully: {}&quot;, poiDocument);</span>
+<span class="nc" id="L55">                        result = true;</span>
+                    }
+<span class="nc" id="L57">                }</span>
+                case &quot;doc&quot; -&gt; {
+<span class="nc" id="L59">                    try (POIDocument poiDocument = new HWPFDocument(pfs)) {</span>
+<span class="nc" id="L60">                        logger.info(&quot;create document successfully: {}&quot;, poiDocument);</span>
+<span class="nc" id="L61">                        result = true;</span>
+                    }
+<span class="nc" id="L63">                }</span>
+                case &quot;ppt&quot; -&gt; {
+<span class="nc" id="L65">                    try (POIDocument poiDocument = new HSLFSlideShow(pfs)) {</span>
+<span class="nc" id="L66">                        logger.info(&quot;create slideShow successfully: {}&quot;, poiDocument);</span>
+<span class="nc" id="L67">                        result = true;</span>
+                    }
+<span class="nc" id="L69">                }</span>
+<span class="nc" id="L70">                default -&gt; logger.error(&quot;Not supported: {}&quot;, file.getName());</span>
+            }
+<span class="nc" id="L72">        } catch (Exception e) {</span>
+            if (DEBUG) {
+<span class="nc" id="L74">                logger.error(&quot;checkPassword: {}&quot;, e.getClass());</span>
+            }
+<span class="nc" id="L76">        }</span>
+<span class="nc" id="L77">        return result;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

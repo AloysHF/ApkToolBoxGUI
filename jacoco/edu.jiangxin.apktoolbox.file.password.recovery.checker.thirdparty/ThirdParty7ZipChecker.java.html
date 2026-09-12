@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ThirdParty7ZipChecker.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.checker.thirdparty</a> &gt; <span class="el_source">ThirdParty7ZipChecker.java</span></div><h1>ThirdParty7ZipChecker.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.checker.thirdparty;
+
+import edu.jiangxin.apktoolbox.utils.Constants;
+
+<span class="nc" id="L5">public final class ThirdParty7ZipChecker extends AbstractThirdPartyChecker {</span>
+    @Override
+    public String[] getFileExtensions() {
+<span class="nc" id="L8">        return new String[]{&quot;7z&quot;, &quot;zip&quot;, &quot;rar&quot;, &quot;gz&quot;, &quot;tar&quot;, &quot;xz&quot;, &quot;z&quot;, &quot;001&quot;};</span>
+    }
+
+    @Override
+    public String getFileDescription() {
+<span class="nc" id="L13">        return &quot;*.7z; *.zip; *.rar; ...&quot;;</span>
+    }
+
+    @Override
+    public String getDescription() {
+<span class="nc" id="L18">        return &quot;ThirdParty7ZipChecker(Using 7z.exe)&quot;;</span>
+    }
+
+    @Override
+    public String getToolPath() {
+<span class="nc" id="L23">        return conf.getString(Constants.SEVEN_ZIP_PATH_KEY);</span>
+    }
+
+    @Override
+    public boolean isFiltered(String password) {
+<span class="nc bnc" id="L28" title="All 4 branches missed.">        if (password != null &amp;&amp; password.contains(&quot;\&quot;&quot;)) {</span>
+            // It is useless to escape the password
+<span class="nc" id="L30">            logger.warn(&quot;checkPassword password contain double quote characters[Not Supported]&quot;);</span>
+<span class="nc" id="L31">            return true;</span>
+        }
+<span class="nc" id="L33">        return false;</span>
+    }
+
+    @Override
+    public String getCmd(String password) {
+<span class="nc" id="L38">        String target = file.getAbsolutePath();</span>
+<span class="nc" id="L39">        return String.format(&quot;%s t \&quot;%s\&quot; -p\&quot;%s\&quot;&quot;, toolPath, target, password);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VerifyChecksumPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.checksum.panel</a> &gt; <span class="el_source">VerifyChecksumPanel.java</span></div><h1>VerifyChecksumPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.checksum.panel;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.Serial;
+
+<span class="nc" id="L12">public class VerifyChecksumPanel extends EasyChildTabbedPanel {</span>
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    private JPanel fileSumPanel;
+    private JTextArea fileSumTextArea;
+
+    private JPanel compareSumPanel;
+    private JTextArea compareSumTextArea;
+
+    private JPanel operationPanel;
+
+    private JTextField resultTextField;
+
+
+    @Override
+    public void createUI() {
+<span class="nc" id="L29">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L30">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L32">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L34">        createFileSumPanel();</span>
+<span class="nc" id="L35">        add(fileSumPanel);</span>
+
+<span class="nc" id="L37">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L39">        createCompareSumPanel();</span>
+<span class="nc" id="L40">        add(compareSumPanel);</span>
+
+<span class="nc" id="L42">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L44">        createOperationPanel();</span>
+<span class="nc" id="L45">        add(operationPanel);</span>
+<span class="nc" id="L46">    }</span>
+
+    private void createFileSumPanel() {
+<span class="nc" id="L49">        fileSumPanel = new JPanel();</span>
+<span class="nc" id="L50">        BoxLayout boxLayout = new BoxLayout(fileSumPanel, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L51">        fileSumPanel.setLayout(boxLayout);</span>
+
+<span class="nc" id="L53">        JLabel fileSumLabel = new JLabel(&quot;Paste calculated file summary from \&quot;File Checksum\&quot; tabbed panel here:&quot;);</span>
+<span class="nc" id="L54">        fileSumTextArea = new JTextArea(5, 4);</span>
+<span class="nc" id="L55">        fileSumTextArea.setLineWrap(true);</span>
+<span class="nc" id="L56">        JScrollPane fileSumScrollPanel = new JScrollPane(fileSumTextArea);</span>
+
+<span class="nc" id="L58">        fileSumPanel.add(fileSumLabel);</span>
+<span class="nc" id="L59">        fileSumPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L60">        fileSumPanel.add(fileSumScrollPanel);</span>
+<span class="nc" id="L61">    }</span>
+
+    private void createCompareSumPanel() {
+<span class="nc" id="L64">        compareSumPanel = new JPanel();</span>
+<span class="nc" id="L65">        BoxLayout boxLayout = new BoxLayout(compareSumPanel, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L66">        compareSumPanel.setLayout(boxLayout);</span>
+
+<span class="nc" id="L68">        JLabel compareSumLabel = new JLabel(&quot;Paste your compared file summary here:&quot;);</span>
+<span class="nc" id="L69">        compareSumTextArea = new JTextArea(5, 4);</span>
+<span class="nc" id="L70">        compareSumTextArea.setLineWrap(true);</span>
+<span class="nc" id="L71">        JScrollPane compareSumScrollPanel = new JScrollPane(compareSumTextArea);</span>
+
+<span class="nc" id="L73">        compareSumPanel.add(compareSumLabel);</span>
+<span class="nc" id="L74">        compareSumPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L75">        compareSumPanel.add(compareSumScrollPanel);</span>
+<span class="nc" id="L76">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L79">        operationPanel = new JPanel();</span>
+
+<span class="nc" id="L81">        JButton compareButton = new JButton(&quot;Compare&quot;);</span>
+<span class="nc" id="L82">        compareButton.setFocusPainted(false);</span>
+<span class="nc" id="L83">        compareButton.addActionListener(event -&gt; {</span>
+<span class="nc" id="L84">            String fileSum = fileSumTextArea.getText();</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">            if (!isValidSummary(fileSum)) {</span>
+<span class="nc" id="L86">                resultTextField.setText(&quot;File summary is not valid&quot;);</span>
+<span class="nc" id="L87">                resultTextField.setForeground(Color.YELLOW);</span>
+<span class="nc" id="L88">                return;</span>
+            }
+
+<span class="nc" id="L91">            String compareSum = compareSumTextArea.getText();</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            if (!isValidSummary(compareSum)) {</span>
+<span class="nc" id="L93">                resultTextField.setText(&quot;Compared summary is not valid&quot;);</span>
+<span class="nc" id="L94">                resultTextField.setForeground(Color.YELLOW);</span>
+<span class="nc" id="L95">                return;</span>
+            }
+
+<span class="nc bnc" id="L98" title="All 2 branches missed.">            if (Strings.CI.equals(fileSum, compareSum)) {</span>
+<span class="nc" id="L99">                resultTextField.setText(&quot;File summary is same with compared summary&quot;);</span>
+<span class="nc" id="L100">                resultTextField.setForeground(Color.GREEN);</span>
+<span class="nc" id="L101">                return;</span>
+            }
+
+<span class="nc" id="L104">            resultTextField.setText(&quot;File summary is different from compared summary&quot;);</span>
+<span class="nc" id="L105">            resultTextField.setForeground(Color.RED);</span>
+<span class="nc" id="L106">        });</span>
+
+<span class="nc" id="L108">        resultTextField = new JTextField(&quot;To be comparing&quot;);</span>
+<span class="nc" id="L109">        resultTextField.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L110">        resultTextField.setEditable(false);</span>
+<span class="nc" id="L111">        resultTextField.setBorder(null);</span>
+<span class="nc" id="L112">        Font font = new Font(null, Font.BOLD, 16);</span>
+<span class="nc" id="L113">        resultTextField.setFont(font);</span>
+<span class="nc" id="L114">        resultTextField.setForeground(Color.YELLOW);</span>
+
+<span class="nc" id="L116">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L117">        operationPanel.add(compareButton);</span>
+<span class="nc" id="L118">        operationPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));</span>
+<span class="nc" id="L119">        operationPanel.add(resultTextField);</span>
+<span class="nc" id="L120">        operationPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L121">    }</span>
+
+    private boolean isValidSummary(String summary) {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (StringUtils.isEmpty(summary)) {</span>
+<span class="nc" id="L125">            return false;</span>
+        }
+<span class="nc" id="L127">        return StringUtils.containsOnly(summary, &quot;0123456789ABCDEFabcdef&quot;);</span>
+    }
+}
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

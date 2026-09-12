@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ChecksumPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.checksum</a> &gt; <span class="el_source">ChecksumPanel.java</span></div><h1>ChecksumPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.checksum;
+
+import edu.jiangxin.apktoolbox.file.checksum.panel.*;
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+
+import javax.swing.*;
+
+<span class="nc" id="L9">public class ChecksumPanel extends EasyPanel {</span>
+    private static final long serialVersionUID = 63924900336217723L;
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L14">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L15">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L17">        JTabbedPane tabbedPane = new JTabbedPane();</span>
+
+<span class="nc" id="L19">        EasyChildTabbedPanel fileChecksumPanel = new FileChecksumPanel();</span>
+<span class="nc" id="L20">        tabbedPane.addTab(&quot;File Checksum&quot;, null, fileChecksumPanel, &quot;File Checksum&quot;);</span>
+
+<span class="nc" id="L22">        EasyChildTabbedPanel verifyChecksumPanel = new VerifyChecksumPanel();</span>
+<span class="nc" id="L23">        tabbedPane.addTab(&quot;Verify Checksum&quot;, null, verifyChecksumPanel, &quot;Verify Checksum&quot;);</span>
+
+<span class="nc" id="L25">        EasyChildTabbedPanel compareFilesPanel = new CompareFilesPanel();</span>
+<span class="nc" id="L26">        tabbedPane.addTab(&quot;Compare Files&quot;, null, compareFilesPanel, &quot;Compare Files&quot;);</span>
+
+<span class="nc" id="L28">        EasyChildTabbedPanel scanFolderPanel = new ScanFolderPanel();</span>
+<span class="nc" id="L29">        tabbedPane.addTab(&quot;Scan Folder&quot;, null, scanFolderPanel, &quot;Scan Folder&quot;);</span>
+
+<span class="nc" id="L31">        EasyChildTabbedPanel stringHashPanel = new StringHashPanel();</span>
+<span class="nc" id="L32">        tabbedPane.addTab(&quot;String Hash&quot;, null, stringHashPanel, &quot;String Hash&quot;);</span>
+
+<span class="nc" id="L34">        tabbedPane.addChangeListener(e -&gt; {</span>
+<span class="nc" id="L35">            EasyChildTabbedPanel selectedPanel = (EasyChildTabbedPanel) tabbedPane.getSelectedComponent();</span>
+<span class="nc" id="L36">            selectedPanel.onTabSelected();</span>
+<span class="nc" id="L37">        });</span>
+
+<span class="nc" id="L39">        tabbedPane.setSelectedComponent(stringHashPanel);</span>
+<span class="nc" id="L40">        stringHashPanel.onTabSelected();</span>
+
+<span class="nc" id="L42">        add(tabbedPane);</span>
+<span class="nc" id="L43">        add(Box.createVerticalGlue());</span>
+<span class="nc" id="L44">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

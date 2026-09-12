@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MonkeyPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.monkey</a> &gt; <span class="el_source">MonkeyPanel.java</span></div><h1>MonkeyPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.monkey;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.swing.extend.NumberPlainDocument;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.DateUtils;
+import org.apache.commons.io.IOUtils;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+<span class="nc" id="L22">public class MonkeyPanel extends EasyPanel {</span>
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+    
+    private static final String LOG_NAME = &quot;java_monkey_log&quot;;
+
+    private static final String HOUR = &quot;时&quot;;
+    private static final String MINUTE = &quot;分&quot;;
+    private static final String SECOND = &quot;秒&quot;;
+
+    private static final String CMD = &quot;cmd.exe&quot;;
+
+    private static final String CMD_PS_A = &quot;adb -s &quot;;
+    private static final String CMD_PS_B = &quot; shell ps&quot;;
+    private static final String CMD_KILL_A = &quot;adb -s &quot;;
+    private static final String CMD_KILL_B = &quot; shell kill &quot;;
+
+    private static final String MONKEY = &quot;com.android.commands.monkey&quot;;
+
+    private static final String TRANSACTIONCOUNT = &quot;9999&quot;;
+
+    /**
+     * 设备列表不能为空！
+     */
+    private static final String MSG4 = &quot;设备列表不能为空！请[刷新]！&quot;;
+
+    /**
+     * 应用程序不能为空！
+     */
+    private static final String MSG5 = &quot;应用程序不能为空！请选其他设备！&quot;;
+
+    /**
+     * 事件间隔或时间数量不能为空！
+     */
+    private static final String MSG2 = &quot;事件间隔或时间数量不能为空！&quot;;
+
+    /**
+     * 日志保存路径不能为空！
+     */
+    private static final String MSG6 = &quot;日志保存路径不能为空！&quot;;
+
+<span class="nc" id="L64">    transient Thread threadTimeType = null;</span>
+<span class="nc" id="L65">    transient Process monkeyProcess = null;</span>
+
+<span class="nc" id="L67">    JComboBox&lt;String&gt; comboBoxDevices = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L68">    JButton refreshButton = new JButton(&quot;刷新&quot;);</span>
+
+<span class="nc" id="L70">    JButton logPathButton = new JButton(&quot;选择路径&quot;);</span>
+<span class="nc" id="L71">    JButton executeButton = new JButton(&quot;运行命令&quot;);</span>
+
+<span class="nc" id="L73">    JButton resetButton = new JButton(&quot;重置页面&quot;);</span>
+<span class="nc" id="L74">    JButton interruptButton = new JButton(&quot;终止运行&quot;);</span>
+
+<span class="nc" id="L76">    JLabel labelHour = new JLabel();</span>
+<span class="nc" id="L77">    JLabel labelMinute = new JLabel();</span>
+<span class="nc" id="L78">    JLabel labelSecond = new JLabel();</span>
+<span class="nc" id="L79">    JTextField textMillisecond = new JTextField(30);</span>
+<span class="nc" id="L80">    JTextField textTime = new JTextField(30);</span>
+<span class="nc" id="L81">    JTextField textLogPath = new JTextField(90);</span>
+
+<span class="nc" id="L83">    JComboBox&lt;String&gt; comboBoxProgram = new JComboBox&lt;&gt;();</span>
+<span class="nc" id="L84">    JComboBox&lt;String&gt; comboBoxTime = new JComboBox&lt;&gt;();</span>
+
+    /**
+     * --dbg-no-events：初始化启动的activity，但是不产生任何事件
+     */
+<span class="nc" id="L89">    JCheckBox checkBoxDbgNoEvents = new JCheckBox(&quot;初始化启动的activity，但是不产生任何事件&quot;);</span>
+
+    /**
+     * --hprof：指定该项后在事件序列发送前后会立即生成分析报告（一般建议指定该项）
+     */
+<span class="nc" id="L94">    JCheckBox checkBoxHprof = new JCheckBox(&quot;在事件序列发送前后会立即生成分析报告&quot;);</span>
+
+    /**
+     * --ignore-crashes：忽略崩溃
+     */
+<span class="nc" id="L99">    JCheckBox checkBoxCrashes = new JCheckBox(&quot;忽略崩溃&quot;, true);</span>
+
+    /**
+     * --ignore-timeouts：忽略超时
+     */
+<span class="nc" id="L104">    JCheckBox checkBoxTimeouts = new JCheckBox(&quot;忽略超时&quot;, true);</span>
+
+    /**
+     * --monitor-native-crashes：跟踪本地方法的崩溃问题
+     */
+<span class="nc" id="L109">    JCheckBox checkBoxNativeCrashes = new JCheckBox(&quot;跟踪本地方法的崩溃问题&quot;, true);</span>
+
+    /**
+     * --ignore-security-exceptions：忽略安全异常
+     */
+<span class="nc" id="L114">    JCheckBox checkBoxExceptions = new JCheckBox(&quot;忽略安全异常&quot;, true);</span>
+
+    /**
+     * --kill-process-after-error：发生错误后直接杀掉进程
+     */
+<span class="nc" id="L119">    JCheckBox checkBoxKill = new JCheckBox(&quot;发生错误后直接杀掉进程&quot;);</span>
+
+    /**
+     * --wait-dbg：知道连接了调试器才执行monkey测试
+     */
+<span class="nc" id="L124">    JCheckBox checkBoxWaitDbg = new JCheckBox(&quot;停止Monkey执行，直到有调试器与其连接&quot;);</span>
+
+<span class="nc" id="L126">    ButtonGroup group = new ButtonGroup();</span>
+
+    /**
+     * 缺省值
+     */
+<span class="nc" id="L131">    JRadioButton radioButton0 = new JRadioButton(&quot;基本信息&quot;);</span>
+
+    /**
+     * 比较详细
+     */
+<span class="nc" id="L136">    JRadioButton radioButton1 = new JRadioButton(&quot;比较详细&quot;);</span>
+
+    /**
+     * 非常详细(默认选中)
+     */
+<span class="nc" id="L141">    JRadioButton radioButton2 = new JRadioButton(&quot;非常详细&quot;, true);</span>
+
+    ArrayList&lt;String&gt; list;
+<span class="nc" id="L144">    int flag = 0;</span>
+<span class="nc" id="L145">    String[] monkeyCmd = null;</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L149">        setPreferredSize(new Dimension(Constants.DEFAULT_PANEL_WIDTH, Constants.DEFAULT_PANEL_HEIGHT));</span>
+<span class="nc" id="L150">        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));</span>
+
+<span class="nc" id="L152">        JPanel devicesPanel = new JPanel();</span>
+<span class="nc" id="L153">        devicesPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L154">        initDevices(devicesPanel);</span>
+<span class="nc" id="L155">        add(devicesPanel);</span>
+
+<span class="nc" id="L157">        JPanel programPanel = new JPanel();</span>
+<span class="nc" id="L158">        programPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L159">        initProgram(programPanel);</span>
+<span class="nc" id="L160">        add(programPanel);</span>
+
+<span class="nc" id="L162">        JPanel restrainConditionPanel = new JPanel();</span>
+<span class="nc" id="L163">        restrainConditionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L164">        initRestrainCondition(restrainConditionPanel);</span>
+<span class="nc" id="L165">        add(restrainConditionPanel);</span>
+
+<span class="nc" id="L167">        JPanel eventIntervalPanel = new JPanel();</span>
+<span class="nc" id="L168">        eventIntervalPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L169">        initEventInterval(eventIntervalPanel);</span>
+<span class="nc" id="L170">        add(eventIntervalPanel);</span>
+
+<span class="nc" id="L172">        JPanel runTimePanel = new JPanel();</span>
+<span class="nc" id="L173">        runTimePanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L174">        initRunTime(runTimePanel);</span>
+<span class="nc" id="L175">        add(runTimePanel);</span>
+
+<span class="nc" id="L177">        JPanel logLevelPanel = new JPanel();</span>
+<span class="nc" id="L178">        logLevelPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L179">        initLogLevel(logLevelPanel);</span>
+<span class="nc" id="L180">        add(logLevelPanel);</span>
+
+<span class="nc" id="L182">        JPanel logPathPanel = new JPanel();</span>
+<span class="nc" id="L183">        logPathPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L184">        initLogPath(logPathPanel);</span>
+<span class="nc" id="L185">        add(logPathPanel);</span>
+
+<span class="nc" id="L187">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L188">        operationPanel.setLayout(new FlowLayout(FlowLayout.LEFT));</span>
+<span class="nc" id="L189">        initOperation(operationPanel);</span>
+<span class="nc" id="L190">        add(operationPanel);</span>
+<span class="nc" id="L191">    }</span>
+
+    private void initDevices(JPanel panel) {
+<span class="nc" id="L194">        JLabel labelDevices = new JLabel(&quot;设备列表&quot;);</span>
+<span class="nc" id="L195">        labelDevices.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L196">        comboBoxDevices.setPreferredSize(new Dimension(240, 25));</span>
+<span class="nc" id="L197">        refreshButton.setPreferredSize(new Dimension(60, 25));</span>
+
+<span class="nc" id="L199">        panel.add(labelDevices);</span>
+<span class="nc" id="L200">        panel.add(comboBoxDevices);</span>
+<span class="nc" id="L201">        panel.add(refreshButton);</span>
+
+<span class="nc" id="L203">        refreshButton.addActionListener(e -&gt; {</span>
+<span class="nc" id="L204">            comboBoxDevices.removeAllItems();</span>
+<span class="nc" id="L205">            List&lt;String&gt; devices = getDevices();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">            for (String device : devices) {</span>
+<span class="nc" id="L207">                comboBoxDevices.addItem(device);</span>
+<span class="nc" id="L208">            }</span>
+<span class="nc" id="L209">        });</span>
+<span class="nc" id="L210">    }</span>
+
+    private void initProgram(JPanel panel) {
+<span class="nc" id="L213">        JLabel labelProgram = new JLabel(&quot;应用程序&quot;);</span>
+<span class="nc" id="L214">        labelProgram.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L215">        comboBoxProgram.setPreferredSize(new Dimension(240, 25));</span>
+<span class="nc" id="L216">        comboBoxProgram.setEditable(true);</span>
+<span class="nc" id="L217">        comboBoxProgram.setSelectedItem(&quot;com.shinow.*&quot;);</span>
+
+<span class="nc" id="L219">        panel.add(labelProgram);</span>
+<span class="nc" id="L220">        panel.add(comboBoxProgram);</span>
+
+<span class="nc" id="L222">        comboBoxDevices.addActionListener(e -&gt; {</span>
+<span class="nc" id="L223">            comboBoxProgram.removeAllItems();</span>
+<span class="nc" id="L224">            comboBoxProgram.setSelectedItem(&quot;com.shinow.*&quot;);</span>
+<span class="nc" id="L225">            List&lt;String&gt; programs = getApplication(comboBoxDevices.getSelectedItem().toString());</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            for (String program : programs) {</span>
+<span class="nc" id="L227">                comboBoxProgram.addItem(program);</span>
+<span class="nc" id="L228">            }</span>
+
+<span class="nc" id="L230">        });</span>
+<span class="nc" id="L231">    }</span>
+
+    private void initRestrainCondition(JPanel panel) {
+<span class="nc" id="L234">        JLabel labelRestrain = new JLabel(&quot;约束条件&quot;);</span>
+<span class="nc" id="L235">        labelRestrain.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L236">        checkBoxCrashes.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L237">        checkBoxTimeouts.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L238">        checkBoxExceptions.setPreferredSize(new Dimension(110, 25));</span>
+<span class="nc" id="L239">        checkBoxNativeCrashes.setPreferredSize(new Dimension(180, 25));</span>
+<span class="nc" id="L240">        checkBoxKill.setPreferredSize(new Dimension(180, 25));</span>
+<span class="nc" id="L241">        checkBoxWaitDbg.setPreferredSize(new Dimension(280, 25));</span>
+<span class="nc" id="L242">        checkBoxHprof.setPreferredSize(new Dimension(280, 25));</span>
+
+<span class="nc" id="L244">        panel.add(labelRestrain);</span>
+<span class="nc" id="L245">        panel.add(checkBoxCrashes);</span>
+<span class="nc" id="L246">        panel.add(checkBoxTimeouts);</span>
+<span class="nc" id="L247">        panel.add(checkBoxExceptions);</span>
+<span class="nc" id="L248">        panel.add(checkBoxNativeCrashes);</span>
+<span class="nc" id="L249">        panel.add(checkBoxKill);</span>
+<span class="nc" id="L250">        panel.add(checkBoxWaitDbg);</span>
+<span class="nc" id="L251">        panel.add(checkBoxHprof);</span>
+<span class="nc" id="L252">    }</span>
+
+    private void initEventInterval(JPanel panel) {
+<span class="nc" id="L255">        JLabel labelSpace = new JLabel(&quot;事件间隔&quot;);</span>
+<span class="nc" id="L256">        labelSpace.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L257">        textMillisecond.setPreferredSize(new Dimension(150, 25));</span>
+<span class="nc" id="L258">        textMillisecond.setDocument(new NumberPlainDocument(7));</span>
+<span class="nc" id="L259">        textMillisecond.setText(&quot;500&quot;);</span>
+<span class="nc" id="L260">        JLabel labelMillisecond = new JLabel(&quot;毫秒&quot;);</span>
+<span class="nc" id="L261">        labelMillisecond.setPreferredSize(new Dimension(40, 25));</span>
+
+<span class="nc" id="L263">        panel.add(labelSpace);</span>
+<span class="nc" id="L264">        panel.add(textMillisecond);</span>
+<span class="nc" id="L265">        panel.add(labelMillisecond);</span>
+<span class="nc" id="L266">    }</span>
+
+    private void initRunTime(JPanel panel) {
+<span class="nc" id="L269">        JLabel labelTime = new JLabel(&quot;运行时长&quot;);</span>
+<span class="nc" id="L270">        labelTime.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L271">        textTime.setPreferredSize(new Dimension(150, 25));</span>
+<span class="nc" id="L272">        textTime.setDocument(new NumberPlainDocument(7));</span>
+<span class="nc" id="L273">        textTime.setText(&quot;1&quot;);</span>
+<span class="nc" id="L274">        comboBoxTime.setPreferredSize(new Dimension(60, 25));</span>
+<span class="nc" id="L275">        comboBoxTime.addItem(HOUR);</span>
+<span class="nc" id="L276">        comboBoxTime.addItem(MINUTE);</span>
+<span class="nc" id="L277">        comboBoxTime.addItem(SECOND);</span>
+
+<span class="nc" id="L279">        labelHour.setPreferredSize(new Dimension(50, 25));</span>
+<span class="nc" id="L280">        labelMinute.setPreferredSize(new Dimension(50, 25));</span>
+<span class="nc" id="L281">        labelSecond.setPreferredSize(new Dimension(50, 25));</span>
+
+<span class="nc" id="L283">        panel.add(labelTime);</span>
+<span class="nc" id="L284">        panel.add(textTime);</span>
+<span class="nc" id="L285">        panel.add(comboBoxTime);</span>
+
+<span class="nc" id="L287">        panel.add(labelHour);</span>
+<span class="nc" id="L288">        panel.add(labelMinute);</span>
+<span class="nc" id="L289">        panel.add(labelSecond);</span>
+<span class="nc" id="L290">    }</span>
+
+    private void initLogLevel(JPanel panel) {
+<span class="nc" id="L293">        JLabel labelLogLevel = new JLabel(&quot;日志级别&quot;);</span>
+<span class="nc" id="L294">        labelLogLevel.setPreferredSize(new Dimension(60, 25));</span>
+
+<span class="nc" id="L296">        group.add(radioButton0);</span>
+<span class="nc" id="L297">        group.add(radioButton1);</span>
+<span class="nc" id="L298">        group.add(radioButton2);</span>
+
+<span class="nc" id="L300">        radioButton0.setPreferredSize(new Dimension(80, 25));</span>
+<span class="nc" id="L301">        radioButton1.setPreferredSize(new Dimension(80, 25));</span>
+<span class="nc" id="L302">        radioButton2.setPreferredSize(new Dimension(80, 25));</span>
+
+<span class="nc" id="L304">        panel.add(labelLogLevel);</span>
+<span class="nc" id="L305">        panel.add(radioButton0);</span>
+<span class="nc" id="L306">        panel.add(radioButton1);</span>
+<span class="nc" id="L307">        panel.add(radioButton2);</span>
+<span class="nc" id="L308">    }</span>
+
+    private void initLogPath(JPanel panel) {
+<span class="nc" id="L311">        logPathButton.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L312">        textLogPath.setColumns(60);</span>
+<span class="nc" id="L313">        textLogPath.setEditable(false);</span>
+<span class="nc" id="L314">        textLogPath.setText(&quot;D:&quot;);</span>
+
+<span class="nc" id="L316">        panel.add(logPathButton);</span>
+<span class="nc" id="L317">        panel.add(textLogPath);</span>
+
+<span class="nc" id="L319">        logPathButton.addActionListener(e -&gt; {</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">            if (e.getSource() == logPathButton) {</span>
+<span class="nc" id="L321">                JFileChooser fileChooser = new JFileChooser();</span>
+<span class="nc" id="L322">                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L323">                int intRetVal = fileChooser.showOpenDialog(new Label());</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">                if (intRetVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L325">                    textLogPath.setText(fileChooser.getSelectedFile().getPath());</span>
+                }
+            }
+<span class="nc" id="L328">        });</span>
+<span class="nc" id="L329">    }</span>
+
+    private void initOperation(JPanel panel) {
+<span class="nc" id="L332">        executeButton.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L333">        resetButton.setPreferredSize(new Dimension(100, 25));</span>
+<span class="nc" id="L334">        interruptButton.setPreferredSize(new Dimension(100, 25));</span>
+
+<span class="nc" id="L336">        panel.add(executeButton);</span>
+<span class="nc" id="L337">        panel.add(resetButton);</span>
+<span class="nc" id="L338">        panel.add(interruptButton);</span>
+
+<span class="nc" id="L340">        interruptButton.setEnabled(false);</span>
+
+<span class="nc" id="L342">        executeButton.addActionListener(e -&gt; execute());</span>
+
+<span class="nc" id="L344">        resetButton.addActionListener(e -&gt; reset());</span>
+
+<span class="nc" id="L346">        interruptButton.addActionListener(e -&gt; interrupt());</span>
+
+<span class="nc" id="L348">    }</span>
+
+    private void execute() {
+<span class="nc" id="L351">        String combinedOptionCmd = getCombinedOptionCmd();</span>
+
+<span class="nc" id="L353">        boolean isOk = checkCondition();</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">        if (!isOk) {</span>
+<span class="nc" id="L355">            return;</span>
+        }
+
+<span class="nc" id="L358">        String logLevel = queryLogLevelString();</span>
+<span class="nc" id="L359">        String logFile = textLogPath.getText() + &quot;\\&quot; + LOG_NAME + DateUtils.getCurrentDateString() + &quot;.txt&quot;;</span>
+
+<span class="nc" id="L361">        monkeyCmd = new String[] { CMD, &quot;/C&quot;,</span>
+<span class="nc" id="L362">                &quot;adb -s &quot; + comboBoxDevices.getSelectedItem() + &quot; shell monkey -p &quot;</span>
+<span class="nc" id="L363">                        + comboBoxProgram.getSelectedItem() + combinedOptionCmd + &quot; --throttle &quot;</span>
+<span class="nc" id="L364">                        + textMillisecond.getText() + &quot;&quot; + logLevel + &quot;&quot; + TRANSACTIONCOUNT + &quot; &gt; &quot; + logFile };</span>
+
+<span class="nc" id="L366">        logger.info(&quot;Monkey: {}&quot;, monkeyCmd[2]);</span>
+
+<span class="nc" id="L368">        flag = 0;</span>
+
+        try {
+<span class="nc" id="L371">            monkeyProcess = Runtime.getRuntime().exec(monkeyCmd);</span>
+<span class="nc" id="L372">        } catch (Exception ex) {</span>
+<span class="nc" id="L373">            logger.error(&quot;Exception&quot;, ex);</span>
+<span class="nc" id="L374">        }</span>
+
+<span class="nc" id="L376">        executeButton.setEnabled(false);</span>
+<span class="nc" id="L377">        resetButton.setEnabled(false);</span>
+<span class="nc" id="L378">        interruptButton.setEnabled(true);</span>
+
+        // 倒计时文本
+<span class="nc" id="L381">        labelHour.setVisible(true);</span>
+<span class="nc" id="L382">        labelMinute.setVisible(true);</span>
+<span class="nc" id="L383">        labelSecond.setVisible(true);</span>
+
+        // 获取时间类型
+<span class="nc" id="L386">        String timeType = (String) comboBoxTime.getSelectedItem();</span>
+<span class="nc" id="L387">        long time = Long.parseLong(textTime.getText());</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (Objects.equals(timeType, HOUR)) {</span>
+<span class="nc" id="L389">            time *= 3600;</span>
+<span class="nc bnc" id="L390" title="All 2 branches missed.">        } else if (Objects.equals(timeType, MINUTE)) {</span>
+<span class="nc" id="L391">            time *= 60;</span>
+        }
+<span class="nc" id="L393">        threadTimeType = new Thread(new CountdownRunnable(time));</span>
+<span class="nc" id="L394">        threadTimeType.start();</span>
+<span class="nc" id="L395">    }</span>
+
+    private void reset() {
+        // 重置约束条件
+<span class="nc" id="L399">        checkBoxCrashes.setSelected(true);</span>
+<span class="nc" id="L400">        checkBoxTimeouts.setSelected(true);</span>
+<span class="nc" id="L401">        checkBoxExceptions.setSelected(true);</span>
+<span class="nc" id="L402">        checkBoxNativeCrashes.setSelected(true);</span>
+        // 重置日志级别
+<span class="nc" id="L404">        radioButton0.setSelected(false);</span>
+<span class="nc" id="L405">        radioButton1.setSelected(false);</span>
+<span class="nc" id="L406">        radioButton2.setSelected(true);</span>
+        // 重置事件间隔
+<span class="nc" id="L408">        textMillisecond.setText(&quot;500&quot;);</span>
+        // 重置运行时长
+<span class="nc" id="L410">        textTime.setText(&quot;1&quot;);</span>
+<span class="nc" id="L411">    }</span>
+
+    private void interrupt() {
+        // 杀掉Monkey执行进程
+<span class="nc" id="L415">        interruptThread();</span>
+<span class="nc" id="L416">        executeButton.setEnabled(true);</span>
+<span class="nc" id="L417">        resetButton.setEnabled(true);</span>
+<span class="nc" id="L418">        interruptButton.setEnabled(false);</span>
+<span class="nc" id="L419">    }</span>
+
+    private String getCombinedOptionCmd() {
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        String ignoreCrashes = checkBoxCrashes.isSelected() ? &quot; --ignore-crashes&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">        String ignoreTimeouts = checkBoxTimeouts.isSelected() ? &quot; --ignore-timeouts&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        String monitorNativeCrashes = checkBoxNativeCrashes.isSelected() ? &quot; --monitor-native-crashes&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        String ignoreSecurityExceptions = checkBoxExceptions.isSelected() ? &quot; --ignore-security-exceptions&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L426" title="All 2 branches missed.">        String hprof = checkBoxHprof.isSelected() ? &quot; --hprof&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">        String killProcessAfterError = checkBoxKill.isSelected() ? &quot; --kill-process-after-error&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L428" title="All 2 branches missed.">        String waitDbg = checkBoxWaitDbg.isSelected() ? &quot; --wait-dbg&quot; : &quot;&quot;;</span>
+<span class="nc bnc" id="L429" title="All 2 branches missed.">        String dbgNoEvents = checkBoxDbgNoEvents.isSelected() ? &quot;--dbg-no-events&quot; : &quot;&quot;;</span>
+<span class="nc" id="L430">        return ignoreCrashes + ignoreTimeouts + ignoreSecurityExceptions + monitorNativeCrashes + hprof</span>
+                + killProcessAfterError + waitDbg + dbgNoEvents;
+    }
+
+    private boolean checkCondition() {
+        // 判断设备列表和应用程序是否为空
+<span class="nc bnc" id="L436" title="All 2 branches missed.">        if (comboBoxDevices.getItemCount() == 0) {</span>
+<span class="nc" id="L437">            new MyDialog(MSG4).setVisible(true);</span>
+<span class="nc" id="L438">            refreshButton.requestFocus();</span>
+<span class="nc" id="L439">            return false;</span>
+        }
+<span class="nc bnc" id="L441" title="All 2 branches missed.">        if (comboBoxProgram.getItemCount() == 0) {</span>
+<span class="nc" id="L442">            new MyDialog(MSG5).setVisible(true);</span>
+<span class="nc" id="L443">            return false;</span>
+        }
+        // 判断事件间隔和运行时长是否为空
+<span class="nc bnc" id="L446" title="All 2 branches missed.">        if (textMillisecond.getText().length() == 0) {</span>
+<span class="nc" id="L447">            new MyDialog(MSG2).setVisible(true);</span>
+<span class="nc" id="L448">            textMillisecond.requestFocus();</span>
+<span class="nc" id="L449">            return false;</span>
+        }
+<span class="nc bnc" id="L451" title="All 2 branches missed.">        if (textTime.getText().length() == 0) {</span>
+<span class="nc" id="L452">            new MyDialog(MSG2).setVisible(true);</span>
+<span class="nc" id="L453">            textTime.requestFocus();</span>
+<span class="nc" id="L454">            return false;</span>
+        }
+<span class="nc bnc" id="L456" title="All 2 branches missed.">        if (textLogPath.getText().length() == 0) {</span>
+<span class="nc" id="L457">            new MyDialog(MSG6).setVisible(true);</span>
+<span class="nc" id="L458">            logPathButton.requestFocus();</span>
+<span class="nc" id="L459">            return false;</span>
+        }
+<span class="nc" id="L461">        return true;</span>
+    }
+
+    private String queryLogLevelString() {
+<span class="nc bnc" id="L465" title="All 2 branches missed.">        if (radioButton0.isSelected()) {</span>
+<span class="nc" id="L466">            return &quot; -v &quot;;</span>
+<span class="nc bnc" id="L467" title="All 2 branches missed.">        } else if (radioButton1.isSelected()) {</span>
+<span class="nc" id="L468">            return &quot; -v -v &quot;;</span>
+<span class="nc bnc" id="L469" title="All 2 branches missed.">        } else if (radioButton2.isSelected()) {</span>
+<span class="nc" id="L470">            return &quot; -v -v -v &quot;;</span>
+        }
+<span class="nc" id="L472">        return &quot;&quot;;</span>
+    }
+
+    /**
+     * 中断Monkey命令
+     */
+    public void interruptThread() {
+
+<span class="nc" id="L480">        logger.info(&quot;中断Monkey命令--开始&quot;);</span>
+
+<span class="nc" id="L482">        String[] cmd1 = new String[] { CMD, &quot;/c&quot;, CMD_PS_A + comboBoxDevices.getSelectedItem() + CMD_PS_B };</span>
+<span class="nc" id="L483">        executeCommand(cmd1, MONKEY);</span>
+
+<span class="nc" id="L485">        List&lt;String&gt; listPid = list;</span>
+<span class="nc" id="L486">        logger.info(&quot;获取的中断Monkey进程数量：&quot; + listPid.size());</span>
+
+<span class="nc" id="L488">        String[] cmd2 = null;</span>
+<span class="nc" id="L489">        String pid = &quot;&quot;;</span>
+<span class="nc bnc" id="L490" title="All 2 branches missed.">        for (String s : listPid) {</span>
+<span class="nc" id="L491">            pid = s;</span>
+<span class="nc" id="L492">            cmd2 = new String[]{CMD, &quot;/c&quot;, CMD_KILL_A + comboBoxDevices.getSelectedItem() + CMD_KILL_B + pid};</span>
+<span class="nc" id="L493">            executeCommand(cmd2, MONKEY);</span>
+<span class="nc" id="L494">        }</span>
+
+<span class="nc" id="L496">        flag = 1;</span>
+
+<span class="nc" id="L498">        monkeyProcess.destroy();</span>
+
+<span class="nc" id="L500">        labelHour.setVisible(false);</span>
+<span class="nc" id="L501">        labelMinute.setVisible(false);</span>
+<span class="nc" id="L502">        labelSecond.setVisible(false);</span>
+
+<span class="nc" id="L504">        logger.info(&quot;中断Monkey命令--结束&quot;);</span>
+
+<span class="nc" id="L506">    }</span>
+
+    private List&lt;String&gt; getDevices() {
+<span class="nc" id="L509">        List&lt;String&gt; devices = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L510">        logger.info(&quot;get device list start&quot;);</span>
+<span class="nc" id="L511">        Process process = null;</span>
+        try {
+<span class="nc" id="L513">            ProcessBuilder builder = new ProcessBuilder(&quot;adb&quot;, &quot;devices&quot;);</span>
+<span class="nc" id="L514">            process = builder.start();</span>
+<span class="nc" id="L515">        } catch (IOException e) {</span>
+<span class="nc" id="L516">            logger.error(&quot;exec command failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L517">        }</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">        if (process == null) {</span>
+<span class="nc" id="L519">            logger.error(&quot;process is null&quot;);</span>
+<span class="nc" id="L520">            return devices;</span>
+        }
+<span class="nc" id="L522">        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {</span>
+            String line;
+<span class="nc bnc" id="L524" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc bnc" id="L525" title="All 4 branches missed.">                if (line.contains(&quot;device&quot;) &amp;&amp; !line.contains(&quot;List of&quot;)) {</span>
+<span class="nc" id="L526">                    line = line.substring(0, line.length() - 7);</span>
+<span class="nc" id="L527">                    logger.info(&quot;device name: &quot; + line);</span>
+<span class="nc" id="L528">                    devices.add(line);</span>
+                }
+            }
+<span class="nc" id="L531">        } catch (IOException e) {</span>
+<span class="nc" id="L532">            logger.error(&quot;read failed: &quot; + e.getMessage());</span>
+        } finally {
+<span class="nc" id="L534">            IOUtils.closeQuietly(process.getOutputStream());</span>
+<span class="nc" id="L535">            IOUtils.closeQuietly(process.getErrorStream());</span>
+<span class="nc" id="L536">            IOUtils.closeQuietly(process.getInputStream());</span>
+        }
+<span class="nc" id="L538">        logger.info(&quot;get device list end&quot;);</span>
+<span class="nc" id="L539">        return devices;</span>
+    }
+
+    private List&lt;String&gt; getApplication(String device) {
+<span class="nc" id="L543">        List&lt;String&gt; apps = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L544">        logger.info(&quot;get application list start&quot;);</span>
+<span class="nc" id="L545">        Process process = null;</span>
+        try {
+<span class="nc" id="L547">            process = Runtime.getRuntime().exec(new String[]{&quot;adb&quot;, &quot;-s&quot;, device, &quot;shell&quot;, &quot;pm&quot;, &quot;list&quot;, &quot;packages&quot;});</span>
+<span class="nc" id="L548">        } catch (IOException e) {</span>
+<span class="nc" id="L549">            logger.error(&quot;exec command failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L550">        }</span>
+<span class="nc bnc" id="L551" title="All 2 branches missed.">        if (process == null) {</span>
+<span class="nc" id="L552">            logger.error(&quot;process is null&quot;);</span>
+<span class="nc" id="L553">            return apps;</span>
+        }
+<span class="nc" id="L555">        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {</span>
+            String line;
+<span class="nc bnc" id="L557" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">                if (line.contains(&quot;package:&quot;)) {</span>
+<span class="nc" id="L559">                    logger.info(&quot;application name：&quot; + line);</span>
+<span class="nc" id="L560">                    apps.add(line.replace(&quot;package:&quot;, &quot;&quot;));</span>
+                }
+            }
+<span class="nc" id="L563">        } catch (IOException e) {</span>
+<span class="nc" id="L564">            logger.error(&quot;read failed: &quot; + e.getMessage());</span>
+        } finally {
+<span class="nc" id="L566">            IOUtils.closeQuietly(process.getOutputStream());</span>
+<span class="nc" id="L567">            IOUtils.closeQuietly(process.getErrorStream());</span>
+<span class="nc" id="L568">            IOUtils.closeQuietly(process.getInputStream());</span>
+        }
+<span class="nc" id="L570">        logger.info(&quot;get application list end&quot;);</span>
+<span class="nc" id="L571">        return apps;</span>
+    }
+
+    private void executeCommand(String[] cmd, String keyValue) {
+<span class="nc" id="L575">        logger.info(&quot;exec cmd start&quot;);</span>
+<span class="nc" id="L576">        list = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L577">        Process process = null;</span>
+        try {
+<span class="nc" id="L579">            process = Runtime.getRuntime().exec(cmd);</span>
+<span class="nc" id="L580">        } catch (IOException e) {</span>
+<span class="nc" id="L581">            logger.error(&quot;exec command failed: &quot; + e.getMessage());</span>
+<span class="nc" id="L582">        }</span>
+<span class="nc bnc" id="L583" title="All 2 branches missed.">        if (process == null) {</span>
+<span class="nc" id="L584">            logger.error(&quot;process is null&quot;);</span>
+<span class="nc" id="L585">            return;</span>
+        }
+<span class="nc" id="L587">        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {</span>
+            String line;
+<span class="nc bnc" id="L589" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="nc bnc" id="L590" title="All 2 branches missed.">                if (line.contains(keyValue)) {</span>
+<span class="nc" id="L591">                    line = line.replace(&quot; &quot;, &quot;:&quot;);</span>
+<span class="nc" id="L592">                    System.out.println(&quot;[&quot; + keyValue + &quot;][&quot; + line + &quot;]&quot;);</span>
+<span class="nc" id="L593">                    String[] str = line.split(&quot;:&quot;);</span>
+<span class="nc" id="L594">                    System.out.println(str.length);</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">                    for (int i = 1; i &lt; str.length; i++) {</span>
+<span class="nc bnc" id="L596" title="All 2 branches missed.">                        if (str[i].length() &gt; 0) {</span>
+<span class="nc" id="L597">                            logger.info(&quot;Pid: &quot; + str[i]);</span>
+<span class="nc" id="L598">                            list.add(str[i]);</span>
+<span class="nc" id="L599">                            break;</span>
+                        }
+                    }
+<span class="nc" id="L602">                }</span>
+            }
+<span class="nc" id="L604">        } catch (IOException e) {</span>
+<span class="nc" id="L605">            logger.error(&quot;read failed: &quot; + e.getMessage());</span>
+        } finally {
+<span class="nc" id="L607">            IOUtils.closeQuietly(process.getOutputStream());</span>
+<span class="nc" id="L608">            IOUtils.closeQuietly(process.getErrorStream());</span>
+<span class="nc" id="L609">            IOUtils.closeQuietly(process.getInputStream());</span>
+        }
+<span class="nc" id="L611">        logger.info(&quot;exec cmd end&quot;);</span>
+<span class="nc" id="L612">    }</span>
+
+    /**
+     * 倒计时
+     * 
+     */
+    class CountdownRunnable implements Runnable {
+        private long times;
+
+<span class="nc" id="L621">        public CountdownRunnable(long times) {</span>
+<span class="nc" id="L622">            this.times = times;</span>
+<span class="nc" id="L623">        }</span>
+
+        @Override
+        public void run() {
+            // 自定义倒计时时间
+<span class="nc" id="L628">            long time = times;</span>
+<span class="nc" id="L629">            long hour = 0;</span>
+<span class="nc" id="L630">            long minute = 0;</span>
+<span class="nc" id="L631">            long seconds = 0;</span>
+
+<span class="nc bnc" id="L633" title="All 2 branches missed.">            if (time &gt;= 0) {</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                for (int i = 0; i &lt;= time; i++) {</span>
+                    // 监控Monkey命令
+<span class="nc" id="L636">                    monitorMonkey(time, MONKEY);</span>
+                    // 监控Monkey命令操作的App
+<span class="nc" id="L638">                    monitorApp(time, comboBoxProgram.getSelectedItem().toString());</span>
+                    // 判断标识，是否中断操作
+<span class="nc" id="L640">                    System.out.println(&quot;flag==1?Interrupt:Continue:&quot; + flag);</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">                    if (flag == 1) {</span>
+<span class="nc" id="L642">                        break;</span>
+                    }
+<span class="nc" id="L644">                    hour = time / 3600;</span>
+<span class="nc" id="L645">                    minute = (time - hour * 3600) / 60;</span>
+<span class="nc" id="L646">                    seconds = time - hour * 3600 - minute * 60;</span>
+<span class="nc" id="L647">                    labelHour.setText(hour + HOUR);</span>
+<span class="nc" id="L648">                    labelMinute.setText(minute + MINUTE);</span>
+<span class="nc" id="L649">                    labelSecond.setText(seconds + SECOND);</span>
+                    try {
+<span class="nc" id="L651">                        Thread.sleep(1000);</span>
+<span class="nc" id="L652">                    } catch (InterruptedException e) {</span>
+<span class="nc" id="L653">                        logger.error(&quot;InterruptedException {}&quot;, e.getMessage());</span>
+<span class="nc" id="L654">                        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L655">                    }</span>
+                    // 正常结束
+<span class="nc bnc" id="L657" title="All 2 branches missed.">                    if (time == 0) {</span>
+<span class="nc" id="L658">                        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L659">                        interruptThread();</span>
+<span class="nc" id="L660">                        executeButton.setEnabled(true);</span>
+<span class="nc" id="L661">                        resetButton.setEnabled(true);</span>
+<span class="nc" id="L662">                        interruptButton.setEnabled(false);</span>
+                    }
+<span class="nc" id="L664">                    i--;</span>
+<span class="nc" id="L665">                    time--;</span>
+                }
+<span class="nc bnc" id="L667" title="All 2 branches missed.">                if (flag == 1) {</span>
+<span class="nc" id="L668">                    Thread.currentThread().interrupt();</span>
+<span class="nc" id="L669">                    threadTimeType.interrupt();</span>
+<span class="nc" id="L670">                    executeButton.setEnabled(true);</span>
+<span class="nc" id="L671">                    resetButton.setEnabled(true);</span>
+<span class="nc" id="L672">                    interruptButton.setEnabled(false);</span>
+                }
+            }
+<span class="nc" id="L675">        }</span>
+
+        /**
+         * 间隔60秒监控一次运行monkey命令是否为运行状态，或已关闭
+         * 
+         * @param time     当前剩余执行时间
+         * @param keyValue Monkey命令的进程名称
+         */
+        private void monitorMonkey(long time, String keyValue) {
+<span class="nc bnc" id="L684" title="All 2 branches missed.">            if ((time - 1) % 120 == 0) {</span>
+<span class="nc" id="L685">                logger.info(&quot;监控[&quot; + keyValue + &quot;]线程是否执行完毕---开始&quot;);</span>
+<span class="nc" id="L686">                logger.info(&quot;每60秒监听一次，此时time的值：&quot; + (time - 1));</span>
+<span class="nc" id="L687">                String[] cmd = new String[] { CMD, &quot;/c&quot;,</span>
+<span class="nc" id="L688">                        CMD_PS_A + comboBoxDevices.getSelectedItem() + CMD_PS_B };</span>
+<span class="nc" id="L689">                logger.info(&quot;当前命令：&quot; + cmd[2]);</span>
+<span class="nc" id="L690">                executeCommand(cmd, keyValue);</span>
+<span class="nc" id="L691">                logger.info(&quot;当前线程数：&quot; + list.size());</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">                if (list.size() == 0) {</span>
+<span class="nc" id="L693">                    String log = textLogPath.getText();</span>
+<span class="nc" id="L694">                    System.out.println(textLogPath.getText());</span>
+<span class="nc" id="L695">                    String getDate = DateUtils.getCurrentDateString();</span>
+                    // 日志文件路径
+<span class="nc" id="L697">                    String logFile = log.substring(0, log.indexOf(&quot;java_monkey_log&quot;)) + LOG_NAME + getDate + &quot;.txt&quot;;</span>
+<span class="nc" id="L698">                    textLogPath.setText(logFile);</span>
+<span class="nc" id="L699">                    System.out.println(&quot;monkeyCmd[2];&quot; + monkeyCmd[2]);</span>
+<span class="nc" id="L700">                    monkeyCmd[2] = monkeyCmd[2].substring(0, monkeyCmd[2].indexOf(&quot;java_monkey_log&quot;))</span>
+                            + &quot;java_monkey_log&quot; + getDate + &quot;.txt&quot;;
+<span class="nc" id="L702">                    logger.info(&quot;Monkey命令已经停止，再次执行&quot;);</span>
+<span class="nc" id="L703">                    logger.info(&quot;monkeyCmd[2];&quot; + monkeyCmd[2]);</span>
+<span class="nc" id="L704">                    String[] monkeyCommand = new String[] { CMD, &quot;/c&quot;, monkeyCmd[2] };</span>
+<span class="nc" id="L705">                    logger.info(&quot;执行&quot;);</span>
+                    // 再次执行
+                    try {
+<span class="nc" id="L708">                        monkeyProcess = Runtime.getRuntime().exec(monkeyCommand);</span>
+<span class="nc" id="L709">                    } catch (Exception e) {</span>
+<span class="nc" id="L710">                        logger.error(&quot;Exception&quot;, e);</span>
+<span class="nc" id="L711">                    }</span>
+                }
+<span class="nc" id="L713">                logger.info(&quot;监控[&quot; + keyValue + &quot;]线程是否执行完毕---结束&quot;);</span>
+            }
+<span class="nc" id="L715">        }</span>
+
+        /**
+         * 间隔60秒监控一次运行app是否是启动状态，或崩溃掉
+         * 
+         * @param time     当前剩余执行时间
+         * @param keyValue App的进程名称
+         */
+        private void monitorApp(long time, String keyValue) {
+<span class="nc bnc" id="L724" title="All 2 branches missed.">            if ((time - 1) % 120 == 0) {</span>
+<span class="nc" id="L725">                logger.info(&quot;监控[&quot; + keyValue + &quot;]线程是否执行完毕---开始&quot;);</span>
+<span class="nc" id="L726">                logger.info(&quot;每60秒监听一次，此时time的值：&quot; + (time - 1));</span>
+<span class="nc" id="L727">                String[] cmd = new String[] { CMD, &quot;/c&quot;,</span>
+<span class="nc" id="L728">                        CMD_PS_A + comboBoxDevices.getSelectedItem() + CMD_PS_B };</span>
+<span class="nc" id="L729">                logger.info(&quot;当前命令：&quot; + cmd[2]);</span>
+<span class="nc" id="L730">                executeCommand(cmd, keyValue);</span>
+<span class="nc" id="L731">                logger.info(&quot;当前线程数：&quot; + list.size());</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">                if (list.size() == 0) {</span>
+<span class="nc" id="L733">                    logger.info(&quot;[&quot; + keyValue + &quot;]已经关闭或崩溃，无法继续执行Monkey，退出系统&quot;);</span>
+<span class="nc" id="L734">                    logger.info(&quot;监控[&quot; + keyValue + &quot;]线程是否执行完毕---结束&quot;);</span>
+                    // 杀掉Monkey执行进程
+<span class="nc" id="L736">                    interruptThread();</span>
+                    // System.gc();
+                }
+<span class="nc" id="L739">                logger.info(&quot;监控[&quot; + keyValue + &quot;]线程是否执行完毕---结束&quot;);</span>
+            }
+<span class="nc" id="L741">        }</span>
+    }
+
+    static class MyDialog extends JDialog {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        MyDialog(String msg3) {
+<span class="nc" id="L750">            super((Frame)null, &quot;提示&quot;, true);</span>
+<span class="nc" id="L751">            setSize(320, 180);</span>
+<span class="nc" id="L752">            Container container = getContentPane();</span>
+<span class="nc" id="L753">            container.setLayout(null);</span>
+<span class="nc" id="L754">            JLabel jl = new JLabel(msg3);</span>
+<span class="nc" id="L755">            jl.setBounds(70, 1, 200, 100);</span>
+<span class="nc" id="L756">            JButton jbb = new JButton(&quot;确    定&quot;);</span>
+<span class="nc" id="L757">            jbb.setBounds(97, 80, 100, 25);</span>
+<span class="nc" id="L758">            container.add(jl);</span>
+<span class="nc" id="L759">            container.add(jbb);</span>
+
+            // 设置位置
+<span class="nc" id="L762">            int w = (Toolkit.getDefaultToolkit().getScreenSize().width - 320) / 2;</span>
+<span class="nc" id="L763">            int h = (Toolkit.getDefaultToolkit().getScreenSize().height - 180) / 2;</span>
+
+<span class="nc" id="L765">            setLocation(w, h);</span>
+
+<span class="nc" id="L767">            jbb.addActionListener(e -&gt; dispose());</span>
+<span class="nc" id="L768">            setDefaultCloseOperation(DISPOSE_ON_CLOSE);</span>
+<span class="nc" id="L769">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

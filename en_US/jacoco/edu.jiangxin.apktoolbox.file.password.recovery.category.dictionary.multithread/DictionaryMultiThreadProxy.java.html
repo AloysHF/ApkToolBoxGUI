@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DictionaryMultiThreadProxy.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.multithread</a> &gt; <span class="el_source">DictionaryMultiThreadProxy.java</span></div><h1>DictionaryMultiThreadProxy.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.file.password.recovery.category.dictionary.multithread;
+
+import edu.jiangxin.apktoolbox.file.password.recovery.RecoveryPanel;
+import edu.jiangxin.apktoolbox.file.password.recovery.category.ICategory;
+import edu.jiangxin.apktoolbox.utils.Utils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import javax.swing.*;
+import java.io.File;
+
+public class DictionaryMultiThreadProxy implements ICategory {
+<span class="nc" id="L13">    private static final Logger logger = LogManager.getLogger(DictionaryMultiThreadProxy.class.getSimpleName());</span>
+
+    private BigFileReader bigFileReader;
+
+    private String password;
+
+<span class="nc" id="L19">    private final Object lock = new Object();</span>
+
+    private static class DictionaryMultiThreadProxyHolder {
+<span class="nc" id="L22">        private static final DictionaryMultiThreadProxy instance = new DictionaryMultiThreadProxy();</span>
+    }
+
+<span class="nc" id="L25">    private DictionaryMultiThreadProxy() {</span>
+<span class="nc" id="L26">    }</span>
+
+    public static DictionaryMultiThreadProxy getInstance() {
+<span class="nc" id="L29">        return DictionaryMultiThreadProxy.DictionaryMultiThreadProxyHolder.instance;</span>
+    }
+
+    private String startAndGet(RecoveryPanel panel) {
+<span class="nc" id="L33">        CompleteCallback callback = password -&gt; {</span>
+<span class="nc" id="L34">            synchronized (lock) {</span>
+<span class="nc" id="L35">                this.password = password;</span>
+<span class="nc" id="L36">                lock.notifyAll();</span>
+<span class="nc" id="L37">            }</span>
+<span class="nc" id="L38">        };</span>
+<span class="nc" id="L39">        bigFileReader = new BigFileReader(callback, panel);</span>
+<span class="nc" id="L40">        bigFileReader.start();</span>
+        try {
+<span class="nc" id="L42">            synchronized (lock) {</span>
+<span class="nc" id="L43">                lock.wait();</span>
+<span class="nc" id="L44">            }</span>
+<span class="nc" id="L45">        } catch (InterruptedException e) {</span>
+<span class="nc" id="L46">            logger.error(&quot;wait InterruptedException&quot;);</span>
+<span class="nc" id="L47">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L48">        }</span>
+<span class="nc" id="L49">        return password;</span>
+    }
+
+    @Override
+    public void start(RecoveryPanel panel) {
+<span class="nc" id="L54">        File dictionaryFile = panel.getDictionaryFile();</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (!dictionaryFile.isFile()) {</span>
+<span class="nc" id="L56">            JOptionPane.showMessageDialog(panel, &quot;Invalid dictionary file&quot;);</span>
+<span class="nc" id="L57">            return;</span>
+        }
+<span class="nc" id="L59">        int fileLineCount = Utils.getFileLineCount(dictionaryFile);</span>
+<span class="nc" id="L60">        logger.info(&quot;File line count: {}&quot;, fileLineCount);</span>
+
+<span class="nc" id="L62">        panel.resetProgressMaxValue(fileLineCount);</span>
+
+<span class="nc" id="L64">        String resultPassword = startAndGet(panel);</span>
+<span class="nc" id="L65">        panel.showResultWithDialog(resultPassword);</span>
+<span class="nc" id="L66">    }</span>
+
+    @Override
+    public void cancel() {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (bigFileReader != null) {</span>
+<span class="nc" id="L71">            bigFileReader.shutdown();</span>
+        }
+<span class="nc" id="L73">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

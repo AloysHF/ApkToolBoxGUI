@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AboutPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help</a> &gt; <span class="el_source">AboutPanel.java</span></div><h1>AboutPanel.java</h1><pre class="source lang-java linenums">/**
+ * 
+ */
+package edu.jiangxin.apktoolbox.help;
+
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import javax.swing.BoxLayout;
+import javax.swing.JEditorPane;
+import javax.swing.JScrollPane;
+import javax.swing.border.EmptyBorder;
+
+import edu.jiangxin.apktoolbox.Version;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+<span class="nc" id="L25">public class AboutPanel extends EasyPanel {</span>
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L31">        setBorder(new EmptyBorder(10, 10, 10, 10));</span>
+<span class="nc" id="L32">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L33">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L35">        InputStream inputStream = null;</span>
+<span class="nc" id="L36">        BufferedReader bufferedReader = null;</span>
+<span class="nc" id="L37">        StringBuffer stringBuffer = new StringBuffer();</span>
+        try {
+<span class="nc" id="L39">            inputStream = AboutPanel.class.getResourceAsStream(&quot;/about.html&quot;);</span>
+<span class="nc" id="L40">            bufferedReader = new BufferedReader(new InputStreamReader(inputStream, &quot;UTF-8&quot;));</span>
+<span class="nc" id="L41">            String line = &quot;&quot;;</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            while ((line = bufferedReader.readLine()) != null) {</span>
+<span class="nc" id="L43">                stringBuffer.append(line);</span>
+<span class="nc" id="L44">                stringBuffer.append(&quot;\n&quot;);</span>
+            }
+<span class="nc" id="L46">        } catch (IOException ex) {</span>
+<span class="nc" id="L47">            logger.error(&quot;processing file failed&quot;, ex);</span>
+        } finally {
+            try {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                if (bufferedReader != null) {</span>
+<span class="nc" id="L51">                    bufferedReader.close();</span>
+                }
+<span class="nc" id="L53">            } catch (Exception ex) {</span>
+<span class="nc" id="L54">                logger.error(&quot;close bufferedReader failed&quot;, ex);</span>
+<span class="nc" id="L55">            }</span>
+
+            try {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">                if (inputStream != null) {</span>
+<span class="nc" id="L59">                    inputStream.close();</span>
+                }
+<span class="nc" id="L61">            } catch (Exception ex) {</span>
+<span class="nc" id="L62">                logger.error(&quot;close inputStream failed&quot;, ex);</span>
+<span class="nc" id="L63">            }</span>
+
+        }
+
+<span class="nc" id="L67">        JEditorPane editorPane = new JEditorPane(&quot;text/html&quot;,</span>
+<span class="nc" id="L68">                stringBuffer.toString().replace(&quot;{VERSION}&quot;, Version.VERSION));</span>
+<span class="nc" id="L69">        editorPane.setEditable(false);</span>
+
+<span class="nc" id="L71">        JScrollPane scrollPane = new JScrollPane(editorPane);</span>
+<span class="nc" id="L72">        scrollPane.setPreferredSize(new Dimension(800, 300));</span>
+
+<span class="nc" id="L74">        add(scrollPane);</span>
+<span class="nc" id="L75">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

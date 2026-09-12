@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang=""><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>I18nRemovePanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.android.i18n</a> &gt; <span class="el_source">I18nRemovePanel.java</span></div><h1>I18nRemovePanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.android.i18n;
+
+import java.awt.HeadlessException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import edu.jiangxin.apktoolbox.swing.extend.listener.SelectDirectoryListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class I18nRemovePanel extends EasyPanel {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+<span class="nc" id="L38">    private transient List&lt;I18nFindLongestPanel.I18nInfo&gt; infos = new ArrayList&lt;&gt;();</span>
+
+    private static final String CHARSET = &quot;UTF-8&quot;;
+
+    private JTextField srcTextField;
+
+    private JTextField itemTextField;
+
+    public I18nRemovePanel() throws HeadlessException {
+<span class="nc" id="L47">        super();</span>
+<span class="nc" id="L48">    }</span>
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L52">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L53">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L55">        createSourcePanel();</span>
+<span class="nc" id="L56">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L57">        createItemPanel();</span>
+<span class="nc" id="L58">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+<span class="nc" id="L59">        createOperationPanel();</span>
+<span class="nc" id="L60">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L63">        JPanel operationPanel = new JPanel();</span>
+<span class="nc" id="L64">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L65">        add(operationPanel);</span>
+
+<span class="nc" id="L67">        JButton removeButton = new JButton(bundle.getString(&quot;android.i18n.remove.title&quot;));</span>
+<span class="nc" id="L68">        removeButton.addActionListener(new ActionListener() {</span>
+            @Override
+            public void actionPerformed(ActionEvent e) {
+<span class="nc" id="L71">                infos.clear();</span>
+
+<span class="nc" id="L73">                String srcPath = checkAndGetDirContent(srcTextField, &quot;android.i18n.remove.src.dir&quot;, &quot;Source directory is invalid&quot;);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">                if (StringUtils.isEmpty(srcPath)) {</span>
+<span class="nc" id="L75">                    return;</span>
+                }
+
+<span class="nc" id="L78">                String item = checkAndGetStringContent(itemTextField, &quot;android.i18n.remove.items&quot;, &quot;Items is empty&quot;);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                if (StringUtils.isEmpty(item)) {</span>
+<span class="nc" id="L80">                    return;</span>
+                }
+
+<span class="nc" id="L83">                remove(srcPath, itemTextField.getText());</span>
+<span class="nc" id="L84">            }</span>
+        });
+
+<span class="nc" id="L87">        operationPanel.add(removeButton);</span>
+<span class="nc" id="L88">    }</span>
+
+    private void createItemPanel() {
+<span class="nc" id="L91">        JPanel itemPanel = new JPanel();</span>
+<span class="nc" id="L92">        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L93">        add(itemPanel);</span>
+        
+<span class="nc" id="L95">        itemTextField = new JTextField();</span>
+<span class="nc" id="L96">        itemTextField.setText(conf.getString(&quot;android.i18n.remove.items&quot;));</span>
+
+<span class="nc" id="L98">        JLabel itemLabel = new JLabel(&quot;Items&quot;);</span>
+
+<span class="nc" id="L100">        itemPanel.add(itemTextField);</span>
+<span class="nc" id="L101">        itemPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L102">        itemPanel.add(itemLabel);</span>
+<span class="nc" id="L103">    }</span>
+
+    private void createSourcePanel() {
+<span class="nc" id="L106">        JPanel sourcePanel = new JPanel();</span>
+<span class="nc" id="L107">        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.X_AXIS));</span>
+<span class="nc" id="L108">        add(sourcePanel);</span>
+        
+<span class="nc" id="L110">        srcTextField = new JTextField();</span>
+<span class="nc" id="L111">        srcTextField.setText(conf.getString(&quot;android.i18n.remove.src.dir&quot;));</span>
+
+<span class="nc" id="L113">        JButton srcButton = new JButton(&quot;Source Directory&quot;);</span>
+<span class="nc" id="L114">        srcButton.addActionListener(new SelectDirectoryListener(&quot;select a directory&quot;, srcTextField));</span>
+
+<span class="nc" id="L116">        sourcePanel.add(srcTextField);</span>
+<span class="nc" id="L117">        sourcePanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L118">        sourcePanel.add(srcButton);</span>
+<span class="nc" id="L119">    }</span>
+
+    private void remove(String sourceBaseStr, String itemName) {
+<span class="nc" id="L122">        File[] sourceParentFiles = new File(sourceBaseStr).listFiles(new FileFilter() {</span>
+            @Override
+            public boolean accept(File pathname) {
+<span class="nc" id="L125">                return pathname.getName().startsWith(&quot;values&quot;);</span>
+            }
+        });
+<span class="nc bnc" id="L128" title="All 2 branches missed.">        if (sourceParentFiles == null) {</span>
+<span class="nc" id="L129">            logger.error(&quot;None valid directory found&quot;);</span>
+<span class="nc" id="L130">            return;</span>
+        }
+<span class="nc" id="L132">        int count = 0;</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        for (File sourceParentFile : sourceParentFiles) {</span>
+<span class="nc" id="L134">            File sourceFile = new File(sourceParentFile, &quot;strings.xml&quot;);</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">            if (sourceFile.exists()) {</span>
+                try {
+<span class="nc" id="L137">                    System.out.println(&quot;read from: &quot; + sourceFile.getCanonicalPath());</span>
+<span class="nc" id="L138">                    String content = FileUtils.readFileToString(sourceFile, CHARSET);</span>
+<span class="nc" id="L139">                    Pattern pattern = Pattern.compile(&quot;\\s*&lt;string name=\&quot;&quot; + itemName + &quot;\&quot;.*&gt;.*&lt;/string&gt;&quot;);</span>
+<span class="nc" id="L140">                    Matcher matcher = pattern.matcher(content);</span>
+<span class="nc" id="L141">                    String resultString = matcher.replaceAll(&quot;&quot;);</span>
+<span class="nc" id="L142">                    FileUtils.writeStringToFile(sourceFile, resultString, CHARSET);</span>
+<span class="nc" id="L143">                    logger.info(&quot;remove success, count: {}, and file: {}&quot;, ++count, sourceFile);</span>
+<span class="nc" id="L144">                } catch (IOException e) {</span>
+<span class="nc" id="L145">                    logger.error(&quot;remove exception: {}&quot;, sourceFile);</span>
+<span class="nc" id="L146">                }</span>
+            }
+        }
+<span class="nc" id="L149">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

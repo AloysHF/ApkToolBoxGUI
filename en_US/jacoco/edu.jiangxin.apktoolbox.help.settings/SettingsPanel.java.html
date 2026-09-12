@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SettingsPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.help.settings</a> &gt; <span class="el_source">SettingsPanel.java</span></div><h1>SettingsPanel.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.help.settings;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyChildTabbedPanel;
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+
+import javax.swing.*;
+
+<span class="nc" id="L8">public class SettingsPanel extends EasyPanel {</span>
+    private static final long serialVersionUID = 63924900336217723L;
+
+    @Override
+    public void initUI() {
+<span class="nc" id="L13">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L14">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L16">        JTabbedPane tabbedPane = new JTabbedPane();</span>
+
+<span class="nc" id="L18">        EasyChildTabbedPanel lookAndFeelPanel = new LookAndFeelPanel();</span>
+<span class="nc" id="L19">        String lookAndFeelTitle = bundle.getString(&quot;help.settings.look.and.feel.title&quot;);</span>
+<span class="nc" id="L20">        tabbedPane.addTab(lookAndFeelTitle, null, lookAndFeelPanel, lookAndFeelTitle);</span>
+
+<span class="nc" id="L22">        EasyChildTabbedPanel localePanel = new LocalePanel();</span>
+<span class="nc" id="L23">        String localeTitle = bundle.getString(&quot;help.settings.locale.title&quot;);</span>
+<span class="nc" id="L24">        tabbedPane.addTab(localeTitle, null, localePanel, localeTitle);</span>
+
+<span class="nc" id="L26">        EasyChildTabbedPanel alwaysOnTopPanel = new AlwaysOnTopPanel();</span>
+<span class="nc" id="L27">        String alwaysOnTopTitle = bundle.getString(&quot;help.settings.always.on.top.title&quot;);</span>
+<span class="nc" id="L28">        tabbedPane.addTab(alwaysOnTopTitle, null, alwaysOnTopPanel, alwaysOnTopTitle);</span>
+
+<span class="nc" id="L30">        EasyChildTabbedPanel dependencyPathPanel = new DependencyPathPanel();</span>
+<span class="nc" id="L31">        String dependencyPathTitle = bundle.getString(&quot;help.settings.dependency.path&quot;);</span>
+<span class="nc" id="L32">        tabbedPane.addTab(dependencyPathTitle, null, dependencyPathPanel, dependencyPathTitle);</span>
+
+<span class="nc" id="L34">        EasyChildTabbedPanel addToStartupPanel = new AddToStartupPanel();</span>
+<span class="nc" id="L35">        String addToStartupTitle = bundle.getString(&quot;help.settings.add.to.startup&quot;);</span>
+<span class="nc" id="L36">        tabbedPane.addTab(addToStartupTitle, null, addToStartupPanel, addToStartupTitle);</span>
+
+<span class="nc" id="L38">        tabbedPane.addChangeListener(e -&gt; {</span>
+<span class="nc" id="L39">            EasyChildTabbedPanel selectedPanel = (EasyChildTabbedPanel) tabbedPane.getSelectedComponent();</span>
+<span class="nc" id="L40">            selectedPanel.onTabSelected();</span>
+<span class="nc" id="L41">        });</span>
+
+<span class="nc" id="L43">        tabbedPane.setSelectedComponent(dependencyPathPanel);</span>
+<span class="nc" id="L44">        dependencyPathPanel.onTabSelected();</span>
+
+<span class="nc" id="L46">        add(tabbedPane);</span>
+<span class="nc" id="L47">        add(Box.createVerticalGlue());</span>
+<span class="nc" id="L48">    }</span>
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="" lang="">
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<title>ProgressBarDialog xref</title>
+<link type="text/css" rel="stylesheet" href="../../../../../../stylesheet.css" />
+</head>
+<body>
+<div id="overview"><a href="../../../../../../../apidocs/edu/jiangxin/apktoolbox/swing/extend/plugin/ProgressBarDialog.html">View Javadoc</a></div><pre>
+<a class="jxr_linenumber" name="L1" href="#L1">1</a>   <strong class="jxr_keyword">package</strong> edu.jiangxin.apktoolbox.swing.extend.plugin;
+<a class="jxr_linenumber" name="L2" href="#L2">2</a>   
+<a class="jxr_linenumber" name="L3" href="#L3">3</a>   <strong class="jxr_keyword">import</strong> edu.jiangxin.apktoolbox.utils.Constants;
+<a class="jxr_linenumber" name="L4" href="#L4">4</a>   
+<a class="jxr_linenumber" name="L5" href="#L5">5</a>   <strong class="jxr_keyword">import</strong> javax.swing.*;
+<a class="jxr_linenumber" name="L6" href="#L6">6</a>   <strong class="jxr_keyword">import</strong> java.awt.*;
+<a class="jxr_linenumber" name="L7" href="#L7">7</a>   <strong class="jxr_keyword">import</strong> java.io.Serial;
+<a class="jxr_linenumber" name="L8" href="#L8">8</a>   
+<a class="jxr_linenumber" name="L9" href="#L9">9</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a name="ProgressBarDialog" href="../../../../../../edu/jiangxin/apktoolbox/swing/extend/plugin/ProgressBarDialog.html#ProgressBarDialog">ProgressBarDialog</a> <strong class="jxr_keyword">extends</strong> JDialog {
+<a class="jxr_linenumber" name="L10" href="#L10">10</a>      @Serial
+<a class="jxr_linenumber" name="L11" href="#L11">11</a>      <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
+<a class="jxr_linenumber" name="L12" href="#L12">12</a>      <strong class="jxr_keyword">final</strong> JProgressBar progressBar = <strong class="jxr_keyword">new</strong> JProgressBar();
+<a class="jxr_linenumber" name="L13" href="#L13">13</a>      <strong class="jxr_keyword">final</strong> JLabel progressLabel = <strong class="jxr_keyword">new</strong> JLabel(<span class="jxr_string">""</span>);
+<a class="jxr_linenumber" name="L14" href="#L14">14</a>  
+<a class="jxr_linenumber" name="L15" href="#L15">15</a>      <strong class="jxr_keyword">public</strong> <a name="ProgressBarDialog" href="../../../../../../edu/jiangxin/apktoolbox/swing/extend/plugin/ProgressBarDialog.html#ProgressBarDialog">ProgressBarDialog</a>() {
+<a class="jxr_linenumber" name="L16" href="#L16">16</a>      }
+<a class="jxr_linenumber" name="L17" href="#L17">17</a>  
+<a class="jxr_linenumber" name="L18" href="#L18">18</a>      <em class="jxr_comment">// in case of escape of "this"</em>
+<a class="jxr_linenumber" name="L19" href="#L19">19</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> initialize(String title) {
+<a class="jxr_linenumber" name="L20" href="#L20">20</a>          setTitle(title);
+<a class="jxr_linenumber" name="L21" href="#L21">21</a>          setSize(400, 100);
+<a class="jxr_linenumber" name="L22" href="#L22">22</a>          setLayout(<strong class="jxr_keyword">new</strong> BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+<a class="jxr_linenumber" name="L23" href="#L23">23</a>          <em class="jxr_comment">//Swing Worker can't update GUI components in modal jdialog</em>
+<a class="jxr_linenumber" name="L24" href="#L24">24</a>          <em class="jxr_comment">//https://stackoverflow.com/questions/54496606/swing-worker-cant-update-gui-components-in-modal-jdialog</em>
+<a class="jxr_linenumber" name="L25" href="#L25">25</a>          setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+<a class="jxr_linenumber" name="L26" href="#L26">26</a>          setLocationRelativeTo(<strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L27" href="#L27">27</a>  
+<a class="jxr_linenumber" name="L28" href="#L28">28</a>          add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+<a class="jxr_linenumber" name="L29" href="#L29">29</a>  
+<a class="jxr_linenumber" name="L30" href="#L30">30</a>          JPanel contentPanel = <strong class="jxr_keyword">new</strong> JPanel();
+<a class="jxr_linenumber" name="L31" href="#L31">31</a>          contentPanel.setLayout(<strong class="jxr_keyword">new</strong> BoxLayout(contentPanel, BoxLayout.X_AXIS));
+<a class="jxr_linenumber" name="L32" href="#L32">32</a>          add(contentPanel);
+<a class="jxr_linenumber" name="L33" href="#L33">33</a>  
+<a class="jxr_linenumber" name="L34" href="#L34">34</a>          contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
+<a class="jxr_linenumber" name="L35" href="#L35">35</a>  
+<a class="jxr_linenumber" name="L36" href="#L36">36</a>          progressBar.setMaximum(100);
+<a class="jxr_linenumber" name="L37" href="#L37">37</a>          progressBar.setValue(0);
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>          progressBar.setPreferredSize(<strong class="jxr_keyword">new</strong> Dimension(300, 20));
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>          contentPanel.add(progressBar);
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>          contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>          contentPanel.add(progressLabel);
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>          contentPanel.add(Box.createHorizontalStrut(Constants.DEFAULT_X_BORDER));
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>          add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      }
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> setValue(<strong class="jxr_keyword">int</strong> value) {
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>          progressBar.setValue(value);
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          progressLabel.setText(value + <span class="jxr_string">"%"</span>);
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>      }
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  }
+</pre>
+<hr/>
+<div id="footer">© 2026</div>
+</body>
+</html>

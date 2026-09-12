@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AutoCompleter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ApkToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.swing.extend.autocomplete</a> &gt; <span class="el_source">AutoCompleter.java</span></div><h1>AutoCompleter.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.swing.extend.autocomplete;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Vector;
+
+class AutoCompleter&lt;E&gt; implements KeyListener {
+    private JComboBox&lt;E&gt; comboBox;
+    private JTextField textField;
+    private ComboBoxModel&lt;E&gt; comboBoxModel;
+
+<span class="nc" id="L17">    public AutoCompleter(JComboBox&lt;E&gt; comboBox) {</span>
+<span class="nc bnc" id="L18" title="All 2 branches missed.">        if (comboBox == null) {</span>
+<span class="nc" id="L19">            throw new AutoCompleterInitException(&quot;comboBox is null&quot;);</span>
+        }
+<span class="nc" id="L21">        this.comboBox = comboBox;</span>
+<span class="nc" id="L22">        ComboBoxEditor comboBoxEditor = comboBox.getEditor();</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        if (comboBoxEditor == null) {</span>
+<span class="nc" id="L24">            throw new AutoCompleterInitException(&quot;comboBoxEditor is null&quot;);</span>
+        }
+<span class="nc" id="L26">        Component component = comboBoxEditor.getEditorComponent();</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        if (!(component instanceof JTextField)) {</span>
+<span class="nc" id="L28">            throw new AutoCompleterInitException(&quot;component is invalid&quot;);</span>
+        }
+<span class="nc" id="L30">        this.textField = (JTextField) component;</span>
+<span class="nc" id="L31">        this.textField.addKeyListener(this);</span>
+<span class="nc" id="L32">        this.comboBoxModel = comboBox.getModel();</span>
+<span class="nc" id="L33">    }</span>
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // do nothing
+<span class="nc" id="L38">    }</span>
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        // do nothing
+<span class="nc" id="L43">    }</span>
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+<span class="nc" id="L47">        char keyChar = e.getKeyChar();</span>
+<span class="nc bnc" id="L48" title="All 8 branches missed.">        if (Character.isAlphabetic(keyChar) || Character.isDigit(keyChar) || Character.isWhitespace(keyChar)</span>
+                || keyChar == KeyEvent.VK_BACK_SPACE) {
+<span class="nc" id="L50">            String text = textField.getText();</span>
+<span class="nc" id="L51">            autoComplete(text);</span>
+<span class="nc" id="L52">            textField.setText(text);</span>
+        }
+<span class="nc" id="L54">    }</span>
+
+    protected void autoComplete(String text) {
+<span class="nc" id="L57">        Vector&lt;E&gt; opts = getMatchingOptions(text);</span>
+<span class="nc" id="L58">        comboBox.setModel(new DefaultComboBoxModel&lt;&gt;(opts));</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (comboBox.getItemCount() &gt; 0) {</span>
+<span class="nc" id="L60">            comboBox.showPopup();</span>
+        }
+<span class="nc" id="L62">    }</span>
+
+    private Vector&lt;E&gt; getMatchingOptions(String text) {
+<span class="nc" id="L65">        Vector&lt;E&gt; vector = new Vector&lt;&gt;();</span>
+<span class="nc" id="L66">        ComboBoxModel&lt;E&gt; tmp = this.comboBoxModel;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        for (int i = 0; i &lt; tmp.getSize(); i++) {</span>
+<span class="nc" id="L68">            E itemObj = tmp.getElementAt(i);</span>
+<span class="nc bnc" id="L69" title="All 4 branches missed.">            if (StringUtils.isEmpty(text) || Strings.CI.contains(itemObj.toString(), text)) {</span>
+<span class="nc" id="L70">                vector.add(itemObj);</span>
+            }
+        }
+<span class="nc" id="L73">        return vector;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.15.202606040825</span></div></body></html>

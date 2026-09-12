@@ -3,6 +3,7 @@ package edu.jiangxin.apktoolbox.android.dumpsys;
 import edu.jiangxin.apktoolbox.android.dumpsys.tojson.IDumpsys2Json;
 import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
 import edu.jiangxin.apktoolbox.swing.extend.filepanel.FilePanel;
+import edu.jiangxin.apktoolbox.swing.extend.ui.UiKit;
 import edu.jiangxin.apktoolbox.utils.Constants;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
@@ -52,10 +53,11 @@ public class DumpsysPanel extends EasyPanel {
 
     @Override
     public void initUI() {
-        setPreferredSize(new Dimension(700, 400));
+        setPreferredSize(new Dimension(760, 420));
+        setLayout(new BorderLayout());
 
         JTabbedPane tabbedPane = new JTabbedPane();
-        add(tabbedPane);
+        add(tabbedPane, BorderLayout.CENTER);
 
         createDumpsysPanel();
         tabbedPane.addTab("Dumpsys", null, dumpsysPanel, "Dumpsys");
@@ -73,17 +75,16 @@ public class DumpsysPanel extends EasyPanel {
 
     private void createDumpsysPanel() {
         dumpsysPanel = new JPanel();
-        BoxLayout layout = new BoxLayout(dumpsysPanel, BoxLayout.Y_AXIS);
-        dumpsysPanel.setLayout(layout);
-        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        dumpsysPanel.setLayout(new BoxLayout(dumpsysPanel, BoxLayout.Y_AXIS));
+        dumpsysPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createDumpsysTargetDirPanel();
-        dumpsysPanel.add(dumpsysTargetDirPanel);
-        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        dumpsysPanel.add(UiKit.formRow("Save Directory", dumpsysTargetDirPanel));
+        dumpsysPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createDumpsysOptionPanel();
         dumpsysPanel.add(dumpsysOptionPanel);
-        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        dumpsysPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createDumpsysOperationPanel();
         dumpsysPanel.add(dumpsysOperationPanel);
@@ -91,17 +92,16 @@ public class DumpsysPanel extends EasyPanel {
 
     private void createAnalysisPanel() {
         analysisPanel = new JPanel();
-        BoxLayout layout = new BoxLayout(analysisPanel, BoxLayout.Y_AXIS);
-        analysisPanel.setLayout(layout);
-        dumpsysPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        analysisPanel.setLayout(new BoxLayout(analysisPanel, BoxLayout.Y_AXIS));
+        analysisPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         createAnalysisTargetFilePanel();
-        analysisPanel.add(analysisFilePanel);
-        analysisPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        analysisPanel.add(UiKit.formRow("Source File", analysisFilePanel));
+        analysisPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createAnalysisOutputPanel();
         analysisPanel.add(analysisOutputScrollPane);
-        analysisPanel.add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));
+        analysisPanel.add(Box.createVerticalStrut(UiKit.GAP_MD));
 
         createAnalysisOperationPanel();
         analysisPanel.add(analysisOperationPanel);
@@ -124,14 +124,10 @@ public class DumpsysPanel extends EasyPanel {
     }
 
     private void createAnalysisOperationPanel() {
-        analysisOperationPanel = new JPanel();
-        BoxLayout boxLayout = new BoxLayout(analysisOperationPanel, BoxLayout.X_AXIS);
-        analysisOperationPanel.setLayout(boxLayout);
-
-        JButton analysisStartButton = new JButton("Start");
+        JButton analysisStartButton = UiKit.primaryButton("Start");
         analysisStartButton.setEnabled(true);
         analysisStartButton.addActionListener(new AnalysisStartButtonActionListener());
-        analysisOperationPanel.add(analysisStartButton);
+        analysisOperationPanel = UiKit.actionRow(analysisStartButton);
     }
 
     private void createDumpsysTargetDirPanel() {
